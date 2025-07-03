@@ -8,28 +8,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Plus, Save, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
+import { useAuth } from '@/hooks/useAuth';
+import { Database } from '@/integrations/supabase/types';
 
 interface RiskFormProps {
   onSuccess: () => void;
 }
 
 const RiskForm = ({ onSuccess }: RiskFormProps) => {
+  const { createRisk } = useSupabaseRiskData();
+  const { user } = useAuth();
+  
   const [formData, setFormData] = useState({
     codigo: '',
-    categoria: '',
-    descricaoRisco: '',
+    categoria: '' as Database['public']['Enums']['risk_category'] | '',
+    descricao_risco: '',
     causas: '',
     consequencias: '',
-    probabilidade: '',
-    impacto: '',
-    estrategia: '',
-    acoesMitigacao: '',
-    acoesContingencia: '',
-    responsavel: '',
+    probabilidade: '' as Database['public']['Enums']['risk_probability'] | '',
+    impacto: '' as Database['public']['Enums']['risk_impact'] | '',
+    estrategia: '' as Database['public']['Enums']['risk_strategy'] | '',
+    acoes_mitigacao: '',
+    acoes_contingencia: '',
+    responsavel_id: '',
     prazo: '',
-    status: '',
+    status: 'Identificado' as Database['public']['Enums']['risk_status'],
     observacoes: '',
-    projeto: ''
+    projeto_id: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,69 +47,87 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
     }));
   };
 
-  const calculateRiskLevel = () => {
+  const calculateRiskLevel = (): Database['public']['Enums']['risk_level'] => {
     const { probabilidade, impacto } = formData;
     
-    if (!probabilidade || !impacto) return '';
+    if (!probabilidade || !impacto) return 'Baixo';
     
-    const probScore = probabilidade === 'Alta' ? 3 : probabilidade === 'Média' ? 2 : 1;
-    const impactScore = impacto === 'Alto' ? 3 : impacto === 'Médio' ? 2 : 1;
+    const probScore = probabilidade === 'Muito Alta' ? 5 : probabilidade === 'Alta' ? 4 : probabilidade === 'Média' ? 3 : probabilidade === 'Baixa' ? 2 : 1;
+    const impactScore = impacto === 'Muito Alto' ? 5 : impacto === 'Alto' ? 4 : impacto === 'Médio' ? 3 : impacto === 'Baixo' ? 2 : 1;
     const riskScore = probScore * impactScore;
     
-    if (riskScore >= 6) return 'Alto';
-    if (riskScore >= 3) return 'Médio';
+    if (riskScore >= 16) return 'Crítico';
+    if (riskScore >= 9) return 'Alto';
+    if (riskScore >= 4) return 'Médio';
     return 'Baixo';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast.error('Você precisa estar logado para criar um risco');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       // Validação básica
-      if (!formData.codigo || !formData.descricaoRisco || !formData.probabilidade || !formData.impacto) {
+      if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');
         return;
       }
 
       // Calcular nível de risco automaticamente
-      const nivelRisco = calculateRiskLevel();
+      const nivel_risco = calculateRiskLevel();
       
       const riskData = {
-        ...formData,
-        nivelRisco,
-        dataIdentificacao: new Date().toISOString().split('T')[0],
-        id: Date.now().toString()
+        codigo: formData.codigo,
+        categoria: formData.categoria as Database['public']['Enums']['risk_category'],
+        descricao_risco: formData.descricao_risco,
+        causas: formData.causas || null,
+        consequencias: formData.consequencias || null,
+        probabilidade: formData.probabilidade as Database['public']['Enums']['risk_probability'],
+        impacto: formData.impacto as Database['public']['Enums']['risk_impact'],
+        nivel_risco,
+        estrategia: formData.estrategia as Database['public']['Enums']['risk_strategy'],
+        acoes_mitigacao: formData.acoes_mitigacao || null,
+        acoes_contingencia: formData.acoes_contingencia || null,
+        responsavel_id: formData.responsavel_id || null,
+        prazo: formData.prazo || null,
+        status: formData.status,
+        observacoes: formData.observacoes || null,
+        projeto_id: formData.projeto_id || null,
+        data_identificacao: new Date().toISOString().split('T')[0]
       };
 
-      // Simular salvamento
       console.log('Salvando risco:', riskData);
       
-      // Aqui seria a integração com Google Sheets ou API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await createRisk(riskData);
       
-      toast.success('Risco cadastrado com sucesso!');
-      
-      // Resetar formulário
-      setFormData({
-        codigo: '',
-        categoria: '',
-        descricaoRisco: '',
-        causas: '',
-        consequencias: '',
-        probabilidade: '',
-        impacto: '',
-        estrategia: '',
-        acoesMitigacao: '',
-        acoesContingencia: '',
-        responsavel: '',
-        prazo: '',
-        status: '',
-        observacoes: '',
-        projeto: ''
-      });
-      
-      onSuccess();
+      if (!result.error) {
+        // Resetar formulário
+        setFormData({
+          codigo: '',
+          categoria: '' as Database['public']['Enums']['risk_category'] | '',
+          descricao_risco: '',
+          causas: '',
+          consequencias: '',
+          probabilidade: '' as Database['public']['Enums']['risk_probability'] | '',
+          impacto: '' as Database['public']['Enums']['risk_impact'] | '',
+          estrategia: '' as Database['public']['Enums']['risk_strategy'] | '',
+          acoes_mitigacao: '',
+          acoes_contingencia: '',
+          responsavel_id: '',
+          prazo: '',
+          status: 'Identificado' as Database['public']['Enums']['risk_status'],
+          observacoes: '',
+          projeto_id: ''
+        });
+        
+        onSuccess();
+      }
       
     } catch (error) {
       console.error('Erro ao salvar risco:', error);
@@ -152,17 +176,18 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                     <SelectItem value="Operacional">Operacional</SelectItem>
                     <SelectItem value="Compliance">Compliance</SelectItem>
                     <SelectItem value="Estratégico">Estratégico</SelectItem>
+                    <SelectItem value="Regulatório">Regulatório</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="descricaoRisco">Descrição do Risco *</Label>
+              <Label htmlFor="descricao_risco">Descrição do Risco *</Label>
               <Textarea
-                id="descricaoRisco"
-                value={formData.descricaoRisco}
-                onChange={(e) => handleChange('descricaoRisco', e.target.value)}
+                id="descricao_risco"
+                value={formData.descricao_risco}
+                onChange={(e) => handleChange('descricao_risco', e.target.value)}
                 placeholder="Descreva detalhadamente o risco identificado..."
                 required
               />
@@ -202,9 +227,11 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Muito Baixa">Muito Baixa</SelectItem>
                       <SelectItem value="Baixa">Baixa</SelectItem>
                       <SelectItem value="Média">Média</SelectItem>
                       <SelectItem value="Alta">Alta</SelectItem>
+                      <SelectItem value="Muito Alta">Muito Alta</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -216,9 +243,11 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Muito Baixo">Muito Baixo</SelectItem>
                       <SelectItem value="Baixo">Baixo</SelectItem>
                       <SelectItem value="Médio">Médio</SelectItem>
                       <SelectItem value="Alto">Alto</SelectItem>
+                      <SelectItem value="Muito Alto">Muito Alto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -226,12 +255,12 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                 <div>
                   <Label>Nível de Risco (Calculado)</Label>
                   <div className={`p-3 rounded-md text-center font-semibold ${
-                    nivelRisco === 'Alto' ? 'bg-red-100 text-red-800' :
+                    nivelRisco === 'Crítico' ? 'bg-red-100 text-red-800' :
+                    nivelRisco === 'Alto' ? 'bg-orange-100 text-orange-800' :
                     nivelRisco === 'Médio' ? 'bg-yellow-100 text-yellow-800' :
-                    nivelRisco === 'Baixo' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
+                    'bg-green-100 text-green-800'
                   }`}>
-                    {nivelRisco || 'Não calculado'}
+                    {nivelRisco}
                   </div>
                 </div>
               </div>
@@ -243,7 +272,7 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="estrategia">Estratégia</Label>
+                  <Label htmlFor="estrategia">Estratégia *</Label>
                   <Select value={formData.estrategia} onValueChange={(value) => handleChange('estrategia', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a estratégia" />
@@ -258,21 +287,21 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="acoesMitigacao">Ações de Mitigação</Label>
+                  <Label htmlFor="acoes_mitigacao">Ações de Mitigação</Label>
                   <Textarea
-                    id="acoesMitigacao"
-                    value={formData.acoesMitigacao}
-                    onChange={(e) => handleChange('acoesMitigacao', e.target.value)}
+                    id="acoes_mitigacao"
+                    value={formData.acoes_mitigacao}
+                    onChange={(e) => handleChange('acoes_mitigacao', e.target.value)}
                     placeholder="Descreva as ações preventivas para reduzir a probabilidade ou impacto..."
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="acoesContingencia">Ações de Contingência</Label>
+                  <Label htmlFor="acoes_contingencia">Ações de Contingência</Label>
                   <Textarea
-                    id="acoesContingencia"
-                    value={formData.acoesContingencia}
-                    onChange={(e) => handleChange('acoesContingencia', e.target.value)}
+                    id="acoes_contingencia"
+                    value={formData.acoes_contingencia}
+                    onChange={(e) => handleChange('acoes_contingencia', e.target.value)}
                     placeholder="Descreva as ações a serem tomadas caso o risco se materialize..."
                   />
                 </div>
@@ -285,12 +314,12 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="responsavel">Responsável</Label>
+                  <Label htmlFor="responsavel_id">Responsável</Label>
                   <Input
-                    id="responsavel"
-                    value={formData.responsavel}
-                    onChange={(e) => handleChange('responsavel', e.target.value)}
-                    placeholder="Nome do responsável"
+                    id="responsavel_id"
+                    value={formData.responsavel_id}
+                    onChange={(e) => handleChange('responsavel_id', e.target.value)}
+                    placeholder="ID do responsável"
                   />
                 </div>
                 
@@ -312,28 +341,26 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Identificado">Identificado</SelectItem>
-                      <SelectItem value="Planejado">Planejado</SelectItem>
-                      <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                      <SelectItem value="Em Análise">Em Análise</SelectItem>
                       <SelectItem value="Em Monitoramento">Em Monitoramento</SelectItem>
+                      <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                       <SelectItem value="Mitigado">Mitigado</SelectItem>
-                      <SelectItem value="Ativo">Ativo</SelectItem>
+                      <SelectItem value="Aceito">Aceito</SelectItem>
+                      <SelectItem value="Transferido">Transferido</SelectItem>
+                      <SelectItem value="Eliminado">Eliminado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
               <div className="mt-4">
-                <Label htmlFor="projeto">Projeto</Label>
-                <Select value={formData.projeto} onValueChange={(value) => handleChange('projeto', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o projeto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="POA+SOCIAL">POA+SOCIAL</SelectItem>
-                    <SelectItem value="POA Digital">POA Digital</SelectItem>
-                    <SelectItem value="POA Social">POA Social</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="projeto_id">Projeto</Label>
+                <Input
+                  id="projeto_id"
+                  value={formData.projeto_id}
+                  onChange={(e) => handleChange('projeto_id', e.target.value)}
+                  placeholder="ID do projeto"
+                />
               </div>
               
               <div className="mt-4">
@@ -356,20 +383,20 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               <Button type="button" variant="outline" onClick={() => {
                 setFormData({
                   codigo: '',
-                  categoria: '',
-                  descricaoRisco: '',
+                  categoria: '' as Database['public']['Enums']['risk_category'] | '',
+                  descricao_risco: '',
                   causas: '',
                   consequencias: '',
-                  probabilidade: '',
-                  impacto: '',
-                  estrategia: '',
-                  acoesMitigacao: '',
-                  acoesContingencia: '',
-                  responsavel: '',
+                  probabilidade: '' as Database['public']['Enums']['risk_probability'] | '',
+                  impacto: '' as Database['public']['Enums']['risk_impact'] | '',
+                  estrategia: '' as Database['public']['Enums']['risk_strategy'] | '',
+                  acoes_mitigacao: '',
+                  acoes_contingencia: '',
+                  responsavel_id: '',
                   prazo: '',
-                  status: '',
+                  status: 'Identificado' as Database['public']['Enums']['risk_status'],
                   observacoes: '',
-                  projeto: ''
+                  projeto_id: ''
                 });
               }}>
                 Limpar Formulário
@@ -380,7 +407,7 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
       </Card>
 
       {/* Preview do Risco */}
-      {(formData.codigo || formData.descricaoRisco) && (
+      {(formData.codigo || formData.descricao_risco) && (
         <Card className="border-blue-200 bg-blue-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -392,15 +419,15 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
             <div className="space-y-2">
               <p><strong>Código:</strong> {formData.codigo}</p>
               <p><strong>Categoria:</strong> {formData.categoria}</p>
-              <p><strong>Descrição:</strong> {formData.descricaoRisco}</p>
+              <p><strong>Descrição:</strong> {formData.descricao_risco}</p>
               <p><strong>Nível de Risco:</strong> 
                 <span className={`ml-2 px-2 py-1 rounded text-sm font-semibold ${
-                  nivelRisco === 'Alto' ? 'bg-red-100 text-red-800' :
+                  nivelRisco === 'Crítico' ? 'bg-red-100 text-red-800' :
+                  nivelRisco === 'Alto' ? 'bg-orange-100 text-orange-800' :
                   nivelRisco === 'Médio' ? 'bg-yellow-100 text-yellow-800' :
-                  nivelRisco === 'Baixo' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
+                  'bg-green-100 text-green-800'
                 }`}>
-                  {nivelRisco || 'Não calculado'}
+                  {nivelRisco}
                 </span>
               </p>
             </div>
