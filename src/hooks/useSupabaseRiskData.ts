@@ -5,10 +5,28 @@ import { Database } from '@/integrations/supabase/types';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
+type ProfileBasic = {
+  id: string;
+  nome: string;
+  email: string;
+  cargo: string | null;
+  departamento: string | null;
+  role: Database['public']['Enums']['user_role'];
+  telefone: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ProjetoBasic = {
+  id: string;
+  nome: string;
+  descricao: string | null;
+};
+
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
-  responsavel?: Database['public']['Tables']['profiles']['Row'] | null;
-  projeto?: Database['public']['Tables']['projetos']['Row'] | null;
-  criador?: Database['public']['Tables']['profiles']['Row'] | null;
+  responsavel?: ProfileBasic | null;
+  projeto?: ProjetoBasic | null;
+  criador?: ProfileBasic | null;
 };
 
 type NewRisk = Database['public']['Tables']['riscos']['Insert'];
@@ -25,9 +43,9 @@ export const useSupabaseRiskData = () => {
         .from('riscos')
         .select(`
           *,
-          responsavel:profiles!riscos_responsavel_id_fkey(id, nome, email, cargo, departamento),
+          responsavel:profiles!riscos_responsavel_id_fkey(id, nome, email, cargo, departamento, role, telefone, created_at, updated_at),
           projeto:projetos(id, nome, descricao),
-          criador:profiles!riscos_criado_por_fkey(id, nome, email)
+          criador:profiles!riscos_criado_por_fkey(id, nome, email, cargo, departamento, role, telefone, created_at, updated_at)
         `)
         .order('created_at', { ascending: false });
 
