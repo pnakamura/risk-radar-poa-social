@@ -1,11 +1,131 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Dashboard from '@/components/risk-management/Dashboard';
+import RiskMatrix from '@/components/risk-management/RiskMatrix';
+import Reports from '@/components/risk-management/Reports';
+import RiskForm from '@/components/risk-management/RiskForm';
+import { useRiskData } from '@/hooks/useRiskData';
+import { AlertTriangle, Shield, TrendingUp, FileBarChart } from 'lucide-react';
 
 const Index = () => {
+  const { risks, loading, refreshData } = useRiskData();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-blue-600 rounded-lg">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Matriz de Risco do Programa - POA+SOCIAL
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Sistema de Gestão de Riscos conforme ISO 31000
+              </p>
+            </div>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-red-600 text-sm font-medium">Riscos Altos</p>
+                    <p className="text-2xl font-bold text-red-700">
+                      {risks.filter(r => r.nivelRisco === 'Alto').length}
+                    </p>
+                  </div>
+                  <AlertTriangle className="w-8 h-8 text-red-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-600 text-sm font-medium">Riscos Médios</p>
+                    <p className="text-2xl font-bold text-yellow-700">
+                      {risks.filter(r => r.nivelRisco === 'Médio').length}
+                    </p>
+                  </div>
+                  <AlertTriangle className="w-8 h-8 text-yellow-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-600 text-sm font-medium">Riscos Baixos</p>
+                    <p className="text-2xl font-bold text-green-700">
+                      {risks.filter(r => r.nivelRisco === 'Baixo').length}
+                    </p>
+                  </div>
+                  <AlertTriangle className="w-8 h-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-600 text-sm font-medium">Total de Riscos</p>
+                    <p className="text-2xl font-bold text-blue-700">{risks.length}</p>
+                  </div>
+                  <FileBarChart className="w-8 h-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-lg p-1">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="matrix" className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Matriz de Riscos
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <FileBarChart className="w-4 h-4" />
+              Relatórios
+            </TabsTrigger>
+            <TabsTrigger value="form" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Gerenciar Riscos
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard">
+            <Dashboard risks={risks} loading={loading} />
+          </TabsContent>
+
+          <TabsContent value="matrix">
+            <RiskMatrix risks={risks} loading={loading} />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <Reports risks={risks} loading={loading} />
+          </TabsContent>
+
+          <TabsContent value="form">
+            <RiskForm onSuccess={refreshData} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
