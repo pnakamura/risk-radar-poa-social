@@ -16,7 +16,7 @@ interface RiskFormProps {
 }
 
 const RiskForm = ({ onSuccess }: RiskFormProps) => {
-  const { createRisk } = useSupabaseRiskData();
+  const { createRisk, profiles, projects } = useSupabaseRiskData();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -61,11 +61,6 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
     return 'Baixo';
   };
 
-  const isValidUUID = (uuid: string): boolean => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -80,18 +75,6 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
       // Validação básica
       if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');
-        return;
-      }
-
-      // Validação de UUID para responsável_id
-      if (formData.responsavel_id && !isValidUUID(formData.responsavel_id)) {
-        toast.error('ID do responsável deve ser um UUID válido (formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)');
-        return;
-      }
-
-      // Validação de UUID para projeto_id
-      if (formData.projeto_id && !isValidUUID(formData.projeto_id)) {
-        toast.error('ID do projeto deve ser um UUID válido (formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)');
         return;
       }
 
@@ -326,16 +309,20 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="responsavel_id">Responsável (UUID)</Label>
-                  <Input
-                    id="responsavel_id"
-                    value={formData.responsavel_id}
-                    onChange={(e) => handleChange('responsavel_id', e.target.value)}
-                    placeholder="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Formato UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-                  </p>
+                  <Label htmlFor="responsavel_id">Responsável</Label>
+                  <Select value={formData.responsavel_id} onValueChange={(value) => handleChange('responsavel_id', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum responsável</SelectItem>
+                      {profiles.map((profile) => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {profile.nome} - {profile.cargo || 'Sem cargo'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
@@ -369,16 +356,20 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               </div>
               
               <div className="mt-4">
-                <Label htmlFor="projeto_id">Projeto (UUID)</Label>
-                <Input
-                  id="projeto_id"
-                  value={formData.projeto_id}
-                  onChange={(e) => handleChange('projeto_id', e.target.value)}
-                  placeholder="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Formato UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-                </p>
+                <Label htmlFor="projeto_id">Projeto</Label>
+                <Select value={formData.projeto_id} onValueChange={(value) => handleChange('projeto_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um projeto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum projeto</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="mt-4">

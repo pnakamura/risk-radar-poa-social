@@ -33,8 +33,44 @@ type NewRisk = Database['public']['Tables']['riscos']['Insert'];
 
 export const useSupabaseRiskData = () => {
   const [risks, setRisks] = useState<Risk[]>([]);
+  const [profiles, setProfiles] = useState<ProfileBasic[]>([]);
+  const [projects, setProjects] = useState<ProjetoBasic[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const fetchProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nome, email, cargo, departamento, role, telefone, created_at, updated_at')
+        .order('nome');
+
+      if (error) {
+        console.error('Erro ao buscar perfis:', error);
+      } else {
+        setProfiles(data || []);
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao buscar perfis:', error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projetos')
+        .select('id, nome, descricao')
+        .order('nome');
+
+      if (error) {
+        console.error('Erro ao buscar projetos:', error);
+      } else {
+        setProjects(data || []);
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao buscar projetos:', error);
+    }
+  };
 
   const fetchRisks = async () => {
     setLoading(true);
@@ -146,6 +182,8 @@ export const useSupabaseRiskData = () => {
   useEffect(() => {
     if (user) {
       fetchRisks();
+      fetchProfiles();
+      fetchProjects();
     }
   }, [user]);
 
@@ -175,6 +213,8 @@ export const useSupabaseRiskData = () => {
 
   return {
     risks,
+    profiles,
+    projects,
     loading,
     refreshData,
     createRisk,
