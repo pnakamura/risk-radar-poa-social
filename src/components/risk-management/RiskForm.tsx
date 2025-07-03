@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,6 +61,11 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
     return 'Baixo';
   };
 
+  const isValidUUID = (uuid: string): boolean => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -76,6 +80,18 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
       // Validação básica
       if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');
+        return;
+      }
+
+      // Validação de UUID para responsável_id
+      if (formData.responsavel_id && !isValidUUID(formData.responsavel_id)) {
+        toast.error('ID do responsável deve ser um UUID válido (formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)');
+        return;
+      }
+
+      // Validação de UUID para projeto_id
+      if (formData.projeto_id && !isValidUUID(formData.projeto_id)) {
+        toast.error('ID do projeto deve ser um UUID válido (formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)');
         return;
       }
 
@@ -150,7 +166,6 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informações Básicas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="codigo">Código do Risco *</Label>
@@ -215,7 +230,6 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               </div>
             </div>
 
-            {/* Avaliação de Risco */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4">Avaliação de Risco</h3>
               
@@ -266,7 +280,6 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               </div>
             </div>
 
-            {/* Estratégias de Resposta */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4">Estratégias de Resposta</h3>
               
@@ -308,19 +321,21 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               </div>
             </div>
 
-            {/* Informações de Controle */}
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4">Informações de Controle</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="responsavel_id">Responsável</Label>
+                  <Label htmlFor="responsavel_id">Responsável (UUID)</Label>
                   <Input
                     id="responsavel_id"
                     value={formData.responsavel_id}
                     onChange={(e) => handleChange('responsavel_id', e.target.value)}
-                    placeholder="ID do responsável"
+                    placeholder="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Formato UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+                  </p>
                 </div>
                 
                 <div>
@@ -354,13 +369,16 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
               </div>
               
               <div className="mt-4">
-                <Label htmlFor="projeto_id">Projeto</Label>
+                <Label htmlFor="projeto_id">Projeto (UUID)</Label>
                 <Input
                   id="projeto_id"
                   value={formData.projeto_id}
                   onChange={(e) => handleChange('projeto_id', e.target.value)}
-                  placeholder="ID do projeto"
+                  placeholder="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  Formato UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+                </p>
               </div>
               
               <div className="mt-4">
