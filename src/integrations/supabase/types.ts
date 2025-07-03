@@ -9,16 +9,273 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          cargo: string | null
+          created_at: string
+          departamento: string | null
+          email: string
+          id: string
+          nome: string
+          role: Database["public"]["Enums"]["user_role"]
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo?: string | null
+          created_at?: string
+          departamento?: string | null
+          email: string
+          id: string
+          nome: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string | null
+          created_at?: string
+          departamento?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projetos: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          gestor_id: string | null
+          id: string
+          nome: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          gestor_id?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          gestor_id?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projetos_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      riscos: {
+        Row: {
+          acoes_contingencia: string | null
+          acoes_mitigacao: string | null
+          categoria: Database["public"]["Enums"]["risk_category"]
+          causas: string | null
+          codigo: string
+          consequencias: string | null
+          created_at: string
+          criado_por: string
+          data_identificacao: string
+          descricao_risco: string
+          estrategia: Database["public"]["Enums"]["risk_strategy"]
+          id: string
+          impacto: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco: Database["public"]["Enums"]["risk_level"]
+          observacoes: string | null
+          prazo: string | null
+          probabilidade: Database["public"]["Enums"]["risk_probability"]
+          projeto_id: string | null
+          responsavel_id: string | null
+          status: Database["public"]["Enums"]["risk_status"]
+          updated_at: string
+        }
+        Insert: {
+          acoes_contingencia?: string | null
+          acoes_mitigacao?: string | null
+          categoria: Database["public"]["Enums"]["risk_category"]
+          causas?: string | null
+          codigo: string
+          consequencias?: string | null
+          created_at?: string
+          criado_por: string
+          data_identificacao?: string
+          descricao_risco: string
+          estrategia: Database["public"]["Enums"]["risk_strategy"]
+          id?: string
+          impacto: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco: Database["public"]["Enums"]["risk_level"]
+          observacoes?: string | null
+          prazo?: string | null
+          probabilidade: Database["public"]["Enums"]["risk_probability"]
+          projeto_id?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["risk_status"]
+          updated_at?: string
+        }
+        Update: {
+          acoes_contingencia?: string | null
+          acoes_mitigacao?: string | null
+          categoria?: Database["public"]["Enums"]["risk_category"]
+          causas?: string | null
+          codigo?: string
+          consequencias?: string | null
+          created_at?: string
+          criado_por?: string
+          data_identificacao?: string
+          descricao_risco?: string
+          estrategia?: Database["public"]["Enums"]["risk_strategy"]
+          id?: string
+          impacto?: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco?: Database["public"]["Enums"]["risk_level"]
+          observacoes?: string | null
+          prazo?: string | null
+          probabilidade?: Database["public"]["Enums"]["risk_probability"]
+          projeto_id?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["risk_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riscos_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "riscos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "riscos_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      riscos_historico: {
+        Row: {
+          acao: string
+          created_at: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          id: string
+          observacoes: string | null
+          risco_id: string
+          usuario_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          id?: string
+          observacoes?: string | null
+          risco_id: string
+          usuario_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          id?: string
+          observacoes?: string | null
+          risco_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riscos_historico_risco_id_fkey"
+            columns: ["risco_id"]
+            isOneToOne: false
+            referencedRelation: "riscos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "riscos_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
+      is_admin_or_gestor: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      risk_category:
+        | "Tecnologia"
+        | "Recursos Humanos"
+        | "Financeiro"
+        | "Operacional"
+        | "Compliance"
+        | "Estratégico"
+        | "Regulatório"
+      risk_impact: "Muito Baixo" | "Baixo" | "Médio" | "Alto" | "Muito Alto"
+      risk_level: "Baixo" | "Médio" | "Alto" | "Crítico"
+      risk_probability:
+        | "Muito Baixa"
+        | "Baixa"
+        | "Média"
+        | "Alta"
+        | "Muito Alta"
+      risk_status:
+        | "Identificado"
+        | "Em Análise"
+        | "Em Monitoramento"
+        | "Em Andamento"
+        | "Mitigado"
+        | "Aceito"
+        | "Transferido"
+        | "Eliminado"
+      risk_strategy: "Mitigar" | "Aceitar" | "Transferir" | "Evitar"
+      user_role: "admin" | "gestor" | "analista" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +390,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      risk_category: [
+        "Tecnologia",
+        "Recursos Humanos",
+        "Financeiro",
+        "Operacional",
+        "Compliance",
+        "Estratégico",
+        "Regulatório",
+      ],
+      risk_impact: ["Muito Baixo", "Baixo", "Médio", "Alto", "Muito Alto"],
+      risk_level: ["Baixo", "Médio", "Alto", "Crítico"],
+      risk_probability: ["Muito Baixa", "Baixa", "Média", "Alta", "Muito Alta"],
+      risk_status: [
+        "Identificado",
+        "Em Análise",
+        "Em Monitoramento",
+        "Em Andamento",
+        "Mitigado",
+        "Aceito",
+        "Transferido",
+        "Eliminado",
+      ],
+      risk_strategy: ["Mitigar", "Aceitar", "Transferir", "Evitar"],
+      user_role: ["admin", "gestor", "analista", "visualizador"],
+    },
   },
 } as const

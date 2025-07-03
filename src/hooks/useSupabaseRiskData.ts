@@ -1,0 +1,164 @@
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
+
+type Risk = Database['public']['Tables']['riscos']['Row'] & {
+  responsavel?: Database['public']['Tables']['profiles']['Row'];
+  projeto?: Database['public']['Tables']['projetos']['Row'];
+  criador?: Database['public']['Tables']['profiles']['Row'];
+};
+
+type NewRisk = Database['public']['Tables']['riscos']['Insert'];
+
+export const useSupabaseRiskData = () => {
+  const [risks, setRisks] = useState<Risk[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  const fetchRisks = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('riscos')
+        .select(`
+          *,
+          responsavel:responsavel_id(id, nome, email, cargo, departamento),
+          projeto:projeto_id(id, nome, descricao),
+          criador:criado_por(id, nome, email)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error('Erro ao carregar riscos: ' + error.message);
+        console.error('Erro ao buscar riscos:', error);
+      } else {
+        setRisks(data || []);
+      }
+    } catch (error) {
+      toast.error('Erro inesperado ao carregar riscos');
+      console.error('Erro inesperado:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createRisk = async (riskData: Omit<NewRisk, 'criado_por'>) => {
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return { error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('riscos')
+        .insert({
+          ...riskData,
+          criado_por: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        toast.error('Erro ao criar risco: ' + error.message);
+        return { error };
+      }
+
+      toast.success('Risco criado com sucesso!');
+      await fetchRisks(); // Recarregar a lista
+      return { data, error: null };
+    } catch (error) {
+      toast.error('Erro inesperado ao criar risco');
+      return { error };
+    }
+  };
+
+  const updateRisk = async (id: string, updates: Partial<NewRisk>) => {
+    try {
+      const { data, error } = await supabase
+        .from('riscos')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        toast.error('Erro ao atualizar risco: ' + error.message);
+        return { error };
+      }
+
+      toast.success('Risco atualizado com sucesso!');
+      await fetchRisks(); // Recarregar a lista
+      return { data, error: null };
+    } catch (error) {
+      toast.error('Erro inesperado ao atualizar risco');
+      return { error };
+    }
+  };
+
+  const deleteRisk = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('riscos')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        toast.error('Erro ao deletar risco: ' + error.message);
+        return { error };
+      }
+
+      toast.success('Risco deletado com sucesso!');
+      await fetchRisks(); // Recarregar a lista
+      return { error: null };
+    } catch (error) {
+      toast.error('Erro inesperado ao deletar risco');
+      return { error };
+    }
+  };
+
+  const refreshData = () => {
+    fetchRisks();
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchRisks();
+    }
+  }, [user]);
+
+  // Configurar realtime updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('riscos-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'riscos'
+        },
+        () => {
+          fetchRisks(); // Recarregar quando houver mudanças
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  return {
+    risks,
+    loading,
+    refreshData,
+    createRisk,
+    updateRisk,
+    deleteRisk,
+  };
+};

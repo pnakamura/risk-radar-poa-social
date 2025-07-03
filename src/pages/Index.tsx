@@ -1,33 +1,47 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Dashboard from '@/components/risk-management/Dashboard';
 import RiskMatrix from '@/components/risk-management/RiskMatrix';
 import Reports from '@/components/risk-management/Reports';
 import RiskForm from '@/components/risk-management/RiskForm';
-import { useRiskData } from '@/hooks/useRiskData';
+import { UserMenu } from '@/components/layout/UserMenu';
+import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
+import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle, Shield, TrendingUp, FileBarChart } from 'lucide-react';
 
 const Index = () => {
-  const { risks, loading, refreshData } = useRiskData();
+  const { risks, loading, refreshData } = useSupabaseRiskData();
+  const { profile } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <Shield className="w-8 h-8 text-white" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-600 rounded-lg">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Matriz de Risco do Programa - POA+SOCIAL
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Sistema de Gestão de Riscos conforme ISO 31000
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Matriz de Risco do Programa - POA+SOCIAL
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Sistema de Gestão de Riscos conforme ISO 31000
-              </p>
+            <div className="flex items-center gap-4">
+              {profile && (
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Bem-vindo,</p>
+                  <p className="font-medium">{profile.nome}</p>
+                </div>
+              )}
+              <UserMenu />
             </div>
           </div>
           
@@ -39,7 +53,7 @@ const Index = () => {
                   <div>
                     <p className="text-red-600 text-sm font-medium">Riscos Altos</p>
                     <p className="text-2xl font-bold text-red-700">
-                      {risks.filter(r => r.nivelRisco === 'Alto').length}
+                      {risks.filter(r => r.nivel_risco === 'Alto').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -53,7 +67,7 @@ const Index = () => {
                   <div>
                     <p className="text-yellow-600 text-sm font-medium">Riscos Médios</p>
                     <p className="text-2xl font-bold text-yellow-700">
-                      {risks.filter(r => r.nivelRisco === 'Médio').length}
+                      {risks.filter(r => r.nivel_risco === 'Médio').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-yellow-500" />
@@ -67,7 +81,7 @@ const Index = () => {
                   <div>
                     <p className="text-green-600 text-sm font-medium">Riscos Baixos</p>
                     <p className="text-2xl font-bold text-green-700">
-                      {risks.filter(r => r.nivelRisco === 'Baixo').length}
+                      {risks.filter(r => r.nivel_risco === 'Baixo').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-green-500" />
