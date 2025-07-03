@@ -6,9 +6,9 @@ import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
-  responsavel?: Database['public']['Tables']['profiles']['Row'];
-  projeto?: Database['public']['Tables']['projetos']['Row'];
-  criador?: Database['public']['Tables']['profiles']['Row'];
+  responsavel?: Database['public']['Tables']['profiles']['Row'] | null;
+  projeto?: Database['public']['Tables']['projetos']['Row'] | null;
+  criador?: Database['public']['Tables']['profiles']['Row'] | null;
 };
 
 type NewRisk = Database['public']['Tables']['riscos']['Insert'];
@@ -25,21 +25,23 @@ export const useSupabaseRiskData = () => {
         .from('riscos')
         .select(`
           *,
-          responsavel:responsavel_id(id, nome, email, cargo, departamento),
-          projeto:projeto_id(id, nome, descricao),
-          criador:criado_por(id, nome, email)
+          responsavel:profiles!riscos_responsavel_id_fkey(id, nome, email, cargo, departamento),
+          projeto:projetos(id, nome, descricao),
+          criador:profiles!riscos_criado_por_fkey(id, nome, email)
         `)
         .order('created_at', { ascending: false });
 
       if (error) {
         toast.error('Erro ao carregar riscos: ' + error.message);
         console.error('Erro ao buscar riscos:', error);
+        setRisks([]);
       } else {
         setRisks(data || []);
       }
     } catch (error) {
       toast.error('Erro inesperado ao carregar riscos');
       console.error('Erro inesperado:', error);
+      setRisks([]);
     } finally {
       setLoading(false);
     }

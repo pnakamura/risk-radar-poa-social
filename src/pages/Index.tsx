@@ -15,6 +15,31 @@ const Index = () => {
   const { risks, loading, refreshData } = useSupabaseRiskData();
   const { profile } = useAuth();
 
+  // Mapear os dados do Supabase para o formato esperado pelos componentes
+  const mappedRisks = risks.map(risk => ({
+    id: risk.id,
+    codigo: risk.codigo,
+    categoria: risk.categoria,
+    descricaoRisco: risk.descricao_risco,
+    causas: risk.causas || '',
+    consequencias: risk.consequencias || '',
+    probabilidade: risk.probabilidade,
+    impacto: risk.impacto,
+    nivelRisco: risk.nivel_risco,
+    estrategia: risk.estrategia,
+    acoesMitigacao: risk.acoes_mitigacao || '',
+    acoesContingencia: risk.acoes_contingencia || '',
+    responsavel: risk.responsavel?.nome || '',
+    prazo: risk.prazo || '',
+    status: risk.status,
+    observacoes: risk.observacoes || '',
+    dataIdentificacao: risk.data_identificacao,
+    projeto: risk.projeto?.nome || '',
+    criadoPor: risk.criador?.nome || '',
+    createdAt: risk.created_at,
+    updatedAt: risk.updated_at
+  }));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-6">
@@ -53,7 +78,7 @@ const Index = () => {
                   <div>
                     <p className="text-red-600 text-sm font-medium">Riscos Altos</p>
                     <p className="text-2xl font-bold text-red-700">
-                      {risks.filter(r => r.nivel_risco === 'Alto').length}
+                      {mappedRisks.filter(r => r.nivelRisco === 'Alto').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -67,7 +92,7 @@ const Index = () => {
                   <div>
                     <p className="text-yellow-600 text-sm font-medium">Riscos Médios</p>
                     <p className="text-2xl font-bold text-yellow-700">
-                      {risks.filter(r => r.nivel_risco === 'Médio').length}
+                      {mappedRisks.filter(r => r.nivelRisco === 'Médio').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-yellow-500" />
@@ -81,7 +106,7 @@ const Index = () => {
                   <div>
                     <p className="text-green-600 text-sm font-medium">Riscos Baixos</p>
                     <p className="text-2xl font-bold text-green-700">
-                      {risks.filter(r => r.nivel_risco === 'Baixo').length}
+                      {mappedRisks.filter(r => r.nivelRisco === 'Baixo').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-green-500" />
@@ -94,7 +119,7 @@ const Index = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-blue-600 text-sm font-medium">Total de Riscos</p>
-                    <p className="text-2xl font-bold text-blue-700">{risks.length}</p>
+                    <p className="text-2xl font-bold text-blue-700">{mappedRisks.length}</p>
                   </div>
                   <FileBarChart className="w-8 h-8 text-blue-500" />
                 </div>
@@ -125,15 +150,15 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard">
-            <Dashboard risks={risks} loading={loading} />
+            <Dashboard risks={mappedRisks} loading={loading} />
           </TabsContent>
 
           <TabsContent value="matrix">
-            <RiskMatrix risks={risks} loading={loading} />
+            <RiskMatrix risks={mappedRisks} loading={loading} />
           </TabsContent>
 
           <TabsContent value="reports">
-            <Reports risks={risks} loading={loading} />
+            <Reports risks={mappedRisks} loading={loading} />
           </TabsContent>
 
           <TabsContent value="form">
