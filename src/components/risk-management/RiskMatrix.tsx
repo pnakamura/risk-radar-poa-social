@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +25,10 @@ type Risk = Database['public']['Tables']['riscos']['Row'] & {
 interface RiskMatrixProps {
   risks: Risk[];
   loading: boolean;
+  onRefresh: () => void;
 }
 
-const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
+const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
@@ -169,6 +169,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
     await Promise.all(promises);
     setSelectedRisks(new Set());
     toast.success(`${selectedRisks.size} riscos arquivados com sucesso!`);
+    onRefresh();
   };
 
   const handleDeleteRisk = async () => {
@@ -177,6 +178,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
     const success = await removeRisk(deletingRisk.id);
     if (success) {
       setDeletingRisk(null);
+      onRefresh();
     }
   };
 
@@ -599,7 +601,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
         isOpen={!!editingRisk}
         onClose={() => setEditingRisk(null)}
         onSuccess={() => {
-          // Refresh será feito automaticamente pelo hook
+          onRefresh();
         }}
       />
 
