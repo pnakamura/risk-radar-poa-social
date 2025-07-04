@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -650,7 +651,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
       )}
 
       {/* Modais */}
-      {console.log('About to render RiskEditModal with:', { editingRisk: editingRisk?.id, isOpen: !!editingRisk })}
       <RiskEditModal
         risk={editingRisk}
         isOpen={!!editingRisk}
