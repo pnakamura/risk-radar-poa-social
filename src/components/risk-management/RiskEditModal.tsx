@@ -32,11 +32,12 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
   const [formData, setFormData] = useState<Partial<Risk>>({});
 
   useEffect(() => {
-    if (risk) {
+    if (risk && isOpen) {
+      console.log('Setting form data for risk:', risk);
       setFormData({
-        codigo: risk.codigo,
+        codigo: risk.codigo || '',
         categoria: risk.categoria,
-        descricao_risco: risk.descricao_risco,
+        descricao_risco: risk.descricao_risco || '',
         causas: risk.causas || '',
         consequencias: risk.consequencias || '',
         probabilidade: risk.probabilidade,
@@ -51,11 +52,13 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
         observacoes: risk.observacoes || ''
       });
     }
-  }, [risk]);
+  }, [risk, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!risk) return;
+
+    console.log('Submitting form with data:', formData);
 
     // Calcular novo nível de risco se probabilidade ou impacto mudaram
     const nivel_risco = calculateRiskLevel(
@@ -79,13 +82,25 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
   };
 
   const handleChange = (field: string, value: string) => {
+    console.log(`Changing ${field} to:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  if (!risk) return null;
+  const handleClose = () => {
+    console.log('Closing modal');
+    setFormData({});
+    onClose();
+  };
+
+  if (!risk) {
+    console.log('No risk provided, not rendering modal');
+    return null;
+  }
+
+  console.log('Rendering modal with isOpen:', isOpen, 'risk:', risk);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Risco - {risk.codigo}</DialogTitle>
@@ -106,7 +121,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="categoria">Categoria</Label>
               <Select 
-                value={formData.categoria as string} 
+                value={formData.categoria as string || ''} 
                 onValueChange={(value) => handleChange('categoria', value)}
               >
                 <SelectTrigger>
@@ -134,9 +149,31 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <Label htmlFor="causas">Causas</Label>
+              <Textarea
+                id="causas"
+                value={formData.causas || ''}
+                onChange={(e) => handleChange('causas', e.target.value)}
+                rows={2}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="consequencias">Consequências</Label>
+              <Textarea
+                id="consequencias"
+                value={formData.consequencias || ''}
+                onChange={(e) => handleChange('consequencias', e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="probabilidade">Probabilidade</Label>
               <Select 
-                value={formData.probabilidade as string} 
+                value={formData.probabilidade as string || ''} 
                 onValueChange={(value) => handleChange('probabilidade', value)}
               >
                 <SelectTrigger>
@@ -153,7 +190,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="impacto">Impacto</Label>
               <Select 
-                value={formData.impacto as string} 
+                value={formData.impacto as string || ''} 
                 onValueChange={(value) => handleChange('impacto', value)}
               >
                 <SelectTrigger>
@@ -172,7 +209,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="estrategia">Estratégia</Label>
               <Select 
-                value={formData.estrategia as string} 
+                value={formData.estrategia as string || ''} 
                 onValueChange={(value) => handleChange('estrategia', value)}
               >
                 <SelectTrigger>
@@ -189,7 +226,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="status">Status</Label>
               <Select 
-                value={formData.status as string} 
+                value={formData.status as string || ''} 
                 onValueChange={(value) => handleChange('status', value)}
               >
                 <SelectTrigger>
@@ -208,7 +245,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="responsavel_id">Responsável</Label>
               <Select 
-                value={formData.responsavel_id as string} 
+                value={formData.responsavel_id as string || ''} 
                 onValueChange={(value) => handleChange('responsavel_id', value)}
               >
                 <SelectTrigger>
@@ -226,7 +263,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="projeto_id">Projeto</Label>
               <Select 
-                value={formData.projeto_id as string} 
+                value={formData.projeto_id as string || ''} 
                 onValueChange={(value) => handleChange('projeto_id', value)}
               >
                 <SelectTrigger>
@@ -263,6 +300,16 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           <div>
+            <Label htmlFor="acoes_contingencia">Ações de Contingência</Label>
+            <Textarea
+              id="acoes_contingencia"
+              value={formData.acoes_contingencia || ''}
+              onChange={(e) => handleChange('acoes_contingencia', e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div>
             <Label htmlFor="observacoes">Observações</Label>
             <Textarea
               id="observacoes"
@@ -273,7 +320,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>

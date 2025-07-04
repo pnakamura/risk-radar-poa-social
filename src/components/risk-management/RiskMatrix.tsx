@@ -213,6 +213,22 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     toast.success('Arquivo CSV exportado com sucesso!');
   };
 
+  const handleEditRisk = (risk: Risk) => {
+    console.log('Opening edit modal for risk:', risk);
+    setEditingRisk(risk);
+  };
+
+  const handleCloseEditModal = () => {
+    console.log('Closing edit modal');
+    setEditingRisk(null);
+  };
+
+  const handleEditSuccess = () => {
+    console.log('Edit successful, refreshing data');
+    onRefresh();
+    setEditingRisk(null);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header com contador e controles */}
@@ -438,7 +454,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setEditingRisk(risk)}>
+                              <DropdownMenuItem onClick={() => handleEditRisk(risk)}>
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
@@ -564,6 +580,38 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                         }
                       </Button>
 
+                      {/* Ações para mobile */}
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditRisk(risk)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Editar
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => archiveRisk(risk.id, true)}>
+                              <Archive className="w-4 h-4 mr-2" />
+                              Arquivar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => setDeletingRisk(risk)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
                       {/* Detalhes expandidos */}
                       {expandedRisk === risk.id && (
                         <div className="pt-3 border-t space-y-2 text-sm">
@@ -599,10 +647,8 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
       <RiskEditModal
         risk={editingRisk}
         isOpen={!!editingRisk}
-        onClose={() => setEditingRisk(null)}
-        onSuccess={() => {
-          onRefresh();
-        }}
+        onClose={handleCloseEditModal}
+        onSuccess={handleEditSuccess}
       />
 
       <ConfirmDialog
