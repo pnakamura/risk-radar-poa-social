@@ -26,7 +26,7 @@ export interface RiskFormData {
 
 export const useRiskForm = (onSuccess: () => void) => {
   const { createRisk } = useSupabaseRiskData();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   const [formData, setFormData] = useState<RiskFormData>({
     codigo: '',
@@ -88,6 +88,22 @@ export const useRiskForm = (onSuccess: () => void) => {
       return;
     }
 
+    // Verificar se o perfil do usuário tem permissão
+    if (!profile) {
+      toast.error('Perfil de usuário não encontrado. Faça logout e login novamente.');
+      return;
+    }
+
+    console.log('User profile:', profile);
+    console.log('User role:', profile.role);
+
+    // Verificar se o usuário tem uma role adequada
+    const allowedRoles = ['admin', 'gestor', 'analista'];
+    if (!allowedRoles.includes(profile.role)) {
+      toast.error(`Você não tem permissão para criar riscos. Sua role atual é: ${profile.role}. Roles permitidas: ${allowedRoles.join(', ')}`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -118,10 +134,11 @@ export const useRiskForm = (onSuccess: () => void) => {
         status: formData.status,
         observacoes: formData.observacoes || null,
         projeto_id: formData.projeto_id || null,
-        data_identificacao: new Date().toISOString().split('T')[0]
+        data_identificacao: new Date().toISOString().split('T')[0],
+        criado_por: user.id // Garantir que o criado_por seja definido
       };
 
-      console.log('Salvando risco:', riskData);
+      console.log('Dados do risco a serem salvos:', riskData);
       
       const result = await createRisk(riskData);
       
@@ -132,7 +149,15 @@ export const useRiskForm = (onSuccess: () => void) => {
       
     } catch (error) {
       console.error('Erro ao salvar risco:', error);
-      toast.error('Erro ao salvar o risco. Tente novamente.');
+      if (error instanceof Error) {
+        if (error.message.includes('row-level security policy')) {
+          toast.error(`Erro de permissão: Sua role (${profile.role}) não tem permissão para criar riscos. Entre em contato com o administrador.`);
+        } else {
+          toast.error('Erro ao salvar o risco: ' + error.message);
+        }
+      } else {
+        toast.error('Erro inesperado ao salvar o risco.');
+      }
     } finally {
       setIsSubmitting(false);
     }

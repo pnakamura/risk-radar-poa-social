@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
@@ -111,7 +110,7 @@ export const useSupabaseRiskData = () => {
     }
   };
 
-  const createRisk = async (riskData: Omit<NewRisk, 'criado_por'>) => {
+  const createRisk = async (riskData: NewRisk) => {
     if (!user) {
       toast.error('Usuário não autenticado');
       return { error: 'Usuário não autenticado' };
@@ -119,18 +118,32 @@ export const useSupabaseRiskData = () => {
 
     try {
       console.log('Creating risk with data:', riskData);
+      
+      // Garantir que criado_por está definido
+      const dataWithCreator = {
+        ...riskData,
+        criado_por: user.id,
+      };
+
+      console.log('Final risk data with creator:', dataWithCreator);
+
       const { data, error } = await supabase
         .from('riscos')
-        .insert({
-          ...riskData,
-          criado_por: user.id,
-        })
+        .insert(dataWithCreator)
         .select()
         .single();
 
       if (error) {
-        console.error('Erro ao criar risco:', error);
-        toast.error('Erro ao criar risco: ' + error.message);
+        console.error('Erro detalhado ao criar risco:', error);
+        
+        // Mensagens de erro mais específicas
+        if (error.message.includes('row-level security policy')) {
+          toast.error('Erro de permissão: Você não tem autorização para criar riscos. Verifique sua role de usuário.');
+        } else if (error.message.includes('violates unique constraint')) {
+          toast.error('Erro: Já existe um risco com este código.');
+        } else {
+          toast.error('Erro ao criar risco: ' + error.message);
+        }
         return { error };
       }
 
