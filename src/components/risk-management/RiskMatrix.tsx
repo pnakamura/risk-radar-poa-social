@@ -29,6 +29,9 @@ interface RiskMatrixProps {
 }
 
 const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
+  console.log('RiskMatrix rendering with risks:', risks.length, 'loading:', loading);
+
+  // State para filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
@@ -47,6 +50,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   const { archiveRisk, removeRisk, isLoading } = useRiskActions();
 
   if (loading) {
+    console.log('RiskMatrix showing loading state');
     return (
       <div className="space-y-4">
         <div className="animate-pulse">
@@ -103,6 +107,8 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
         return aValue < bValue ? 1 : -1;
       }
     });
+
+  console.log('Filtered risks:', filteredAndSortedRisks.length);
 
   // Obter valores únicos para filtros
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
@@ -214,7 +220,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   };
 
   const handleEditRisk = (risk: Risk) => {
-    console.log('Opening edit modal for risk:', risk);
+    console.log('Opening edit modal for risk:', risk.id, risk.codigo);
     setEditingRisk(risk);
   };
 
@@ -644,6 +650,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
       )}
 
       {/* Modais */}
+      {console.log('About to render RiskEditModal with:', { editingRisk: editingRisk?.id, isOpen: !!editingRisk })}
       <RiskEditModal
         risk={editingRisk}
         isOpen={!!editingRisk}

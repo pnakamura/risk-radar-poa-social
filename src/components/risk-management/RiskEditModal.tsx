@@ -31,6 +31,8 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
   const { profiles, projects } = useSupabaseRiskData();
   const [formData, setFormData] = useState<Partial<Risk>>({});
 
+  console.log('RiskEditModal render - isOpen:', isOpen, 'risk:', risk);
+
   useEffect(() => {
     if (risk && isOpen) {
       console.log('Setting form data for risk:', risk);
@@ -45,12 +47,15 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
         estrategia: risk.estrategia,
         acoes_mitigacao: risk.acoes_mitigacao || '',
         acoes_contingencia: risk.acoes_contingencia || '',
-        responsavel_id: risk.responsavel_id || '',
-        projeto_id: risk.projeto_id || '',
+        responsavel_id: risk.responsavel_id || null,
+        projeto_id: risk.projeto_id || null,
         prazo: risk.prazo || '',
         status: risk.status,
         observacoes: risk.observacoes || ''
       });
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setFormData({});
     }
   }, [risk, isOpen]);
 
@@ -74,14 +79,17 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
       prazo: formData.prazo || null
     };
 
+    console.log('Final updates to send:', updates);
+
     const success = await editRisk(risk.id, updates);
     if (success) {
+      console.log('Edit successful, calling onSuccess');
       onSuccess();
       onClose();
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | null) => {
     console.log(`Changing ${field} to:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -93,12 +101,13 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
     }
   };
 
+  // Don't render if no risk provided
   if (!risk) {
     console.log('No risk provided, not rendering modal');
     return null;
   }
 
-  console.log('Rendering modal with isOpen:', isOpen, 'risk:', risk);
+  console.log('Rendering modal with profiles:', profiles.length, 'projects:', projects.length);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -246,14 +255,14 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="responsavel_id">Responsável</Label>
               <Select 
-                value={formData.responsavel_id as string || ''} 
-                onValueChange={(value) => handleChange('responsavel_id', value)}
+                value={formData.responsavel_id as string || 'none'} 
+                onValueChange={(value) => handleChange('responsavel_id', value === 'none' ? null : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o responsável" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {profiles.map(profile => (
                     <SelectItem key={profile.id} value={profile.id}>{profile.nome}</SelectItem>
                   ))}
@@ -264,14 +273,14 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             <div>
               <Label htmlFor="projeto_id">Projeto</Label>
               <Select 
-                value={formData.projeto_id as string || ''} 
-                onValueChange={(value) => handleChange('projeto_id', value)}
+                value={formData.projeto_id as string || 'none'} 
+                onValueChange={(value) => handleChange('projeto_id', value === 'none' ? null : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o projeto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {projects.map(project => (
                     <SelectItem key={project.id} value={project.id}>{project.nome}</SelectItem>
                   ))}
