@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { FileBarChart, Download, Calendar, TrendingUp, Filter, CalendarDays } from 'lucide-react';
+import { DatePickerWithRange } from '@/components/ui/date-picker';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Download, Filter, Calendar, TrendingUp, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useReportData } from '@/hooks/useReportData';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { DateRange } from 'react-day-picker';
+import { addDays, subMonths } from 'date-fns';
 
-interface Risk {
+// Interface compatível com dados do Supabase
+interface ReportRisk {
+  id: string;
   categoria: string;
   nivelRisco: string;
   status: string;
@@ -22,47 +24,37 @@ interface Risk {
   impacto: string;
 }
 
-interface ReportsProps {
-  risks: Risk[];
-  loading: boolean;
-}
-
-const Reports = ({ risks, loading }: ReportsProps) => {
-  const [reportType, setReportType] = useState('summary');
-  const [timeRange, setTimeRange] = useState('last6months');
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    startDate: undefined as Date | undefined,
-    endDate: undefined as Date | undefined,
-    category: 'all',
-    project: 'all',
-    status: 'all',
-    responsible: 'all'
+const Reports = () => {
+  const { risks, loading, profiles, projects } = useSupabaseRiskData();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 6),
+    to: new Date()
   });
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [responsibleFilter, setResponsibleFilter] = useState<string>('all');
 
-  // Calcular datas baseadas no range selecionado
-  const getDateRange = (range: string) => {
-    const now = new Date();
-    switch (range) {
-      case 'last30days':
-        return { startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30), endDate: now };
-      case 'last3months':
-        return { startDate: new Date(now.getFullYear(), now.getMonth() - 3, 1), endDate: now };
-      case 'last6months':
-        return { startDate: new Date(now.getFullYear(), now.getMonth() - 6, 1), endDate: now };
-      case 'lastyear':
-        return { startDate: new Date(now.getFullYear() - 1, 0, 1), endDate: now };
-      case 'custom':
-        return { startDate: filters.startDate, endDate: filters.endDate };
-      default:
-        return { startDate: undefined, endDate: undefined };
-    }
-  };
+  // Converter dados do Supabase para formato do relatório
+  const convertedRisks: ReportRisk[] = risks.map(risk => ({
+    id: risk.id,
+    categoria: risk.categoria,
+    nivelRisco: risk.nivel_risco,
+    status: risk.status,
+    projeto: risk.projeto?.nome || 'Sem Projeto',
+    dataIdentificacao: risk.data_identificacao,
+    responsavel: risk.responsavel?.nome || 'Não atribuído',
+    probabilidade: risk.probabilidade,
+    impacto: risk.impacto
+  }));
 
-  const dateRange = getDateRange(timeRange);
   const reportFilters = {
-    ...filters,
-    ...dateRange
+    startDate: dateRange?.from,
+    endDate: dateRange?.to,
+    category: categoryFilter,
+    project: projectFilter,
+    status: statusFilter,
+    responsible: responsibleFilter
   };
 
   const {
@@ -72,265 +64,227 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     statusDistribution,
     projectDistribution,
     metrics
-  } = useReportData(risks, reportFilters);
+  } = useReportData(convertedRisks, reportFilters);
 
-  // Obter valores únicos para filtros
-  const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
-  const projects = [...new Set(risks.map(r => r.projeto).filter(Boolean))];
-  const responsibles = [...new Set(risks.map(r => r.responsavel).filter(Boolean))];
+  // Cores para os gráficos
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658'];
 
-  const COLORS = ['#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6', '#F97316', '#06B6D4', '#84CC16'];
+  const riskLevelColors = {
+    'Crítico': '#DC2626',
+    'Alto': '#EA580C', 
+    'Médio': '#D97706',
+    'Baixo': '#16A34A'
+  };
+
+  const exportToJSON = () => {
+    const reportData = {
+      periodo: {
+        inicio: dateRange?.from?.toISOString().split('T')[0],
+        fim: dateRange?.to?.toISOString().split('T')[0]
+      },
+      filtros: reportFilters,
+      metricas: metrics,
+      dados: {
+        riscosFiltrados: filteredRisks,
+        tendenciaMensal: monthlyTrends,
+        distribuicaoCategoria: categoryDistribution,
+        distribuicaoStatus: statusDistribution,
+        distribuicaoProjeto: projectDistribution
+      },
+      geradoEm: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio-riscos-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Relatório exportado em JSON!');
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <Card className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="h-64 bg-gray-200 rounded"></div>
-          </CardContent>
-        </Card>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  const generateReport = () => {
-    const reportData = {
-      geradoEm: new Date().toLocaleDateString('pt-BR'),
-      tipoRelatorio: reportType,
-      periodo: timeRange,
-      filtros: reportFilters,
-      metricas: metrics,
-      riscos: filteredRisks
-    };
-    
-    console.log('Dados do relatório:', reportData);
-    
-    // Simular download (em produção, implementar geração real de PDF/Excel)
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `relatorio-riscos-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    
-    toast.success('Relatório gerado com sucesso!');
-  };
-
   return (
     <div className="space-y-6">
-      {/* Controles de Relatório */}
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 className="text-2xl font-bold">Relatórios de Riscos</h3>
+          <p className="text-gray-600">
+            Análise detalhada dos riscos identificados no período selecionado
+          </p>
+        </div>
+        <Button onClick={exportToJSON} className="flex items-center gap-2">
+          <Download className="w-4 h-4" />
+          Exportar Relatório
+        </Button>
+      </div>
+
+      {/* Filtros */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <FileBarChart className="w-5 h-5" />
-              Configuração de Relatórios
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros Avançados
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filtros do Relatório
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="lg:col-span-2">
+              <label className="text-sm font-medium mb-2 block">Período</label>
+              <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+            </div>
+            
             <div>
-              <Label>Tipo de Relatório</Label>
-              <Select value={reportType} onValueChange={setReportType}>
+              <label className="text-sm font-medium mb-2 block">Categoria</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tipo de Relatório" />
+                  <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="summary">Resumo Executivo</SelectItem>
-                  <SelectItem value="detailed">Relatório Detalhado</SelectItem>
-                  <SelectItem value="trends">Análise de Tendências</SelectItem>
-                  <SelectItem value="compliance">Compliance ISO 31000</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {[...new Set(risks.map(r => r.categoria))].map(categoria => (
+                    <SelectItem key={categoria} value={categoria}>{categoria}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Período</Label>
-              <Select value={timeRange} onValueChange={setTimeRange}>
+              <label className="text-sm font-medium mb-2 block">Projeto</label>
+              <Select value={projectFilter} onValueChange={setProjectFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Período" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="last30days">Últimos 30 dias</SelectItem>
-                  <SelectItem value="last3months">Últimos 3 meses</SelectItem>
-                  <SelectItem value="last6months">Últimos 6 meses</SelectItem>
-                  <SelectItem value="lastyear">Último ano</SelectItem>
-                  <SelectItem value="custom">Personalizado</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.nome}>{project.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {timeRange === 'custom' && (
-              <>
-                <div>
-                  <Label>Data Início</Label>
-                  <Input
-                    type="date"
-                    value={filters.startDate?.toISOString().split('T')[0] || ''}
-                    onChange={(e) => setFilters(prev => ({ 
-                      ...prev, 
-                      startDate: e.target.value ? new Date(e.target.value) : undefined 
-                    }))}
-                  />
-                </div>
-                <div>
-                  <Label>Data Fim</Label>
-                  <Input
-                    type="date"
-                    value={filters.endDate?.toISOString().split('T')[0] || ''}
-                    onChange={(e) => setFilters(prev => ({ 
-                      ...prev, 
-                      endDate: e.target.value ? new Date(e.target.value) : undefined 
-                    }))}
-                  />
-                </div>
-              </>
-            )}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {[...new Set(risks.map(r => r.status))].map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Button onClick={generateReport} className="flex items-center gap-2 self-end">
-              <Download className="w-4 h-4" />
-              Gerar Relatório
-            </Button>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Responsável</label>
+              <Select value={responsibleFilter} onValueChange={setResponsibleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {profiles.map(profile => (
+                    <SelectItem key={profile.id} value={profile.nome}>{profile.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
-          {/* Filtros Avançados */}
-          <Collapsible open={showFilters} onOpenChange={setShowFilters}>
-            <CollapsibleContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <Label>Categoria</Label>
-                  <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Projeto</Label>
-                  <Select value={filters.project} onValueChange={(value) => setFilters(prev => ({ ...prev, project: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {projects.map(project => (
-                        <SelectItem key={project} value={project}>{project}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Status</Label>
-                  <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="Identificado">Identificado</SelectItem>
-                      <SelectItem value="Em Análise">Em Análise</SelectItem>
-                      <SelectItem value="Em Monitoramento">Em Monitoramento</SelectItem>
-                      <SelectItem value="Mitigado">Mitigado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Responsável</Label>
-                  <Select value={filters.responsible} onValueChange={(value) => setFilters(prev => ({ ...prev, responsible: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {responsibles.map(responsible => (
-                        <SelectItem key={responsible} value={responsible}>{responsible}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
         </CardContent>
       </Card>
 
-      {/* Métricas de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-700">{metrics.totalRisks}</div>
-              <div className="text-sm text-blue-600">Total de Riscos</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-700">{metrics.highRisks}</div>
-              <div className="text-sm text-red-600">Riscos Altos/Críticos</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-700">{metrics.mediumRisks}</div>
-              <div className="text-sm text-yellow-600">Riscos Médios</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-700">{metrics.lowRisks}</div>
-              <div className="text-sm text-green-600">Riscos Baixos</div>
+      {/* Métricas Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total de Riscos</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics.totalRisks}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-700">{metrics.mitigationRate}%</div>
-              <div className="text-sm text-purple-600">Taxa Mitigação</div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Riscos Críticos/Altos</p>
+                <p className="text-2xl font-bold text-red-600">{metrics.highRisks}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Taxa de Mitigação</p>
+                <p className="text-2xl font-bold text-green-600">{metrics.mitigationRate}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Em Monitoramento</p>
+                <p className="text-2xl font-bold text-yellow-600">{metrics.mediumRisks}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráficos de Relatório */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tendência de Riscos */}
+        {/* Tendência Mensal */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
-              Tendência de Riscos por Mês
-            </CardTitle>
+            <CardTitle>Tendência Mensal de Riscos</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -339,9 +293,10 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="alto" stroke="#EF4444" strokeWidth={3} name="Alto/Crítico" />
-                <Line type="monotone" dataKey="medio" stroke="#F59E0B" strokeWidth={3} name="Médio" />
-                <Line type="monotone" dataKey="baixo" stroke="#10B981" strokeWidth={3} name="Baixo" />
+                <Legend />
+                <Line type="monotone" dataKey="alto" stroke="#DC2626" name="Alto/Crítico" />
+                <Line type="monotone" dataKey="medio" stroke="#D97706" name="Médio" />
+                <Line type="monotone" dataKey="baixo" stroke="#16A34A" name="Baixo" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -350,10 +305,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
         {/* Distribuição por Status */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-green-500" />
-              Status dos Riscos
-            </CardTitle>
+            <CardTitle>Distribuição por Status</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -362,10 +314,11 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   data={statusDistribution}
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
+                  labelLine={false}
+                  label={({ name, percentage }) => `${name} (${percentage}%)`}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percentage }) => `${name} (${percentage}%)`}
                 >
                   {statusDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -377,81 +330,71 @@ const Reports = ({ risks, loading }: ReportsProps) => {
           </CardContent>
         </Card>
 
-        {/* Riscos por Categoria */}
+        {/* Distribuição por Categoria */}
         <Card>
           <CardHeader>
-            <CardTitle>Análise por Categoria</CardTitle>
+            <CardTitle>Riscos por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={categoryDistribution}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="alto" stackId="a" fill="#EF4444" name="Alto/Crítico" />
-                <Bar dataKey="medio" stackId="a" fill="#F59E0B" name="Médio" />
-                <Bar dataKey="baixo" stackId="a" fill="#10B981" name="Baixo" />
+                <Legend />
+                <Bar dataKey="alto" stackId="a" fill="#DC2626" name="Alto/Crítico" />
+                <Bar dataKey="medio" stackId="a" fill="#D97706" name="Médio" />
+                <Bar dataKey="baixo" stackId="a" fill="#16A34A" name="Baixo" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Riscos por Projeto */}
+        {/* Top Projetos */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 10 Projetos por Riscos</CardTitle>
+            <CardTitle>Top 10 Projetos com Mais Riscos</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={projectDistribution}>
+              <BarChart data={projectDistribution} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                <YAxis />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={100} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#3B82F6" />
+                <Bar dataKey="value" fill="#8884D8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Resumo Executivo */}
+      {/* Resumo Textual */}
       <Card>
         <CardHeader>
-          <CardTitle>Resumo Executivo - Gestão de Riscos</CardTitle>
+          <CardTitle>Resumo Executivo</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold mb-2">Principais Indicadores</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>• Total de riscos identificados: <Badge variant="outline">{metrics.totalRisks}</Badge></li>
-                  <li>• Riscos de alto impacto: <Badge variant="destructive">{metrics.highRisks}</Badge></li>
-                  <li>• Taxa de mitigação: <Badge variant="default">{metrics.mitigationRate}%</Badge></li>
-                  <li>• Categoria mais crítica: <Badge variant="secondary">{categoryDistribution.sort((a, b) => b.alto - a.alto)[0]?.name || 'N/A'}</Badge></li>
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold mb-2">Recomendações</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>• Priorizar ações para riscos de nível alto</li>
-                  <li>• Implementar monitoramento contínuo</li>
-                  <li>• Revisar estratégias de mitigação mensalmente</li>
-                  <li>• Fortalecer comunicação entre projetos</li>
-                </ul>
-              </div>
+        <CardContent className="prose max-w-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div>
+              <h4 className="font-semibold mb-2">Situação Atual</h4>
+              <ul className="space-y-1 text-gray-600">
+                <li>• {metrics.totalRisks} riscos identificados no período</li>
+                <li>• {metrics.highRisks} riscos de alta prioridade</li>
+                <li>• {metrics.mitigationRate}% de taxa de mitigação</li>
+                <li>• {filteredRisks.filter(r => r.status === 'Em Monitoramento').length} riscos em monitoramento ativo</li>
+              </ul>
             </div>
-
-            {filteredRisks.length !== risks.length && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  <strong>Filtros aplicados:</strong> Exibindo {filteredRisks.length} de {risks.length} riscos com base nos filtros selecionados.
-                </p>
-              </div>
-            )}
+            <div>
+              <h4 className="font-semibold mb-2">Recomendações</h4>
+              <ul className="space-y-1 text-gray-600">
+                <li>• Priorizar {metrics.highRisks} riscos críticos/altos</li>
+                <li>• Implementar planos de mitigação para riscos em aberto</li>
+                <li>• Revisar riscos sem responsável definido</li>
+                <li>• Monitorar tendências mensais para identificar padrões</li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -10,26 +10,14 @@ import { useRiskActions } from '@/hooks/useRiskActions';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { Constants } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
+import { Database } from '@/integrations/supabase/types';
 
-interface Risk {
-  id: string;
-  codigo: string;
-  categoria: string;
-  descricao_risco: string;
-  causas?: string;
-  consequencias?: string;
-  probabilidade: string;
-  impacto: string;
-  nivel_risco: string;
-  estrategia: string;
-  acoes_mitigacao?: string;
-  acoes_contingencia?: string;
-  responsavel_id?: string;
-  projeto_id?: string;
-  prazo?: string;
-  status: string;
-  observacoes?: string;
-}
+// Usando o tipo correto do Supabase
+type Risk = Database['public']['Tables']['riscos']['Row'] & {
+  responsavel?: { nome: string } | null;
+  projeto?: { nome: string } | null;
+  criador?: { nome: string } | null;
+};
 
 interface RiskEditModalProps {
   risk: Risk | null;
@@ -70,7 +58,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
     if (!risk) return;
 
     // Calcular novo nível de risco se probabilidade ou impacto mudaram
-    const nivel_risco = calculateRiskLevel(formData.probabilidade!, formData.impacto!);
+    const nivel_risco = calculateRiskLevel(
+      formData.probabilidade as Database['public']['Enums']['risk_probability'], 
+      formData.impacto as Database['public']['Enums']['risk_impact']
+    );
     
     const updates = {
       ...formData,
@@ -114,7 +105,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             
             <div>
               <Label htmlFor="categoria">Categoria</Label>
-              <Select value={formData.categoria} onValueChange={(value) => handleChange('categoria', value)}>
+              <Select 
+                value={formData.categoria as string} 
+                onValueChange={(value) => handleChange('categoria', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
@@ -141,7 +135,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="probabilidade">Probabilidade</Label>
-              <Select value={formData.probabilidade} onValueChange={(value) => handleChange('probabilidade', value)}>
+              <Select 
+                value={formData.probabilidade as string} 
+                onValueChange={(value) => handleChange('probabilidade', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a probabilidade" />
                 </SelectTrigger>
@@ -155,7 +152,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             
             <div>
               <Label htmlFor="impacto">Impacto</Label>
-              <Select value={formData.impacto} onValueChange={(value) => handleChange('impacto', value)}>
+              <Select 
+                value={formData.impacto as string} 
+                onValueChange={(value) => handleChange('impacto', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o impacto" />
                 </SelectTrigger>
@@ -171,7 +171,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="estrategia">Estratégia</Label>
-              <Select value={formData.estrategia} onValueChange={(value) => handleChange('estrategia', value)}>
+              <Select 
+                value={formData.estrategia as string} 
+                onValueChange={(value) => handleChange('estrategia', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a estratégia" />
                 </SelectTrigger>
@@ -185,7 +188,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
+              <Select 
+                value={formData.status as string} 
+                onValueChange={(value) => handleChange('status', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
@@ -201,7 +207,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="responsavel_id">Responsável</Label>
-              <Select value={formData.responsavel_id} onValueChange={(value) => handleChange('responsavel_id', value)}>
+              <Select 
+                value={formData.responsavel_id as string} 
+                onValueChange={(value) => handleChange('responsavel_id', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o responsável" />
                 </SelectTrigger>
@@ -216,7 +225,10 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             
             <div>
               <Label htmlFor="projeto_id">Projeto</Label>
-              <Select value={formData.projeto_id} onValueChange={(value) => handleChange('projeto_id', value)}>
+              <Select 
+                value={formData.projeto_id as string} 
+                onValueChange={(value) => handleChange('projeto_id', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o projeto" />
                 </SelectTrigger>

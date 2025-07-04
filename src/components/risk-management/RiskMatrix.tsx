@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,29 +14,14 @@ import { RiskEditModal } from './RiskEditModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useRiskActions } from '@/hooks/useRiskActions';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
-interface Risk {
-  id: string;
-  codigo: string;
-  categoria: string;
-  descricaoRisco: string;
-  probabilidade: string;
-  impacto: string;
-  nivelRisco: string;
-  estrategia: string;
-  responsavel: string;
-  status: string;
-  projeto: string;
-  prazo: string;
-  causas?: string;
-  consequencias?: string;
-  acoesMitigacao?: string;
-  acoesContingencia?: string;
-  observacoes?: string;
-  responsavel_id?: string;
-  projeto_id?: string;
-  descricao_risco?: string;
-}
+// Tipo correto baseado no Supabase
+type Risk = Database['public']['Tables']['riscos']['Row'] & {
+  responsavel?: { nome: string } | null;
+  projeto?: { nome: string } | null;
+  criador?: { nome: string } | null;
+};
 
 interface RiskMatrixProps {
   risks: Risk[];
@@ -78,11 +64,11 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
   // Filtrar e ordenar riscos
   const filteredAndSortedRisks = risks
     .filter(risk => {
-      const matchesSearch = risk.descricaoRisco?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = risk.descricao_risco?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            risk.codigo.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !categoryFilter || categoryFilter === 'all' || risk.categoria === categoryFilter;
-      const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivelRisco === levelFilter;
-      const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto === projectFilter;
+      const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivel_risco === levelFilter;
+      const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto?.nome === projectFilter;
       const matchesStatus = !statusFilter || statusFilter === 'all' || risk.status === statusFilter;
       
       return matchesSearch && matchesCategory && matchesLevel && matchesProject && matchesStatus;
@@ -97,8 +83,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
           break;
         case 'level':
           const levelOrder = { 'Crítico': 4, 'Alto': 3, 'Médio': 2, 'Baixo': 1 };
-          aValue = levelOrder[a.nivelRisco as keyof typeof levelOrder] || 0;
-          bValue = levelOrder[b.nivelRisco as keyof typeof levelOrder] || 0;
+          aValue = levelOrder[a.nivel_risco as keyof typeof levelOrder] || 0;
+          bValue = levelOrder[b.nivel_risco as keyof typeof levelOrder] || 0;
           break;
         case 'status':
           aValue = a.status;
@@ -106,8 +92,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
           break;
         case 'date':
         default:
-          aValue = new Date(a.dataIdentificacao || 0).getTime();
-          bValue = new Date(b.dataIdentificacao || 0).getTime();
+          aValue = new Date(a.data_identificacao || 0).getTime();
+          bValue = new Date(b.data_identificacao || 0).getTime();
           break;
       }
       
@@ -120,7 +106,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
 
   // Obter valores únicos para filtros
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
-  const projects = [...new Set(risks.map(r => r.projeto).filter(Boolean))];
+  const projects = [...new Set(risks.map(r => r.projeto?.nome).filter(Boolean))];
   const statuses = [...new Set(risks.map(r => r.status).filter(Boolean))];
 
   const getRiskLevelColor = (level: string) => {
@@ -206,12 +192,12 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
       ...filteredAndSortedRisks.map(risk => [
         risk.codigo,
         risk.categoria,
-        `"${risk.descricaoRisco?.replace(/"/g, '""')}"`,
-        risk.nivelRisco,
+        `"${risk.descricao_risco?.replace(/"/g, '""')}"`,
+        risk.nivel_risco,
         risk.status,
-        risk.responsavel || '',
-        risk.projeto || '',
-        risk.dataIdentificacao || ''
+        risk.responsavel?.nome || '',
+        risk.projeto?.nome || '',
+        risk.data_identificacao || ''
       ].join(','))
     ].join('\n');
 
@@ -402,8 +388,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                     <React.Fragment key={risk.id}>
                       <TableRow 
                         className={`cursor-pointer hover:bg-gray-50 ${
-                          risk.nivelRisco === 'Crítico' || risk.nivelRisco === 'Alto' ? 'border-l-4 border-red-500' :
-                          risk.nivelRisco === 'Médio' ? 'border-l-4 border-yellow-500' :
+                          risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
+                          risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
                           'border-l-4 border-green-500'
                         } ${selectedRisks.has(risk.id) ? 'bg-blue-50' : ''}`}
                         onClick={() => setExpandedRisk(expandedRisk === risk.id ? null : risk.id)}
@@ -421,13 +407,13 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                           <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{risk.categoria}</span>
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <span className="text-sm" title={risk.descricaoRisco}>
-                            {truncateText(risk.descricaoRisco || '', 60)}
+                          <span className="text-sm" title={risk.descricao_risco}>
+                            {truncateText(risk.descricao_risco || '', 60)}
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivelRisco)}`}>
-                            {risk.nivelRisco}
+                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivel_risco)}`}>
+                            {risk.nivel_risco}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -436,7 +422,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
-                          {risk.responsavel || 'Não atribuído'}
+                          {risk.responsavel?.nome || 'Não atribuído'}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
@@ -486,7 +472,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                                   <span className="font-medium">Estratégia:</span> {risk.estrategia}
                                 </div>
                                 <div>
-                                  <span className="font-medium">Projeto:</span> {risk.projeto || 'Não atribuído'}
+                                  <span className="font-medium">Projeto:</span> {risk.projeto?.nome || 'Não atribuído'}
                                 </div>
                               </div>
                               {risk.prazo && (
@@ -494,9 +480,9 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                                   <span className="font-medium">Prazo:</span> {new Date(risk.prazo).toLocaleDateString('pt-BR')}
                                 </div>
                               )}
-                              {risk.acoesMitigacao && (
+                              {risk.acoes_mitigacao && (
                                 <div className="text-sm">
-                                  <span className="font-medium">Ações de Mitigação:</span> {risk.acoesMitigacao}
+                                  <span className="font-medium">Ações de Mitigação:</span> {risk.acoes_mitigacao}
                                 </div>
                               )}
                             </div>
@@ -515,8 +501,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                 <Card 
                   key={risk.id} 
                   className={`transition-all ${
-                    risk.nivelRisco === 'Crítico' || risk.nivelRisco === 'Alto' ? 'border-l-4 border-red-500' :
-                    risk.nivelRisco === 'Médio' ? 'border-l-4 border-yellow-500' :
+                    risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
+                    risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
                     'border-l-4 border-green-500'
                   }`}
                 >
@@ -526,8 +512,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm font-bold">{risk.codigo}</span>
-                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivelRisco)}`}>
-                            {risk.nivelRisco}
+                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivel_risco)}`}>
+                            {risk.nivel_risco}
                           </Badge>
                         </div>
                         <Badge variant="secondary" className={`text-xs ${getStatusColor(risk.status)}`}>
@@ -542,17 +528,17 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                       </div>
 
                       {/* Descrição */}
-                      <p className="text-sm font-medium">{risk.descricaoRisco}</p>
+                      <p className="text-sm font-medium">{risk.descricao_risco}</p>
 
                       {/* Informações adicionais */}
                       <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                         <div className="flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          <span>{risk.responsavel || 'Não atribuído'}</span>
+                          <span>{risk.responsavel?.nome || 'Não atribuído'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Building2 className="w-3 h-3" />
-                          <span>{risk.projeto || 'Não atribuído'}</span>
+                          <span>{risk.projeto?.nome || 'Não atribuído'}</span>
                         </div>
                         {risk.prazo && (
                           <div className="flex items-center gap-1 col-span-2">
