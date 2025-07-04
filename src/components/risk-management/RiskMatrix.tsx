@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, Filter, Search, Eye, Calendar, User, Building2, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Filter, Search, Eye, Calendar, User, Building2, ChevronDown, ChevronUp, Edit, Archive, Trash2, MoreHorizontal, Download } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { RiskEditModal } from './RiskEditModal';
+import { ConfirmDialog } from './ConfirmDialog';
+import { useRiskActions } from '@/hooks/useRiskActions';
+import { toast } from 'sonner';
 
 interface Risk {
   id: string;
@@ -23,6 +27,14 @@ interface Risk {
   status: string;
   projeto: string;
   prazo: string;
+  causas?: string;
+  consequencias?: string;
+  acoesMitigacao?: string;
+  acoesContingencia?: string;
+  observacoes?: string;
+  responsavel_id?: string;
+  projeto_id?: string;
+  descricao_risco?: string;
 }
 
 interface RiskMatrixProps {
@@ -35,8 +47,18 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [expandedRisk, setExpandedRisk] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState<'date' | 'level' | 'status' | 'code'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Estados para modais e ações
+  const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
+  const [deletingRisk, setDeletingRisk] = useState<Risk | null>(null);
+  const [selectedRisks, setSelectedRisks] = useState<Set<string>>(new Set());
+
+  const { archiveRisk, removeRisk, isLoading } = useRiskActions();
 
   if (loading) {
     return (
@@ -53,20 +75,53 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
     );
   }
 
-  // Filtrar riscos
-  const filteredRisks = risks.filter(risk => {
-    const matchesSearch = risk.descricaoRisco.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         risk.codigo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || categoryFilter === 'all' || risk.categoria === categoryFilter;
-    const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivelRisco === levelFilter;
-    const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto === projectFilter;
-    
-    return matchesSearch && matchesCategory && matchesLevel && matchesProject;
-  });
+  // Filtrar e ordenar riscos
+  const filteredAndSortedRisks = risks
+    .filter(risk => {
+      const matchesSearch = risk.descricaoRisco?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           risk.codigo.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = !categoryFilter || categoryFilter === 'all' || risk.categoria === categoryFilter;
+      const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivelRisco === levelFilter;
+      const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto === projectFilter;
+      const matchesStatus = !statusFilter || statusFilter === 'all' || risk.status === statusFilter;
+      
+      return matchesSearch && matchesCategory && matchesLevel && matchesProject && matchesStatus;
+    })
+    .sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'code':
+          aValue = a.codigo;
+          bValue = b.codigo;
+          break;
+        case 'level':
+          const levelOrder = { 'Crítico': 4, 'Alto': 3, 'Médio': 2, 'Baixo': 1 };
+          aValue = levelOrder[a.nivelRisco as keyof typeof levelOrder] || 0;
+          bValue = levelOrder[b.nivelRisco as keyof typeof levelOrder] || 0;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'date':
+        default:
+          aValue = new Date(a.dataIdentificacao || 0).getTime();
+          bValue = new Date(b.dataIdentificacao || 0).getTime();
+          break;
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
 
   // Obter valores únicos para filtros
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
   const projects = [...new Set(risks.map(r => r.projeto).filter(Boolean))];
+  const statuses = [...new Set(risks.map(r => r.status).filter(Boolean))];
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
@@ -96,25 +151,124 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  const handleSort = (field: typeof sortBy) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const handleSelectRisk = (riskId: string) => {
+    const newSelected = new Set(selectedRisks);
+    if (newSelected.has(riskId)) {
+      newSelected.delete(riskId);
+    } else {
+      newSelected.add(riskId);
+    }
+    setSelectedRisks(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRisks.size === filteredAndSortedRisks.length) {
+      setSelectedRisks(new Set());
+    } else {
+      setSelectedRisks(new Set(filteredAndSortedRisks.map(r => r.id)));
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    const promises = Array.from(selectedRisks).map(riskId => archiveRisk(riskId, true));
+    await Promise.all(promises);
+    setSelectedRisks(new Set());
+    toast.success(`${selectedRisks.size} riscos arquivados com sucesso!`);
+  };
+
+  const handleDeleteRisk = async () => {
+    if (!deletingRisk) return;
+    
+    const success = await removeRisk(deletingRisk.id);
+    if (success) {
+      setDeletingRisk(null);
+    }
+  };
+
+  const exportToCSV = () => {
+    if (filteredAndSortedRisks.length === 0) {
+      toast.error('Nenhum risco para exportar');
+      return;
+    }
+
+    const headers = ['Código', 'Categoria', 'Descrição', 'Nível', 'Status', 'Responsável', 'Projeto', 'Data'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredAndSortedRisks.map(risk => [
+        risk.codigo,
+        risk.categoria,
+        `"${risk.descricaoRisco?.replace(/"/g, '""')}"`,
+        risk.nivelRisco,
+        risk.status,
+        risk.responsavel || '',
+        risk.projeto || '',
+        risk.dataIdentificacao || ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `matriz-riscos-${new Date().toISOString().split('T')[0]}.csv`);
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Arquivo CSV exportado com sucesso!');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Header com contador e toggle de filtros */}
+      {/* Header com contador e controles */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h3 className="text-xl font-semibold">Matriz de Riscos</h3>
           <p className="text-sm text-gray-600">
-            {filteredRisks.length} de {risks.length} {filteredRisks.length === 1 ? 'risco' : 'riscos'}
+            {filteredAndSortedRisks.length} de {risks.length} {filteredAndSortedRisks.length === 1 ? 'risco' : 'riscos'}
+            {selectedRisks.size > 0 && ` (${selectedRisks.size} selecionados)`}
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2"
-        >
-          <Filter className="w-4 h-4" />
-          Filtros
-          {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </Button>
+        
+        <div className="flex items-center gap-2">
+          {selectedRisks.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkArchive}
+              disabled={isLoading}
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Arquivar Selecionados
+            </Button>
+          )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToCSV}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+            {showFilters ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
+          </Button>
+        </div>
       </div>
 
       {/* Filtros colapsáveis */}
@@ -122,7 +276,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
         <CollapsibleContent>
           <Card>
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <Input
@@ -158,6 +312,18 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                   </SelectContent>
                 </Select>
 
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {statuses.map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Select value={projectFilter} onValueChange={setProjectFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Projeto" />
@@ -177,6 +343,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                     setCategoryFilter('');
                     setLevelFilter('');
                     setProjectFilter('');
+                    setStatusFilter('');
                   }}
                   className="w-full"
                 >
@@ -189,7 +356,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
       </Collapsible>
 
       {/* Tabela de Riscos */}
-      {filteredRisks.length === 0 && !loading ? (
+      {filteredAndSortedRisks.length === 0 && !loading ? (
         <EmptyState
           icon="risk"
           title={risks.length === 0 ? 'Nenhum risco cadastrado' : 'Nenhum risco encontrado'}
@@ -207,33 +374,55 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20">Código</TableHead>
+                    <TableHead className="w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedRisks.size === filteredAndSortedRisks.length && filteredAndSortedRisks.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded"
+                      />
+                    </TableHead>
+                    <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('code')}>
+                      Código {sortBy === 'code' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </TableHead>
                     <TableHead className="w-32">Categoria</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead className="w-24">Nível</TableHead>
-                    <TableHead className="w-28">Status</TableHead>
+                    <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('level')}>
+                      Nível {sortBy === 'level' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </TableHead>
+                    <TableHead className="w-28 cursor-pointer" onClick={() => handleSort('status')}>
+                      Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </TableHead>
                     <TableHead className="w-32">Responsável</TableHead>
                     <TableHead className="w-20">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRisks.map((risk) => (
+                  {filteredAndSortedRisks.map((risk) => (
                     <React.Fragment key={risk.id}>
                       <TableRow 
                         className={`cursor-pointer hover:bg-gray-50 ${
                           risk.nivelRisco === 'Crítico' || risk.nivelRisco === 'Alto' ? 'border-l-4 border-red-500' :
                           risk.nivelRisco === 'Médio' ? 'border-l-4 border-yellow-500' :
                           'border-l-4 border-green-500'
-                        }`}
+                        } ${selectedRisks.has(risk.id) ? 'bg-blue-50' : ''}`}
                         onClick={() => setExpandedRisk(expandedRisk === risk.id ? null : risk.id)}
                       >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedRisks.has(risk.id)}
+                            onChange={() => handleSelectRisk(risk.id)}
+                            className="rounded"
+                          />
+                        </TableCell>
                         <TableCell className="font-mono text-sm font-medium">{risk.codigo}</TableCell>
                         <TableCell>
                           <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{risk.categoria}</span>
                         </TableCell>
                         <TableCell className="max-w-xs">
                           <span className="text-sm" title={risk.descricaoRisco}>
-                            {truncateText(risk.descricaoRisco, 60)}
+                            {truncateText(risk.descricaoRisco || '', 60)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -249,17 +438,42 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                         <TableCell className="text-sm">
                           {risk.responsavel || 'Não atribuído'}
                         </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setExpandedRisk(risk.id)}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setEditingRisk(risk)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => archiveRisk(risk.id, true)}>
+                                <Archive className="w-4 h-4 mr-2" />
+                                Arquivar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setDeletingRisk(risk)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                       
                       {/* Linha expandida com detalhes */}
                       {expandedRisk === risk.id && (
                         <TableRow>
-                          <TableCell colSpan={7} className="bg-gray-50">
+                          <TableCell colSpan={8} className="bg-gray-50">
                             <div className="p-4 space-y-3">
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -280,6 +494,11 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                                   <span className="font-medium">Prazo:</span> {new Date(risk.prazo).toLocaleDateString('pt-BR')}
                                 </div>
                               )}
+                              {risk.acoesMitigacao && (
+                                <div className="text-sm">
+                                  <span className="font-medium">Ações de Mitigação:</span> {risk.acoesMitigacao}
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -292,7 +511,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
 
             {/* Cards para mobile/tablet */}
             <div className="lg:hidden space-y-3 p-4">
-              {filteredRisks.map((risk) => (
+              {filteredAndSortedRisks.map((risk) => (
                 <Card 
                   key={risk.id} 
                   className={`transition-all ${
@@ -387,6 +606,26 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Modais */}
+      <RiskEditModal
+        risk={editingRisk}
+        isOpen={!!editingRisk}
+        onClose={() => setEditingRisk(null)}
+        onSuccess={() => {
+          // Refresh será feito automaticamente pelo hook
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deletingRisk}
+        onClose={() => setDeletingRisk(null)}
+        onConfirm={handleDeleteRisk}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja excluir o risco "${deletingRisk?.codigo}"? Esta ação não pode ser desfeita.`}
+        confirmText="Excluir"
+        variant="destructive"
+      />
     </div>
   );
 };
