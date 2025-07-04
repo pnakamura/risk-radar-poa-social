@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, Filter, Search, Eye, Calendar, User, Building2, ChevronDown, ChevronUp, Edit, Archive, Trash2, MoreHorizontal, Download } from 'lucide-react';
+import { AlertTriangle, Filter, Search, Eye, Calendar, User, Building2, ChevronDown, ChevronUp, Edit, Trash2, MoreHorizontal, Download } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -46,9 +46,8 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   // Estados para modais e ações
   const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
   const [deletingRisk, setDeletingRisk] = useState<Risk | null>(null);
-  const [selectedRisks, setSelectedRisks] = useState<Set<string>>(new Set());
 
-  const { archiveRisk, removeRisk, isLoading } = useRiskActions();
+  const { removeRisk, isLoading } = useRiskActions();
 
   if (loading) {
     console.log('RiskMatrix showing loading state');
@@ -153,32 +152,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     }
   };
 
-  const handleSelectRisk = (riskId: string) => {
-    const newSelected = new Set(selectedRisks);
-    if (newSelected.has(riskId)) {
-      newSelected.delete(riskId);
-    } else {
-      newSelected.add(riskId);
-    }
-    setSelectedRisks(newSelected);
-  };
-
-  const handleSelectAll = () => {
-    if (selectedRisks.size === filteredAndSortedRisks.length) {
-      setSelectedRisks(new Set());
-    } else {
-      setSelectedRisks(new Set(filteredAndSortedRisks.map(r => r.id)));
-    }
-  };
-
-  const handleBulkArchive = async () => {
-    const promises = Array.from(selectedRisks).map(riskId => archiveRisk(riskId, true));
-    await Promise.all(promises);
-    setSelectedRisks(new Set());
-    toast.success(`${selectedRisks.size} riscos arquivados com sucesso!`);
-    onRefresh();
-  };
-
   const handleDeleteRisk = async () => {
     if (!deletingRisk) return;
     
@@ -244,23 +217,10 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
           <h3 className="text-xl font-semibold">Matriz de Riscos</h3>
           <p className="text-sm text-gray-600">
             {filteredAndSortedRisks.length} de {risks.length} {filteredAndSortedRisks.length === 1 ? 'risco' : 'riscos'}
-            {selectedRisks.size > 0 && ` (${selectedRisks.size} selecionados)`}
           </p>
         </div>
         
         <div className="flex items-center gap-2">
-          {selectedRisks.size > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleBulkArchive}
-              disabled={isLoading}
-            >
-              <Archive className="w-4 h-4 mr-2" />
-              Arquivar Selecionados
-            </Button>
-          )}
-          
           <Button
             variant="outline"
             size="sm"
@@ -385,14 +345,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <input
-                        type="checkbox"
-                        checked={selectedRisks.size === filteredAndSortedRisks.length && filteredAndSortedRisks.length > 0}
-                        onChange={handleSelectAll}
-                        className="rounded"
-                      />
-                    </TableHead>
                     <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('code')}>
                       Código {sortBy === 'code' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </TableHead>
@@ -416,17 +368,9 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                           risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
                           risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
                           'border-l-4 border-green-500'
-                        } ${selectedRisks.has(risk.id) ? 'bg-blue-50' : ''}`}
+                        }`}
                         onClick={() => setExpandedRisk(expandedRisk === risk.id ? null : risk.id)}
                       >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={selectedRisks.has(risk.id)}
-                            onChange={() => handleSelectRisk(risk.id)}
-                            className="rounded"
-                          />
-                        </TableCell>
                         <TableCell className="font-mono text-sm font-medium">{risk.codigo}</TableCell>
                         <TableCell>
                           <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{risk.categoria}</span>
@@ -465,10 +409,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => archiveRisk(risk.id, true)}>
-                                <Archive className="w-4 h-4 mr-2" />
-                                Arquivar
-                              </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => setDeletingRisk(risk)}
                                 className="text-red-600"
@@ -484,7 +424,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                       {/* Linha expandida com detalhes */}
                       {expandedRisk === risk.id && (
                         <TableRow>
-                          <TableCell colSpan={8} className="bg-gray-50">
+                          <TableCell colSpan={7} className="bg-gray-50">
                             <div className="p-4 space-y-3">
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -604,10 +544,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => archiveRisk(risk.id, true)}>
-                              <Archive className="w-4 h-4 mr-2" />
-                              Arquivar
-                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => setDeletingRisk(risk)}
                               className="text-red-600"

@@ -32,26 +32,6 @@ export const useRiskActions = () => {
     }
   };
 
-  const archiveRisk = async (id: string, archived: boolean = true) => {
-    setIsLoading(true);
-    try {
-      const result = await updateRisk(id, { 
-        observacoes: archived ? 'Risco arquivado' : 'Risco desarquivado'
-      });
-      if (!result.error) {
-        toast.success(archived ? 'Risco arquivado!' : 'Risco desarquivado!');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Erro ao arquivar risco:', error);
-      toast.error('Erro ao arquivar risco');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const removeRisk = async (id: string) => {
     setIsLoading(true);
     try {
@@ -72,7 +52,6 @@ export const useRiskActions = () => {
 
   return {
     editRisk,
-    archiveRisk,
     removeRisk,
     isLoading
   };
