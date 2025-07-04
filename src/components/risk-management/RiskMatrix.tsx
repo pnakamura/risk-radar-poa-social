@@ -33,6 +33,9 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
   const [levelFilter, setLevelFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
 
+  console.log('RiskMatrix - Risks received:', risks);
+  console.log('RiskMatrix - Loading:', loading);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -62,12 +65,15 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
     return matchesSearch && matchesCategory && matchesLevel && matchesProject;
   });
 
+  console.log('RiskMatrix - Filtered risks:', filteredRisks);
+
   // Obter valores únicos para filtros
-  const categories = [...new Set(risks.map(r => r.categoria))];
-  const projects = [...new Set(risks.map(r => r.projeto))];
+  const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
+  const projects = [...new Set(risks.map(r => r.projeto).filter(Boolean))];
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
+      case 'Crítico': return 'bg-red-100 text-red-800 border-red-200';
       case 'Alto': return 'bg-red-100 text-red-800 border-red-200';
       case 'Médio': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'Baixo': return 'bg-green-100 text-green-800 border-green-200';
@@ -77,10 +83,14 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Ativo': return 'bg-red-100 text-red-800';
-      case 'Em Monitoramento': return 'bg-yellow-100 text-yellow-800';
+      case 'Identificado': return 'bg-blue-100 text-blue-800';
+      case 'Em Análise': return 'bg-yellow-100 text-yellow-800';
+      case 'Em Monitoramento': return 'bg-orange-100 text-orange-800';
+      case 'Em Andamento': return 'bg-purple-100 text-purple-800';
       case 'Mitigado': return 'bg-green-100 text-green-800';
-      case 'Planejado': return 'bg-blue-100 text-blue-800';
+      case 'Aceito': return 'bg-gray-100 text-gray-800';
+      case 'Transferido': return 'bg-indigo-100 text-indigo-800';
+      case 'Eliminado': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -112,7 +122,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
@@ -124,7 +134,8 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                 <SelectValue placeholder="Nível de Risco" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os níveis</SelectItem>
+                <SelectItem value="all">Todos os níveis</SelectItem>
+                <SelectItem value="Crítico">Crítico</SelectItem>
                 <SelectItem value="Alto">Alto</SelectItem>
                 <SelectItem value="Médio">Médio</SelectItem>
                 <SelectItem value="Baixo">Baixo</SelectItem>
@@ -136,7 +147,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                 <SelectValue placeholder="Projeto" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os projetos</SelectItem>
+                <SelectItem value="all">Todos os projetos</SelectItem>
                 {projects.map(project => (
                   <SelectItem key={project} value={project}>{project}</SelectItem>
                 ))}
@@ -166,9 +177,26 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
           </h3>
         </div>
 
+        {filteredRisks.length === 0 && !loading && (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {risks.length === 0 ? 'Nenhum risco cadastrado' : 'Nenhum risco encontrado'}
+              </h3>
+              <p className="text-gray-600">
+                {risks.length === 0 
+                  ? 'Cadastre seu primeiro risco na aba "Gerenciar Riscos".'
+                  : 'Tente ajustar os filtros para encontrar os riscos que você está procurando.'
+                }
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {filteredRisks.map((risk) => (
           <Card key={risk.id} className={`transition-all hover:shadow-lg ${
-            risk.nivelRisco === 'Alto' ? 'border-l-4 border-red-500 bg-red-50/30' :
+            risk.nivelRisco === 'Crítico' || risk.nivelRisco === 'Alto' ? 'border-l-4 border-red-500 bg-red-50/30' :
             risk.nivelRisco === 'Médio' ? 'border-l-4 border-yellow-500 bg-yellow-50/30' :
             'border-l-4 border-green-500 bg-green-50/30'
           }`}>
@@ -176,7 +204,7 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <AlertTriangle className={`w-5 h-5 ${
-                    risk.nivelRisco === 'Alto' ? 'text-red-500' :
+                    risk.nivelRisco === 'Crítico' || risk.nivelRisco === 'Alto' ? 'text-red-500' :
                     risk.nivelRisco === 'Médio' ? 'text-yellow-500' :
                     'text-green-500'
                   }`} />
@@ -220,16 +248,16 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t">
                   <div>
                     <h6 className="font-medium text-gray-900 mb-1">Responsável</h6>
-                    <p className="text-sm text-gray-600">{risk.responsavel}</p>
+                    <p className="text-sm text-gray-600">{risk.responsavel || 'Não atribuído'}</p>
                   </div>
                   <div>
                     <h6 className="font-medium text-gray-900 mb-1">Projeto</h6>
-                    <p className="text-sm text-gray-600">{risk.projeto}</p>
+                    <p className="text-sm text-gray-600">{risk.projeto || 'Não atribuído'}</p>
                   </div>
                   <div>
                     <h6 className="font-medium text-gray-900 mb-1">Prazo</h6>
                     <p className="text-sm text-gray-600">
-                      {new Date(risk.prazo).toLocaleDateString('pt-BR')}
+                      {risk.prazo ? new Date(risk.prazo).toLocaleDateString('pt-BR') : 'Não definido'}
                     </p>
                   </div>
                 </div>
@@ -237,18 +265,6 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
             </CardContent>
           </Card>
         ))}
-
-        {filteredRisks.length === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum risco encontrado</h3>
-              <p className="text-gray-600">
-                Tente ajustar os filtros para encontrar os riscos que você está procurando.
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );

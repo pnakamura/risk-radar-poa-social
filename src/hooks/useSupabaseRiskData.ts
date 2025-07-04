@@ -40,6 +40,7 @@ export const useSupabaseRiskData = () => {
 
   const fetchProfiles = async () => {
     try {
+      console.log('Fetching profiles...');
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nome, email, cargo, departamento, role, telefone, created_at, updated_at')
@@ -47,16 +48,20 @@ export const useSupabaseRiskData = () => {
 
       if (error) {
         console.error('Erro ao buscar perfis:', error);
+        toast.error('Erro ao carregar perfis');
       } else {
+        console.log('Profiles fetched:', data);
         setProfiles(data || []);
       }
     } catch (error) {
       console.error('Erro inesperado ao buscar perfis:', error);
+      toast.error('Erro inesperado ao carregar perfis');
     }
   };
 
   const fetchProjects = async () => {
     try {
+      console.log('Fetching projects...');
       const { data, error } = await supabase
         .from('projetos')
         .select('id, nome, descricao')
@@ -64,17 +69,21 @@ export const useSupabaseRiskData = () => {
 
       if (error) {
         console.error('Erro ao buscar projetos:', error);
+        toast.error('Erro ao carregar projetos');
       } else {
+        console.log('Projects fetched:', data);
         setProjects(data || []);
       }
     } catch (error) {
       console.error('Erro inesperado ao buscar projetos:', error);
+      toast.error('Erro inesperado ao carregar projetos');
     }
   };
 
   const fetchRisks = async () => {
     setLoading(true);
     try {
+      console.log('Fetching risks...');
       const { data, error } = await supabase
         .from('riscos')
         .select(`
@@ -86,15 +95,16 @@ export const useSupabaseRiskData = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        toast.error('Erro ao carregar riscos: ' + error.message);
         console.error('Erro ao buscar riscos:', error);
+        toast.error('Erro ao carregar riscos: ' + error.message);
         setRisks([]);
       } else {
+        console.log('Risks fetched:', data);
         setRisks(data || []);
       }
     } catch (error) {
+      console.error('Erro inesperado ao buscar riscos:', error);
       toast.error('Erro inesperado ao carregar riscos');
-      console.error('Erro inesperado:', error);
       setRisks([]);
     } finally {
       setLoading(false);
@@ -108,6 +118,7 @@ export const useSupabaseRiskData = () => {
     }
 
     try {
+      console.log('Creating risk with data:', riskData);
       const { data, error } = await supabase
         .from('riscos')
         .insert({
@@ -118,14 +129,17 @@ export const useSupabaseRiskData = () => {
         .single();
 
       if (error) {
+        console.error('Erro ao criar risco:', error);
         toast.error('Erro ao criar risco: ' + error.message);
         return { error };
       }
 
+      console.log('Risk created successfully:', data);
       toast.success('Risco criado com sucesso!');
       await fetchRisks(); // Recarregar a lista
       return { data, error: null };
     } catch (error) {
+      console.error('Erro inesperado ao criar risco:', error);
       toast.error('Erro inesperado ao criar risco');
       return { error };
     }
@@ -133,6 +147,7 @@ export const useSupabaseRiskData = () => {
 
   const updateRisk = async (id: string, updates: Partial<NewRisk>) => {
     try {
+      console.log('Updating risk:', id, updates);
       const { data, error } = await supabase
         .from('riscos')
         .update(updates)
@@ -141,14 +156,17 @@ export const useSupabaseRiskData = () => {
         .single();
 
       if (error) {
+        console.error('Erro ao atualizar risco:', error);
         toast.error('Erro ao atualizar risco: ' + error.message);
         return { error };
       }
 
+      console.log('Risk updated successfully:', data);
       toast.success('Risco atualizado com sucesso!');
       await fetchRisks(); // Recarregar a lista
       return { data, error: null };
     } catch (error) {
+      console.error('Erro inesperado ao atualizar risco:', error);
       toast.error('Erro inesperado ao atualizar risco');
       return { error };
     }
@@ -156,34 +174,42 @@ export const useSupabaseRiskData = () => {
 
   const deleteRisk = async (id: string) => {
     try {
+      console.log('Deleting risk:', id);
       const { error } = await supabase
         .from('riscos')
         .delete()
         .eq('id', id);
 
       if (error) {
+        console.error('Erro ao deletar risco:', error);
         toast.error('Erro ao deletar risco: ' + error.message);
         return { error };
       }
 
+      console.log('Risk deleted successfully');
       toast.success('Risco deletado com sucesso!');
       await fetchRisks(); // Recarregar a lista
       return { error: null };
     } catch (error) {
+      console.error('Erro inesperado ao deletar risco:', error);
       toast.error('Erro inesperado ao deletar risco');
       return { error };
     }
   };
 
   const refreshData = () => {
+    console.log('Refreshing all data...');
     fetchRisks();
   };
 
   useEffect(() => {
     if (user) {
+      console.log('User authenticated, fetching data...');
       fetchRisks();
       fetchProfiles();
       fetchProjects();
+    } else {
+      console.log('User not authenticated');
     }
   }, [user]);
 
@@ -191,6 +217,7 @@ export const useSupabaseRiskData = () => {
   useEffect(() => {
     if (!user) return;
 
+    console.log('Setting up realtime channel...');
     const channel = supabase
       .channel('riscos-changes')
       .on(
@@ -200,13 +227,15 @@ export const useSupabaseRiskData = () => {
           schema: 'public',
           table: 'riscos'
         },
-        () => {
+        (payload) => {
+          console.log('Realtime change detected:', payload);
           fetchRisks(); // Recarregar quando houver mudanças
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Removing realtime channel...');
       supabase.removeChannel(channel);
     };
   }, [user]);

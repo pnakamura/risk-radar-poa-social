@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { Database } from '@/integrations/supabase/types';
+import { calculateRiskLevel } from '@/utils/riskCalculations';
 
 export interface RiskFormData {
   codigo: string;
@@ -91,23 +92,8 @@ export const useRiskForm = (onSuccess: () => void) => {
         return;
       }
 
-      // Calcular nível de risco automaticamente
-      const calculateRiskLevel = (): Database['public']['Enums']['risk_level'] => {
-        const { probabilidade, impacto } = formData;
-        
-        if (!probabilidade || !impacto) return 'Baixo';
-        
-        const probScore = probabilidade === 'Muito Alta' ? 5 : probabilidade === 'Alta' ? 4 : probabilidade === 'Média' ? 3 : probabilidade === 'Baixa' ? 2 : 1;
-        const impactScore = impacto === 'Muito Alto' ? 5 : impacto === 'Alto' ? 4 : impacto === 'Médio' ? 3 : impacto === 'Baixo' ? 2 : 1;
-        const riskScore = probScore * impactScore;
-        
-        if (riskScore >= 16) return 'Crítico';
-        if (riskScore >= 9) return 'Alto';
-        if (riskScore >= 4) return 'Médio';
-        return 'Baixo';
-      };
-
-      const nivel_risco = calculateRiskLevel();
+      // Calcular nível de risco usando a função utilitária
+      const nivel_risco = calculateRiskLevel(formData.probabilidade, formData.impacto);
       
       const riskData = {
         codigo: formData.codigo,

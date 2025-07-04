@@ -15,30 +15,39 @@ const Index = () => {
   const { risks, loading, refreshData } = useSupabaseRiskData();
   const { profile } = useAuth();
 
+  console.log('Index - Raw risks data:', risks);
+
   // Mapear os dados do Supabase para o formato esperado pelos componentes
-  const mappedRisks = risks.map(risk => ({
-    id: risk.id,
-    codigo: risk.codigo,
-    categoria: risk.categoria,
-    descricaoRisco: risk.descricao_risco,
-    causas: risk.causas || '',
-    consequencias: risk.consequencias || '',
-    probabilidade: risk.probabilidade,
-    impacto: risk.impacto,
-    nivelRisco: risk.nivel_risco,
-    estrategia: risk.estrategia,
-    acoesMitigacao: risk.acoes_mitigacao || '',
-    acoesContingencia: risk.acoes_contingencia || '',
-    responsavel: risk.responsavel?.nome || '',
-    prazo: risk.prazo || '',
-    status: risk.status,
-    observacoes: risk.observacoes || '',
-    dataIdentificacao: risk.data_identificacao,
-    projeto: risk.projeto?.nome || '',
-    criadoPor: risk.criador?.nome || '',
-    createdAt: risk.created_at,
-    updatedAt: risk.updated_at
-  }));
+  const mappedRisks = risks.map(risk => {
+    const mappedRisk = {
+      id: risk.id,
+      codigo: risk.codigo,
+      categoria: risk.categoria,
+      descricaoRisco: risk.descricao_risco,
+      causas: risk.causas || '',
+      consequencias: risk.consequencias || '',
+      probabilidade: risk.probabilidade,
+      impacto: risk.impacto,
+      nivelRisco: risk.nivel_risco,
+      estrategia: risk.estrategia,
+      acoesMitigacao: risk.acoes_mitigacao || '',
+      acoesContingencia: risk.acoes_contingencia || '',
+      responsavel: risk.responsavel?.nome || '',
+      prazo: risk.prazo || '',
+      status: risk.status,
+      observacoes: risk.observacoes || '',
+      dataIdentificacao: risk.data_identificacao,
+      projeto: risk.projeto?.nome || '',
+      criadoPor: risk.criador?.nome || '',
+      createdAt: risk.created_at,
+      updatedAt: risk.updated_at
+    };
+    
+    console.log('Mapped risk:', mappedRisk);
+    return mappedRisk;
+  });
+
+  console.log('Index - Mapped risks:', mappedRisks);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -76,9 +85,9 @@ const Index = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-red-600 text-sm font-medium">Riscos Altos</p>
+                    <p className="text-red-600 text-sm font-medium">Riscos Críticos/Altos</p>
                     <p className="text-2xl font-bold text-red-700">
-                      {mappedRisks.filter(r => r.nivelRisco === 'Alto').length}
+                      {mappedRisks.filter(r => r.nivelRisco === 'Alto' || r.nivelRisco === 'Crítico').length}
                     </p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-red-500" />
