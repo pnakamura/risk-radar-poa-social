@@ -1,17 +1,13 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, Filter, Search, Eye, Calendar, User, Building2, ChevronDown, ChevronUp, Edit, Trash2, MoreHorizontal, Download } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RiskEditModal } from './RiskEditModal';
 import { ConfirmDialog } from './ConfirmDialog';
+import { RiskMatrixHeader } from './matrix/RiskMatrixHeader';
+import { RiskFilters } from './matrix/RiskFilters';
+import { RiskTable } from './matrix/RiskTable';
+import { RiskCards } from './matrix/RiskCards';
 import { useRiskActions } from '@/hooks/useRiskActions';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
@@ -193,6 +189,10 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     toast.success('Arquivo CSV exportado com sucesso!');
   };
 
+  const handleToggleExpand = (riskId: string) => {
+    setExpandedRisk(expandedRisk === riskId ? null : riskId);
+  };
+
   const handleEditRisk = (risk: Risk) => {
     console.log('Opening edit modal for risk:', risk.id, risk.codigo);
     setEditingRisk(risk);
@@ -209,122 +209,41 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     setEditingRisk(null);
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCategoryFilter('');
+    setLevelFilter('');
+    setProjectFilter('');
+    setStatusFilter('');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Header com contador e controles */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h3 className="text-xl font-semibold">Matriz de Riscos</h3>
-          <p className="text-sm text-gray-600">
-            {filteredAndSortedRisks.length} de {risks.length} {filteredAndSortedRisks.length === 1 ? 'risco' : 'riscos'}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToCSV}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-            {showFilters ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
-          </Button>
-        </div>
-      </div>
+      <RiskMatrixHeader
+        filteredRisksCount={filteredAndSortedRisks.length}
+        totalRisksCount={risks.length}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(!showFilters)}
+        onExportCSV={exportToCSV}
+      />
 
-      {/* Filtros colapsáveis */}
-      <Collapsible open={showFilters} onOpenChange={setShowFilters}>
-        <CollapsibleContent>
-          <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={levelFilter} onValueChange={setLevelFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Nível" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="Crítico">Crítico</SelectItem>
-                    <SelectItem value="Alto">Alto</SelectItem>
-                    <SelectItem value="Médio">Médio</SelectItem>
-                    <SelectItem value="Baixo">Baixo</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {statuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={projectFilter} onValueChange={setProjectFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Projeto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {projects.map(project => (
-                      <SelectItem key={project} value={project}>{project}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setCategoryFilter('');
-                    setLevelFilter('');
-                    setProjectFilter('');
-                    setStatusFilter('');
-                  }}
-                  className="w-full"
-                >
-                  Limpar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </CollapsibleContent>
-      </Collapsible>
+      <RiskFilters
+        showFilters={showFilters}
+        searchTerm={searchTerm}
+        categoryFilter={categoryFilter}
+        levelFilter={levelFilter}
+        projectFilter={projectFilter}
+        statusFilter={statusFilter}
+        categories={categories}
+        projects={projects}
+        statuses={statuses}
+        onSearchChange={setSearchTerm}
+        onCategoryChange={setCategoryFilter}
+        onLevelChange={setLevelFilter}
+        onProjectChange={setProjectFilter}
+        onStatusChange={setStatusFilter}
+        onClearFilters={clearFilters}
+      />
 
       {/* Tabela de Riscos */}
       {filteredAndSortedRisks.length === 0 && !loading ? (
@@ -340,248 +259,29 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
       ) : (
         <Card>
           <CardContent className="p-0">
-            {/* Tabela para desktop */}
-            <div className="hidden lg:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('code')}>
-                      Código {sortBy === 'code' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead className="w-32">Categoria</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="w-24 cursor-pointer" onClick={() => handleSort('level')}>
-                      Nível {sortBy === 'level' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead className="w-28 cursor-pointer" onClick={() => handleSort('status')}>
-                      Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead className="w-32">Responsável</TableHead>
-                    <TableHead className="w-20">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAndSortedRisks.map((risk) => (
-                    <React.Fragment key={risk.id}>
-                      <TableRow 
-                        className={`cursor-pointer hover:bg-gray-50 ${
-                          risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
-                          risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
-                          'border-l-4 border-green-500'
-                        }`}
-                        onClick={() => setExpandedRisk(expandedRisk === risk.id ? null : risk.id)}
-                      >
-                        <TableCell className="font-mono text-sm font-medium">{risk.codigo}</TableCell>
-                        <TableCell>
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{risk.categoria}</span>
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <span className="text-sm" title={risk.descricao_risco}>
-                            {truncateText(risk.descricao_risco || '', 60)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivel_risco)}`}>
-                            {risk.nivel_risco}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className={`text-xs ${getStatusColor(risk.status)}`}>
-                            {risk.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {risk.responsavel?.nome || 'Não atribuído'}
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setExpandedRisk(risk.id)}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditRisk(risk)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => setDeletingRisk(risk)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* Linha expandida com detalhes */}
-                      {expandedRisk === risk.id && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="bg-gray-50">
-                            <div className="p-4 space-y-3">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">Probabilidade:</span> {risk.probabilidade}
-                                </div>
-                                <div>
-                                  <span className="font-medium">Impacto:</span> {risk.impacto}
-                                </div>
-                                <div>
-                                  <span className="font-medium">Estratégia:</span> {risk.estrategia}
-                                </div>
-                                <div>
-                                  <span className="font-medium">Projeto:</span> {risk.projeto?.nome || 'Não atribuído'}
-                                </div>
-                              </div>
-                              {risk.prazo && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Prazo:</span> {new Date(risk.prazo).toLocaleDateString('pt-BR')}
-                                </div>
-                              )}
-                              {risk.acoes_mitigacao && (
-                                <div className="text-sm">
-                                  <span className="font-medium">Ações de Mitigação:</span> {risk.acoes_mitigacao}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <RiskTable
+              risks={filteredAndSortedRisks}
+              expandedRisk={expandedRisk}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onToggleExpand={handleToggleExpand}
+              onEdit={handleEditRisk}
+              onDelete={setDeletingRisk}
+              onSort={handleSort}
+              getRiskLevelColor={getRiskLevelColor}
+              getStatusColor={getStatusColor}
+              truncateText={truncateText}
+            />
 
-            {/* Cards para mobile/tablet */}
-            <div className="lg:hidden space-y-3 p-4">
-              {filteredAndSortedRisks.map((risk) => (
-                <Card 
-                  key={risk.id} 
-                  className={`transition-all ${
-                    risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
-                    risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
-                    'border-l-4 border-green-500'
-                  }`}
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      {/* Header do card */}
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-bold">{risk.codigo}</span>
-                          <Badge className={`text-xs ${getRiskLevelColor(risk.nivel_risco)}`}>
-                            {risk.nivel_risco}
-                          </Badge>
-                        </div>
-                        <Badge variant="secondary" className={`text-xs ${getStatusColor(risk.status)}`}>
-                          {risk.status}
-                        </Badge>
-                      </div>
-
-                      {/* Categoria */}
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">{risk.categoria}</span>
-                      </div>
-
-                      {/* Descrição */}
-                      <p className="text-sm font-medium">{risk.descricao_risco}</p>
-
-                      {/* Informações adicionais */}
-                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          <span>{risk.responsavel?.nome || 'Não atribuído'}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Building2 className="w-3 h-3" />
-                          <span>{risk.projeto?.nome || 'Não atribuído'}</span>
-                        </div>
-                        {risk.prazo && (
-                          <div className="flex items-center gap-1 col-span-2">
-                            <Calendar className="w-3 h-3" />
-                            <span>{new Date(risk.prazo).toLocaleDateString('pt-BR')}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Toggle para mais detalhes */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedRisk(expandedRisk === risk.id ? null : risk.id)}
-                        className="w-full text-xs"
-                      >
-                        {expandedRisk === risk.id ? 'Menos detalhes' : 'Mais detalhes'}
-                        {expandedRisk === risk.id ? 
-                          <ChevronUp className="w-3 h-3 ml-1" /> : 
-                          <ChevronDown className="w-3 h-3 ml-1" />
-                        }
-                      </Button>
-
-                      {/* Ações para mobile */}
-                      <div className="flex justify-end gap-2 pt-2 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditRisk(risk)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Editar
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              onClick={() => setDeletingRisk(risk)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      {/* Detalhes expandidos */}
-                      {expandedRisk === risk.id && (
-                        <div className="pt-3 border-t space-y-2 text-sm">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <span className="font-medium">Probabilidade:</span>
-                              <br />
-                              <span className="text-gray-600">{risk.probabilidade}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">Impacto:</span>
-                              <br />
-                              <span className="text-gray-600">{risk.impacto}</span>
-                            </div>
-                          </div>
-                          <div>
-                            <span className="font-medium">Estratégia:</span>
-                            <br />
-                            <span className="text-gray-600">{risk.estrategia}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <RiskCards
+              risks={filteredAndSortedRisks}
+              expandedRisk={expandedRisk}
+              onToggleExpand={handleToggleExpand}
+              onEdit={handleEditRisk}
+              onDelete={setDeletingRisk}
+              getRiskLevelColor={getRiskLevelColor}
+              getStatusColor={getStatusColor}
+            />
           </CardContent>
         </Card>
       )}
