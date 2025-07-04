@@ -6,10 +6,11 @@ import Dashboard from '@/components/risk-management/Dashboard';
 import RiskMatrix from '@/components/risk-management/RiskMatrix';
 import Reports from '@/components/risk-management/Reports';
 import RiskForm from '@/components/risk-management/RiskForm';
+import MasterDataTabs from '@/components/master-data/MasterDataTabs';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertTriangle, Shield, TrendingUp, FileBarChart } from 'lucide-react';
+import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database } from 'lucide-react';
 
 const Index = () => {
   const { risks, loading, refreshData } = useSupabaseRiskData();
@@ -139,7 +140,7 @@ const Index = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-lg p-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Dashboard
@@ -155,6 +156,10 @@ const Index = () => {
             <TabsTrigger value="form" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Gerenciar Riscos
+            </TabsTrigger>
+            <TabsTrigger value="master-data" className="flex items-center gap-2">
+              <Database className="w-4 h-4" />
+              Dados Mestres
             </TabsTrigger>
           </TabsList>
 
@@ -172,6 +177,10 @@ const Index = () => {
 
           <TabsContent value="form">
             <RiskForm onSuccess={refreshData} />
+          </TabsContent>
+
+          <TabsContent value="master-data">
+            <MasterDataTabs onSuccess={refreshData} />
           </TabsContent>
         </Tabs>
       </div>

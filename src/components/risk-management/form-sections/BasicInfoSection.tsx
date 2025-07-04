@@ -13,7 +13,9 @@ interface BasicInfoSectionProps {
 
 export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) => {
   return (
-    <div className="space-y-4">
+    <div>
+      <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="codigo">Código do Risco *</Label>
@@ -21,7 +23,7 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
             id="codigo"
             value={formData.codigo}
             onChange={(e) => onChange('codigo', e.target.value)}
-            placeholder="RSK-001"
+            placeholder="Ex: RSK-001"
             required
           />
         </div>
@@ -30,7 +32,7 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
           <Label htmlFor="categoria">Categoria *</Label>
           <Select value={formData.categoria} onValueChange={(value) => onChange('categoria', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione a categoria" />
+              <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Tecnologia">Tecnologia</SelectItem>
@@ -44,26 +46,28 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
           </Select>
         </div>
       </div>
-
-      <div>
+      
+      <div className="mt-4">
         <Label htmlFor="descricao_risco">Descrição do Risco *</Label>
         <Textarea
           id="descricao_risco"
           value={formData.descricao_risco}
           onChange={(e) => onChange('descricao_risco', e.target.value)}
           placeholder="Descreva detalhadamente o risco identificado..."
+          rows={3}
           required
         />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div>
           <Label htmlFor="causas">Causas</Label>
           <Textarea
             id="causas"
             value={formData.causas}
             onChange={(e) => onChange('causas', e.target.value)}
-            placeholder="Quais são as possíveis causas deste risco?"
+            placeholder="Descreva as possíveis causas do risco..."
+            rows={2}
           />
         </div>
         
@@ -73,7 +77,8 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
             id="consequencias"
             value={formData.consequencias}
             onChange={(e) => onChange('consequencias', e.target.value)}
-            placeholder="Quais são as possíveis consequências?"
+            placeholder="Descreva as possíveis consequências..."
+            rows={2}
           />
         </div>
       </div>

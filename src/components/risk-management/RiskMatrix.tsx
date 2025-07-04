@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertTriangle, Filter, Search } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Risk {
   id: string;
@@ -58,9 +59,9 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
   const filteredRisks = risks.filter(risk => {
     const matchesSearch = risk.descricaoRisco.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          risk.codigo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || risk.categoria === categoryFilter;
-    const matchesLevel = !levelFilter || risk.nivelRisco === levelFilter;
-    const matchesProject = !projectFilter || risk.projeto === projectFilter;
+    const matchesCategory = !categoryFilter || categoryFilter === 'all' || risk.categoria === categoryFilter;
+    const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivelRisco === levelFilter;
+    const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto === projectFilter;
     
     return matchesSearch && matchesCategory && matchesLevel && matchesProject;
   });
@@ -178,20 +179,15 @@ const RiskMatrix = ({ risks, loading }: RiskMatrixProps) => {
         </div>
 
         {filteredRisks.length === 0 && !loading && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {risks.length === 0 ? 'Nenhum risco cadastrado' : 'Nenhum risco encontrado'}
-              </h3>
-              <p className="text-gray-600">
-                {risks.length === 0 
-                  ? 'Cadastre seu primeiro risco na aba "Gerenciar Riscos".'
-                  : 'Tente ajustar os filtros para encontrar os riscos que você está procurando.'
-                }
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon="risk"
+            title={risks.length === 0 ? 'Nenhum risco cadastrado' : 'Nenhum risco encontrado'}
+            description={
+              risks.length === 0 
+                ? 'Cadastre seu primeiro risco na aba "Gerenciar Riscos".'
+                : 'Tente ajustar os filtros para encontrar os riscos que você está procurando.'
+            }
+          />
         )}
 
         {filteredRisks.map((risk) => (

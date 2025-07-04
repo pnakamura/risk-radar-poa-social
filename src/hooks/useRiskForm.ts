@@ -49,6 +49,11 @@ export const useRiskForm = (onSuccess: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: string, value: string) => {
+    // Não aceitar valores vazios para campos obrigatórios do select
+    if ((field === 'categoria' || field === 'probabilidade' || field === 'impacto' || field === 'estrategia') && value === '') {
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -89,6 +94,7 @@ export const useRiskForm = (onSuccess: () => void) => {
       // Validação básica
       if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');
+        setIsSubmitting(false);
         return;
       }
 
