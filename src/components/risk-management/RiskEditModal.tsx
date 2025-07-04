@@ -86,10 +86,11 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleClose = () => {
-    console.log('Closing modal');
-    setFormData({});
-    onClose();
+  const handleOpenChange = (open: boolean) => {
+    console.log('Dialog open change:', open);
+    if (!open) {
+      onClose();
+    }
   };
 
   if (!risk) {
@@ -100,7 +101,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
   console.log('Rendering modal with isOpen:', isOpen, 'risk:', risk);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Risco - {risk.codigo}</DialogTitle>
@@ -320,7 +321,7 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
