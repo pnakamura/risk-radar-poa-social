@@ -144,6 +144,34 @@ export const RiskCard = ({
                 <br />
                 <span className="text-gray-600">{risk.estrategia}</span>
               </div>
+              {risk.causas && (
+                <div>
+                  <span className="font-medium">Causas:</span>
+                  <br />
+                  <span className="text-gray-600">{risk.causas}</span>
+                </div>
+              )}
+              {risk.consequencias && (
+                <div>
+                  <span className="font-medium">Consequências:</span>
+                  <br />
+                  <span className="text-gray-600">{risk.consequencias}</span>
+                </div>
+              )}
+              {risk.acoes_mitigacao && (
+                <div>
+                  <span className="font-medium">Ações de Mitigação:</span>
+                  <br />
+                  <span className="text-gray-600">{risk.acoes_mitigacao}</span>
+                </div>
+              )}
+              {risk.acoes_contingencia && (
+                <div>
+                  <span className="font-medium">Ações de Contingência:</span>
+                  <br />
+                  <span className="text-gray-600">{risk.acoes_contingencia}</span>
+                </div>
+              )}
             </div>
           )}
         </div>

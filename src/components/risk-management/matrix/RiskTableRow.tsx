@@ -118,9 +118,24 @@ export const RiskTableRow = ({
                   <span className="font-medium">Prazo:</span> {new Date(risk.prazo).toLocaleDateString('pt-BR')}
                 </div>
               )}
+              {risk.causas && (
+                <div className="text-sm">
+                  <span className="font-medium">Causas:</span> {risk.causas}
+                </div>
+              )}
+              {risk.consequencias && (
+                <div className="text-sm">
+                  <span className="font-medium">Consequências:</span> {risk.consequencias}
+                </div>
+              )}
               {risk.acoes_mitigacao && (
                 <div className="text-sm">
                   <span className="font-medium">Ações de Mitigação:</span> {risk.acoes_mitigacao}
+                </div>
+              )}
+              {risk.acoes_contingencia && (
+                <div className="text-sm">
+                  <span className="font-medium">Ações de Contingência:</span> {risk.acoes_contingencia}
                 </div>
               )}
             </div>
