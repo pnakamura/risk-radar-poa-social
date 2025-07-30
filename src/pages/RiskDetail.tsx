@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Briefcase, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Briefcase, AlertTriangle, TrendingUp, Clock, Edit, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,30 @@ import { Separator } from '@/components/ui/separator';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useRiskHistory } from '@/hooks/useRiskHistory';
+import { useAuth } from '@/hooks/useAuth';
+import { RiskEditModal } from '@/components/risk-management/RiskEditModal';
 import { Loader2 } from 'lucide-react';
 
 const RiskDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { risks, loading: risksLoading } = useSupabaseRiskData();
+  const { risks, loading: risksLoading, refreshData } = useSupabaseRiskData();
   const { variablesHistory, riskHistory, loading: historyLoading } = useRiskHistory(id || '');
+  const { user } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const risk = risks.find(r => r.id === id);
+
+  // Verificar se o usuário pode editar o risco
+  const canEditRisk = user && risk && (
+    risk.criado_por === user.id || 
+    user.role === 'admin' || 
+    user.role === 'gestor'
+  );
+
+  const handleEditSuccess = () => {
+    refreshData();
+    setIsEditModalOpen(false);
+  };
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
@@ -130,6 +146,17 @@ const RiskDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {canEditRisk && (
+              <Button
+                onClick={() => setIsEditModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Editar Risco
+              </Button>
+            )}
             <Badge className={`${getRiskLevelColor(risk.nivel_risco)} text-white`}>
               {risk.nivel_risco}
             </Badge>
@@ -221,6 +248,16 @@ const RiskDetail = () => {
               <div>
                 <h4 className="font-medium text-gray-900 mb-1">Criado por</h4>
                 <p className="text-gray-600">{risk.criador?.nome || 'N/A'}</p>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-1 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  Última Atualização
+                </h4>
+                <p className="text-gray-600">
+                  {new Date(risk.updated_at).toLocaleString('pt-BR')}
+                </p>
               </div>
               
               <Separator />
@@ -323,6 +360,14 @@ const RiskDetail = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de Edição */}
+      <RiskEditModal
+        risk={risk}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 };
