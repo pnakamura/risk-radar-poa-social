@@ -46,7 +46,13 @@ export const RiskCard = ({
           {/* Header do card */}
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold">{risk.codigo}</span>
+              <Link 
+                to={`/risco/${risk.id}`} 
+                className="font-mono text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {risk.codigo}
+              </Link>
               <Badge className={`text-xs ${getRiskLevelColor(risk.nivel_risco)}`}>
                 {risk.nivel_risco}
               </Badge>
@@ -115,7 +121,11 @@ export const RiskCard = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to={`/risco/${risk.id}`} className="flex items-center">
+                  <Link 
+                    to={`/risco/${risk.id}`} 
+                    className="flex items-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <AlertTriangle className="w-4 h-4 mr-2" />
                     Página do Risco
                   </Link>

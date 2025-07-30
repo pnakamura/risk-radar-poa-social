@@ -45,7 +45,15 @@ export const RiskTableRow = ({
         }`}
         onClick={() => onToggleExpand(risk.id)}
       >
-        <TableCell className="font-mono text-sm font-medium">{risk.codigo}</TableCell>
+        <TableCell className="font-mono text-sm font-medium">
+          <Link 
+            to={`/risco/${risk.id}`} 
+            className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {risk.codigo}
+          </Link>
+        </TableCell>
         <TableCell>
           <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">{risk.categoria}</span>
         </TableCell>
@@ -80,7 +88,11 @@ export const RiskTableRow = ({
                 Ver Detalhes
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={`/risco/${risk.id}`} className="flex items-center">
+                <Link 
+                  to={`/risco/${risk.id}`} 
+                  className="flex items-center" 
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Eye className="w-4 h-4 mr-2" />
                   Página do Risco
                 </Link>
