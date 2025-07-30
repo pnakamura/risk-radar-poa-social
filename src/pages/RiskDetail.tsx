@@ -334,7 +334,7 @@ const RiskDetail = () => {
         {/* Histórico de Alterações */}
         <Card>
           <CardHeader>
-            <CardTitle>Histórico de Alterações</CardTitle>
+            <CardTitle>Evolução do Risco</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
