@@ -120,15 +120,14 @@ export const RiskCard = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link 
-                    to={`/risco/${risk.id}`} 
-                    className="flex items-center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    Página do Risco
-                  </Link>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/risco/${risk.id}`;
+                  }}
+                >
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Página do Risco
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 

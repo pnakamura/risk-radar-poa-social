@@ -87,15 +87,14 @@ export const RiskTableRow = ({
                 <Eye className="w-4 h-4 mr-2" />
                 Ver Detalhes
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link 
-                  to={`/risco/${risk.id}`} 
-                  className="flex items-center" 
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Página do Risco
-                </Link>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `/risco/${risk.id}`;
+                }}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Página do Risco
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(risk)}>
                 <Edit className="w-4 h-4 mr-2" />
