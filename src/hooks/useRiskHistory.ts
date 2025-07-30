@@ -32,7 +32,7 @@ export const useRiskHistory = (riskId: string) => {
         .from('riscos_variaveis_historico')
         .select(`
           *,
-          usuario:profiles(nome)
+          usuario:profiles!riscos_variaveis_historico_usuario_id_fkey(nome)
         `)
         .eq('risco_id', riskId)
         .order('data_snapshot', { ascending: false });
