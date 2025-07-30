@@ -93,10 +93,10 @@ export class CSVExporter {
         return;
       }
 
-      // Definir campos disponíveis
+      // Definir campos disponíveis (corrigidos para corresponder ao banco de dados)
       const availableFields = {
         codigo: 'Código',
-        categoria: 'Categoria',
+        categoria: 'Categoria', 
         descricao_risco: 'Descrição do Risco',
         causas: 'Causas',
         consequencias: 'Consequências',
@@ -104,15 +104,17 @@ export class CSVExporter {
         probabilidade: 'Probabilidade',
         impacto: 'Impacto',
         status: 'Status',
+        estrategia: 'Estratégia',
         responsavel: 'Responsável',
         projeto: 'Projeto',
         data_identificacao: 'Data de Identificação',
-        data_revisao: 'Data de Revisão',
-        acao_mitigacao: 'Ação de Mitigação',
-        acao_contingencia: 'Ação de Contingência',
-        custo_impacto: 'Custo do Impacto',
-        prazo_acao: 'Prazo da Ação',
-        observacoes: 'Observações'
+        prazo: 'Prazo',
+        acoes_mitigacao: 'Ações de Mitigação',
+        acoes_contingencia: 'Ações de Contingência',
+        observacoes: 'Observações',
+        criado_por: 'Criado Por',
+        created_at: 'Data de Criação',
+        updated_at: 'Última Atualização'
       };
 
       // Usar campos selecionados ou todos os campos
@@ -142,17 +144,17 @@ export class CSVExporter {
             case 'projeto':
               value = risk.projeto?.nome || '';
               break;
+            case 'criado_por':
+              value = risk.criador?.nome || '';
+              break;
             case 'data_identificacao':
-            case 'data_revisao':
-            case 'prazo_acao':
+            case 'created_at':
+            case 'updated_at':
+            case 'prazo':
               value = this.formatDate(value);
               break;
-            case 'custo_impacto':
-              value = this.formatCurrency(value);
-              break;
-            case 'probabilidade':
-            case 'impacto':
-              value = value ? `${value}/5` : '';
+            default:
+              // Manter valor original para outros campos
               break;
           }
 

@@ -26,20 +26,22 @@ const availableFields = {
   probabilidade: 'Probabilidade',
   impacto: 'Impacto',
   status: 'Status',
+  estrategia: 'Estratégia',
   responsavel: 'Responsável',
   projeto: 'Projeto',
   data_identificacao: 'Data de Identificação',
-  data_revisao: 'Data de Revisão',
-  acao_mitigacao: 'Ação de Mitigação',
-  acao_contingencia: 'Ação de Contingência',
-  custo_impacto: 'Custo do Impacto',
-  prazo_acao: 'Prazo da Ação',
-  observacoes: 'Observações'
+  prazo: 'Prazo',
+  acoes_mitigacao: 'Ações de Mitigação',
+  acoes_contingencia: 'Ações de Contingência',
+  observacoes: 'Observações',
+  criado_por: 'Criado Por',
+  created_at: 'Data de Criação',
+  updated_at: 'Última Atualização'
 };
 
 export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportModalProps) => {
   const [selectedFields, setSelectedFields] = useState<string[]>(
-    ['codigo', 'categoria', 'descricao_risco', 'nivel_risco', 'status', 'responsavel', 'projeto', 'data_identificacao']
+    ['codigo', 'categoria', 'descricao_risco', 'nivel_risco', 'probabilidade', 'impacto', 'status', 'estrategia', 'responsavel', 'projeto', 'data_identificacao']
   );
   const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'excel'>('csv');
   const [filename, setFilename] = useState('');
