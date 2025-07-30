@@ -50,11 +50,7 @@ export const RiskTableRow = ({
           <Link 
             to={`/risco/${risk.id}`} 
             className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              navigate(`/risco/${risk.id}`);
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
             {risk.codigo}
           </Link>

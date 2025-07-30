@@ -50,11 +50,7 @@ export const RiskCard = ({
               <Link 
                 to={`/risco/${risk.id}`} 
                 className="font-mono text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  navigate(`/risco/${risk.id}`);
-                }}
+                onClick={(e) => e.stopPropagation()}
               >
                 {risk.codigo}
               </Link>
