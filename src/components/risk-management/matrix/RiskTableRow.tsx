@@ -84,11 +84,7 @@ export const RiskTableRow = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onToggleExpand(risk.id)}>
-                <Eye className="w-4 h-4 mr-2" />
-                Ver Detalhes
-              </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/risco/${risk.id}`);
