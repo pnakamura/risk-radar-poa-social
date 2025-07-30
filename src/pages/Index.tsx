@@ -12,10 +12,15 @@ import { UserMenu } from '@/components/layout/UserMenu';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const Index = () => {
   const { risks, loading, refreshData } = useSupabaseRiskData();
   const { profile } = useAuth();
+  const [searchParams] = useSearchParams();
+  
+  // Obter aba ativa da URL, padrão é "dashboard"
+  const activeTab = searchParams.get('tab') || 'dashboard';
 
   console.log('Index - Raw risks data:', risks);
 
@@ -108,7 +113,7 @@ const Index = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="dashboard" className="space-y-4 sm:space-y-6">
+        <Tabs value={activeTab} className="space-y-4 sm:space-y-6">
           <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-lg p-1 h-auto">
             <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
               <TrendingUp className="w-4 h-4 flex-shrink-0" />

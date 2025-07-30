@@ -116,7 +116,7 @@ const RiskDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Risco não encontrado</h1>
-          <Link to="/matriz-riscos">
+          <Link to="/?tab=matrix">
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar à matriz de riscos
@@ -133,7 +133,7 @@ const RiskDetail = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/matriz-riscos">
+            <Link to="/?tab=matrix">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar
