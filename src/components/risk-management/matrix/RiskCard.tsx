@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ export const RiskCard = ({
   getRiskLevelColor,
   getStatusColor
 }: RiskCardProps) => {
+  const navigate = useNavigate();
   return (
     <Card 
       className={`transition-all ${
@@ -123,7 +124,7 @@ export const RiskCard = ({
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = `/risco/${risk.id}`;
+                    navigate(`/risco/${risk.id}`);
                   }}
                 >
                   <AlertTriangle className="w-4 h-4 mr-2" />

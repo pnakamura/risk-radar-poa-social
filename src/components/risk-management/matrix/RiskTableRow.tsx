@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ export const RiskTableRow = ({
   getStatusColor,
   truncateText
 }: RiskTableRowProps) => {
+  const navigate = useNavigate();
   return (
     <>
       <TableRow 
@@ -90,7 +91,7 @@ export const RiskTableRow = ({
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.location.href = `/risco/${risk.id}`;
+                  navigate(`/risco/${risk.id}`);
                 }}
               >
                 <Eye className="w-4 h-4 mr-2" />

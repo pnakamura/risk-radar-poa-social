@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,9 +13,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProfileModal } from './ProfileModal';
+import { SettingsModal } from './SettingsModal';
 
 export const UserMenu = () => {
   const { profile, signOut } = useAuth();
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -70,11 +75,11 @@ export const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setProfileModalOpen(true)}>
           <User className="mr-2 h-4 w-4" />
           <span>Perfil</span>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setSettingsModalOpen(true)}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Configurações</span>
         </DropdownMenuItem>
@@ -84,6 +89,16 @@ export const UserMenu = () => {
           <span>Sair</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      
+      <ProfileModal 
+        open={profileModalOpen} 
+        onOpenChange={setProfileModalOpen} 
+      />
+      
+      <SettingsModal 
+        open={settingsModalOpen} 
+        onOpenChange={setSettingsModalOpen} 
+      />
     </DropdownMenu>
   );
 };
