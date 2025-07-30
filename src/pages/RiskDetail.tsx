@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useRiskHistory } from '@/hooks/useRiskHistory';
@@ -331,32 +332,277 @@ const RiskDetail = () => {
           </Card>
         )}
 
-        {/* Histórico de Alterações */}
+        {/* Evolução do Risco */}
         <Card>
           <CardHeader>
             <CardTitle>Evolução do Risco</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Histórico completo de mudanças nas variáveis do risco e ações administrativas
+            </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {riskHistory.map((entry, index) => (
-                <div key={entry.id} className="border-l-2 border-blue-200 pl-4 pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{entry.acao}</Badge>
-                      <span className="text-sm text-gray-600">
-                        por {entry.usuario?.nome || 'Sistema'}
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(entry.created_at).toLocaleString('pt-BR')}
-                    </span>
+            <Tabs defaultValue="timeline" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                <TabsTrigger value="metrics">Métricas</TabsTrigger>
+                <TabsTrigger value="analysis">Análise</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="timeline">
+                <div className="space-y-6">
+                  {/* Timeline Integrado */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm text-muted-foreground">Histórico de Variáveis</h4>
+                    {variablesHistory.map((entry, index) => (
+                      <div key={entry.id} className="border-l-4 border-blue-500 pl-4 pb-4 relative">
+                        <div className="absolute -left-2 top-0 w-4 h-4 bg-blue-500 rounded-full"></div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge className={getRiskLevelColor(entry.nivel_risco)}>
+                              {entry.nivel_risco}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              por {entry.usuario?.nome || 'Sistema'}
+                            </span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(entry.data_snapshot).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 mt-2">
+                          <div className="text-sm">
+                            <span className="font-medium">Probabilidade:</span> {entry.probabilidade}
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium">Impacto:</span> {entry.impacto}
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium">Status:</span> 
+                            <Badge variant="outline" className={getStatusColor(entry.status)}>
+                              {entry.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        {entry.observacoes && (
+                          <p className="text-muted-foreground text-sm mt-2">{entry.observacoes}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {entry.observacoes && (
-                    <p className="text-gray-600 text-sm">{entry.observacoes}</p>
-                  )}
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm text-muted-foreground">Ações Administrativas</h4>
+                    {riskHistory.map((entry, index) => (
+                      <div key={entry.id} className="border-l-4 border-gray-300 pl-4 pb-4 relative">
+                        <div className="absolute -left-2 top-0 w-4 h-4 bg-gray-400 rounded-full"></div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{entry.acao}</Badge>
+                            <span className="text-sm text-muted-foreground">
+                              por {entry.usuario?.nome || 'Sistema'}
+                            </span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(entry.created_at).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        {entry.observacoes && (
+                          <p className="text-muted-foreground text-sm">{entry.observacoes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              </TabsContent>
+
+              <TabsContent value="metrics">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Total de Mudanças</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{variablesHistory.length}</div>
+                      <p className="text-xs text-muted-foreground">
+                        nas variáveis do risco
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Última Atualização</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {variablesHistory.length > 0 
+                          ? Math.floor((new Date().getTime() - new Date(variablesHistory[0].data_snapshot).getTime()) / (1000 * 60 * 60 * 24))
+                          : '-'
+                        }
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        dias atrás
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Tendência</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {(() => {
+                          if (variablesHistory.length < 2) return '-';
+                          const latest = getRiskLevelValue(variablesHistory[0].nivel_risco);
+                          const previous = getRiskLevelValue(variablesHistory[1].nivel_risco);
+                          if (latest > previous) return '↗️';
+                          if (latest < previous) return '↘️';
+                          return '→';
+                        })()}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        evolução do nível
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Frequência</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {variablesHistory.length > 1 
+                          ? Math.round(variablesHistory.length / ((new Date().getTime() - new Date(variablesHistory[variablesHistory.length - 1].data_snapshot).getTime()) / (1000 * 60 * 60 * 24 * 30)))
+                          : '-'
+                        }
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        mudanças/mês
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="analysis">
+                <div className="space-y-6">
+                  {/* Distribuição de Status */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Distribuição de Status</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {Object.entries(
+                          variablesHistory.reduce((acc, entry) => {
+                            acc[entry.status] = (acc[entry.status] || 0) + 1;
+                            return acc;
+                          }, {} as Record<string, number>)
+                        ).map(([status, count]) => (
+                          <div key={status} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={getStatusColor(status)}>
+                                {status}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-500 h-2 rounded-full transition-all"
+                                  style={{ width: `${(count / variablesHistory.length) * 100}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium w-8 text-right">{count}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Insights */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Insights e Recomendações</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {(() => {
+                          const insights = [];
+                          
+                          // Verificar se o risco não é atualizado há muito tempo
+                          if (variablesHistory.length > 0) {
+                            const daysSinceUpdate = Math.floor((new Date().getTime() - new Date(variablesHistory[0].data_snapshot).getTime()) / (1000 * 60 * 60 * 24));
+                            if (daysSinceUpdate > 30) {
+                              insights.push({
+                                type: 'warning',
+                                title: 'Risco desatualizado',
+                                description: `Este risco não é revisado há ${daysSinceUpdate} dias. Considere uma reavaliação.`
+                              });
+                            }
+                          }
+
+                          // Verificar tendência de deterioração
+                          if (variablesHistory.length >= 3) {
+                            const recent3 = variablesHistory.slice(0, 3);
+                            const isWorsening = recent3.every((entry, index) => {
+                              if (index === 0) return true;
+                              return getRiskLevelValue(entry.nivel_risco) >= getRiskLevelValue(recent3[index - 1].nivel_risco);
+                            });
+                            
+                            if (isWorsening) {
+                              insights.push({
+                                type: 'danger',
+                                title: 'Tendência de deterioração',
+                                description: 'O risco apresenta tendência de piora nas últimas avaliações. Ações urgentes podem ser necessárias.'
+                              });
+                            }
+                          }
+
+                          // Verificar estabilidade
+                          if (variablesHistory.length >= 5) {
+                            const recent5 = variablesHistory.slice(0, 5);
+                            const isStable = recent5.every(entry => entry.nivel_risco === recent5[0].nivel_risco);
+                            
+                            if (isStable) {
+                              insights.push({
+                                type: 'success',
+                                title: 'Risco estável',
+                                description: 'O risco mantém nível consistente nas últimas avaliações, indicando boa gestão.'
+                              });
+                            }
+                          }
+
+                          if (insights.length === 0) {
+                            insights.push({
+                              type: 'info',
+                              title: 'Análise em andamento',
+                              description: 'Dados insuficientes para gerar insights automatizados. Continue monitorando.'
+                            });
+                          }
+
+                          return insights;
+                        })().map((insight, index) => (
+                          <div key={index} className={`p-4 rounded-lg border ${
+                            insight.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                            insight.type === 'danger' ? 'bg-red-50 border-red-200' :
+                            insight.type === 'success' ? 'bg-green-50 border-green-200' :
+                            'bg-blue-50 border-blue-200'
+                          }`}>
+                            <h5 className="font-medium text-sm mb-1">{insight.title}</h5>
+                            <p className="text-sm text-muted-foreground">{insight.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
