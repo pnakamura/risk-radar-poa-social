@@ -28,6 +28,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
+  const [showExportModal, setShowExportModal] = useState(false);
 
   if (loading) {
     return (
@@ -98,8 +99,6 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   // Obter listas únicas para filtros
   const projects = [...new Set(risks.map(r => r.projeto?.nome).filter(Boolean))];
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
-
-  const [showExportModal, setShowExportModal] = useState(false);
 
   const handleExport = () => {
     setShowExportModal(true);
