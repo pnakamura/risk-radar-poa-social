@@ -43,6 +43,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   // Estados para modais e ações
   const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
   const [deletingRisk, setDeletingRisk] = useState<Risk | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const { removeRisk, isLoading } = useRiskActions();
 
@@ -159,7 +160,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     }
   };
 
-  const [showExportModal, setShowExportModal] = useState(false);
 
   const handleExport = () => {
     setShowExportModal(true);
