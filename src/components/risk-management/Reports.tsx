@@ -7,6 +7,7 @@ import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { FileDown, Calendar, Filter, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { ExportModal } from './ExportModal';
 import { DateRange } from 'react-day-picker';
 import { Database } from '@/integrations/supabase/types';
 
@@ -98,37 +99,19 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const projects = [...new Set(risks.map(r => r.projeto?.nome).filter(Boolean))];
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
 
-  const exportToJSON = () => {
-    const reportData = {
-      period: selectedPeriod,
-      filters: {
-        project: selectedProject,
-        category: selectedCategory
-      },
-      summary: {
-        totalRisks: filteredRisks.length,
-        byLevel: risksByLevel,
-        byCategory: risksByCategory,
-        byStatus: risksByStatus
-      },
-      trends: trendData,
-      risks: filteredRisks,
-      generatedAt: new Date().toISOString()
-    };
+  const [showExportModal, setShowExportModal] = useState(false);
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `relatorio-riscos-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Relatório exportado com sucesso!');
+  const handleExport = () => {
+    setShowExportModal(true);
   };
 
-  const exportToPDF = () => {
-    // Simulação de exportação para PDF
-    toast.info('Funcionalidade de exportação para PDF será implementada em breve!');
+  const getAppliedFilters = () => {
+    return {
+      'Período': selectedPeriod,
+      'Projeto': selectedProject || 'Todos',
+      'Categoria': selectedCategory || 'Todas',
+      'Tipo de Relatório': reportType
+    };
   };
 
   return (
@@ -143,13 +126,9 @@ const Reports = ({ risks, loading }: ReportsProps) => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportToJSON}>
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <FileDown className="w-4 h-4 mr-2" />
-            Exportar JSON
-          </Button>
-          <Button variant="outline" size="sm" onClick={exportToPDF}>
-            <FileDown className="w-4 h-4 mr-2" />
-            Exportar PDF
+            Exportar Dados
           </Button>
         </div>
       </div>
@@ -376,6 +355,13 @@ const Reports = ({ risks, loading }: ReportsProps) => {
           </Card>
         </div>
       )}
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        risks={filteredRisks}
+        appliedFilters={getAppliedFilters()}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { RiskEditModal } from './RiskEditModal';
 import { ConfirmDialog } from './ConfirmDialog';
+import { ExportModal } from './ExportModal';
 import { RiskMatrixHeader } from './matrix/RiskMatrixHeader';
 import { RiskFilters } from './matrix/RiskFilters';
 import { RiskTable } from './matrix/RiskTable';
@@ -158,35 +159,20 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     }
   };
 
-  const exportToCSV = () => {
-    if (filteredAndSortedRisks.length === 0) {
-      toast.error('Nenhum risco para exportar');
-      return;
-    }
+  const [showExportModal, setShowExportModal] = useState(false);
 
-    const headers = ['Código', 'Categoria', 'Descrição', 'Nível', 'Status', 'Responsável', 'Projeto', 'Data'];
-    const csvContent = [
-      headers.join(','),
-      ...filteredAndSortedRisks.map(risk => [
-        risk.codigo,
-        risk.categoria,
-        `"${risk.descricao_risco?.replace(/"/g, '""')}"`,
-        risk.nivel_risco,
-        risk.status,
-        risk.responsavel?.nome || '',
-        risk.projeto?.nome || '',
-        risk.data_identificacao || ''
-      ].join(','))
-    ].join('\n');
+  const handleExport = () => {
+    setShowExportModal(true);
+  };
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `matriz-riscos-${new Date().toISOString().split('T')[0]}.csv`);
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Arquivo CSV exportado com sucesso!');
+  const getAppliedFilters = () => {
+    const filters: Record<string, any> = {};
+    if (searchTerm) filters['Termo de busca'] = searchTerm;
+    if (categoryFilter) filters['Categoria'] = categoryFilter;
+    if (levelFilter) filters['Nível'] = levelFilter;
+    if (projectFilter) filters['Projeto'] = projectFilter;
+    if (statusFilter) filters['Status'] = statusFilter;
+    return filters;
   };
 
   const handleToggleExpand = (riskId: string) => {
@@ -224,7 +210,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
         totalRisksCount={risks.length}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(!showFilters)}
-        onExportCSV={exportToCSV}
+        onExportCSV={handleExport}
       />
 
       <RiskFilters
@@ -302,6 +288,13 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
         description={`Tem certeza que deseja excluir o risco "${deletingRisk?.codigo}"? Esta ação não pode ser desfeita.`}
         confirmText="Excluir"
         variant="destructive"
+      />
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        risks={filteredAndSortedRisks}
+        appliedFilters={getAppliedFilters()}
       />
     </div>
   );
