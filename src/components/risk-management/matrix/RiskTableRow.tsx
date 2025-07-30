@@ -1,9 +1,10 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Eye, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
@@ -78,10 +79,17 @@ export const RiskTableRow = ({
                 <Eye className="w-4 h-4 mr-2" />
                 Ver Detalhes
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={`/risco/${risk.id}`} className="flex items-center">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Página do Risco
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(risk)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Editar
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(risk)}
                 className="text-red-600"

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import RiskDetail from "./pages/RiskDetail";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/risco/:id" element={<RiskDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

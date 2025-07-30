@@ -236,6 +236,45 @@ export type Database = {
           },
         ]
       }
+      riscos_variaveis_historico: {
+        Row: {
+          created_at: string
+          data_snapshot: string
+          id: string
+          impacto: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco: Database["public"]["Enums"]["risk_level"]
+          observacoes: string | null
+          probabilidade: Database["public"]["Enums"]["risk_probability"]
+          risco_id: string
+          status: Database["public"]["Enums"]["risk_status"]
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_snapshot?: string
+          id?: string
+          impacto: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco: Database["public"]["Enums"]["risk_level"]
+          observacoes?: string | null
+          probabilidade: Database["public"]["Enums"]["risk_probability"]
+          risco_id: string
+          status: Database["public"]["Enums"]["risk_status"]
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          data_snapshot?: string
+          id?: string
+          impacto?: Database["public"]["Enums"]["risk_impact"]
+          nivel_risco?: Database["public"]["Enums"]["risk_level"]
+          observacoes?: string | null
+          probabilidade?: Database["public"]["Enums"]["risk_probability"]
+          risco_id?: string
+          status?: Database["public"]["Enums"]["risk_status"]
+          usuario_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
