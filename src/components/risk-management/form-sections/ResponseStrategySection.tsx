@@ -4,6 +4,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { RiskFormData } from '@/hooks/useRiskForm';
+import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
+import { helpContent } from '@/components/risk-management/help/helpContent';
 
 interface ResponseStrategySectionProps {
   formData: RiskFormData;
@@ -17,7 +19,10 @@ export const ResponseStrategySection = ({ formData, onChange }: ResponseStrategy
       
       <div className="space-y-4">
         <div>
-          <Label htmlFor="estrategia">Estratégia *</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="estrategia">Estratégia *</Label>
+            <FieldHelpButton field="estrategia" content={helpContent.estrategia} />
+          </div>
           <Select value={formData.estrategia} onValueChange={(value) => onChange('estrategia', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione a estratégia" />
@@ -32,7 +37,10 @@ export const ResponseStrategySection = ({ formData, onChange }: ResponseStrategy
         </div>
         
         <div>
-          <Label htmlFor="acoes_mitigacao">Ações de Mitigação</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="acoes_mitigacao">Ações de Mitigação</Label>
+            <FieldHelpButton field="acoes_mitigacao" content={helpContent.acoes_mitigacao} />
+          </div>
           <Textarea
             id="acoes_mitigacao"
             value={formData.acoes_mitigacao}
@@ -42,7 +50,10 @@ export const ResponseStrategySection = ({ formData, onChange }: ResponseStrategy
         </div>
         
         <div>
-          <Label htmlFor="acoes_contingencia">Ações de Contingência</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="acoes_contingencia">Ações de Contingência</Label>
+            <FieldHelpButton field="acoes_contingencia" content={helpContent.acoes_contingencia} />
+          </div>
           <Textarea
             id="acoes_contingencia"
             value={formData.acoes_contingencia}

@@ -4,6 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { RiskFormData } from '@/hooks/useRiskForm';
 import { calculateRiskLevel, getRiskLevelColor } from '@/utils/riskCalculations';
+import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
+import { helpContent } from '@/components/risk-management/help/helpContent';
 
 interface RiskAssessmentSectionProps {
   formData: RiskFormData;
@@ -19,7 +21,10 @@ export const RiskAssessmentSection = ({ formData, onChange }: RiskAssessmentSect
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="probabilidade">Probabilidade *</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="probabilidade">Probabilidade *</Label>
+            <FieldHelpButton field="probabilidade" content={helpContent.probabilidade} />
+          </div>
           <Select value={formData.probabilidade} onValueChange={(value) => onChange('probabilidade', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
@@ -35,7 +40,10 @@ export const RiskAssessmentSection = ({ formData, onChange }: RiskAssessmentSect
         </div>
         
         <div>
-          <Label htmlFor="impacto">Impacto *</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="impacto">Impacto *</Label>
+            <FieldHelpButton field="impacto" content={helpContent.impacto} />
+          </div>
           <Select value={formData.impacto} onValueChange={(value) => onChange('impacto', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />

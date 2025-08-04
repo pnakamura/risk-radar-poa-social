@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { RiskFormData } from '@/hooks/useRiskForm';
+import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
+import { helpContent } from '@/components/risk-management/help/helpContent';
 
 interface BasicInfoSectionProps {
   formData: RiskFormData;
@@ -18,7 +20,10 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="codigo">Código do Risco *</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="codigo">Código do Risco *</Label>
+            <FieldHelpButton field="codigo" content={helpContent.codigo} />
+          </div>
           <Input
             id="codigo"
             value={formData.codigo}
@@ -29,7 +34,10 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
         </div>
         
         <div>
-          <Label htmlFor="categoria">Categoria *</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="categoria">Categoria *</Label>
+            <FieldHelpButton field="categoria" content={helpContent.categoria} />
+          </div>
           <Select value={formData.categoria} onValueChange={(value) => onChange('categoria', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma categoria" />
@@ -48,7 +56,10 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
       </div>
       
       <div className="mt-4">
-        <Label htmlFor="descricao_risco">Descrição do Risco *</Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="descricao_risco">Descrição do Risco *</Label>
+          <FieldHelpButton field="descricao_risco" content={helpContent.descricao_risco} />
+        </div>
         <Textarea
           id="descricao_risco"
           value={formData.descricao_risco}
@@ -61,7 +72,10 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div>
-          <Label htmlFor="causas">Causas</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="causas">Causas</Label>
+            <FieldHelpButton field="causas" content={helpContent.causas} />
+          </div>
           <Textarea
             id="causas"
             value={formData.causas}
@@ -72,7 +86,10 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
         </div>
         
         <div>
-          <Label htmlFor="consequencias">Consequências</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="consequencias">Consequências</Label>
+            <FieldHelpButton field="consequencias" content={helpContent.consequencias} />
+          </div>
           <Textarea
             id="consequencias"
             value={formData.consequencias}

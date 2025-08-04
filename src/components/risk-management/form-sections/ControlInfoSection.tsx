@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { RiskFormData } from '@/hooks/useRiskForm';
+import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
+import { helpContent } from '@/components/risk-management/help/helpContent';
 
 interface ProfileBasic {
   id: string;
@@ -38,7 +40,10 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="responsavel_id">Responsável</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="responsavel_id">Responsável</Label>
+            <FieldHelpButton field="responsavel_id" content={helpContent.responsavel_id} />
+          </div>
           <Select value={formData.responsavel_id} onValueChange={(value) => onChange('responsavel_id', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um responsável" />
@@ -60,7 +65,10 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
         </div>
         
         <div>
-          <Label htmlFor="projeto_id">Projeto</Label>
+          <div className="flex items-center gap-2 mb-2">
+            <Label htmlFor="projeto_id">Projeto</Label>
+            <FieldHelpButton field="projeto_id" content={helpContent.projeto_id} />
+          </div>
           <Select value={formData.projeto_id} onValueChange={(value) => onChange('projeto_id', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione um projeto" />
@@ -83,7 +91,10 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
       </div>
       
       <div className="mt-4">
-        <Label htmlFor="prazo">Prazo</Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="prazo">Prazo</Label>
+          <FieldHelpButton field="prazo" content={helpContent.prazo} />
+        </div>
         <Input
           id="prazo"
           type="date"
@@ -93,7 +104,10 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
       </div>
       
       <div className="mt-4">
-        <Label htmlFor="status">Status</Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="status">Status</Label>
+          <FieldHelpButton field="status" content={helpContent.status} />
+        </div>
         <Select value={formData.status} onValueChange={(value) => onChange('status', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione o status" />
@@ -112,7 +126,10 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
       </div>
       
       <div className="mt-4">
-        <Label htmlFor="observacoes">Observações</Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="observacoes">Observações</Label>
+          <FieldHelpButton field="observacoes" content={helpContent.observacoes} />
+        </div>
         <Textarea
           id="observacoes"
           value={formData.observacoes}
