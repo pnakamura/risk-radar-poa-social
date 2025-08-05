@@ -9,6 +9,8 @@ import Reports from '@/components/risk-management/Reports';
 import RiskForm from '@/components/risk-management/RiskForm';
 import MasterDataTabs from '@/components/master-data/MasterDataTabs';
 import { UserMenu } from '@/components/layout/UserMenu';
+import { SmartBreadcrumbs } from '@/components/layout/SmartBreadcrumbs';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users } from 'lucide-react';
@@ -30,6 +32,11 @@ const Index = () => {
 
   console.log('Index - Raw risks data:', risks);
 
+  const handleSearchResult = (risk: any) => {
+    // Navegar para a página de detalhes do risco ou abrir modal
+    navigate(`/risco/${risk.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-3 sm:p-6">
@@ -37,7 +44,7 @@ const Index = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-2 sm:p-3 bg-blue-600 rounded-lg">
+              <div className="p-2 sm:p-3 bg-blue-600 rounded-lg hover-glow">
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
@@ -50,8 +57,17 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Busca Global */}
+              <div className="hidden sm:block">
+                <GlobalSearch 
+                  risks={risks} 
+                  onResultClick={handleSearchResult}
+                  placeholder="Buscar riscos..."
+                />
+              </div>
+              
               {profile && (
-                <div className="text-right hidden sm:block">
+                <div className="text-right hidden lg:block">
                   <p className="text-sm text-gray-600">Bem-vindo,</p>
                   <p className="font-medium">{profile.nome}</p>
                 </div>
@@ -59,6 +75,9 @@ const Index = () => {
               <UserMenu />
             </div>
           </div>
+          
+          {/* Breadcrumbs */}
+          <SmartBreadcrumbs risks={risks} currentTab={activeTab} />
           
           {/* Quick Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">

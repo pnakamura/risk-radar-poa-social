@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
+import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { Database } from '@/integrations/supabase/types';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -65,6 +67,12 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         <p className="text-gray-600">
           Visão geral dos riscos identificados e métricas principais
         </p>
+      </div>
+
+      {/* Risk Health Score e Activity Timeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RiskHealthScore risks={risks} />
+        <ActivityTimeline risks={risks} />
       </div>
 
       {/* Métricas Principais */}

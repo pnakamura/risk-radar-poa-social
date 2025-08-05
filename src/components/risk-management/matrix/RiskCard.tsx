@@ -36,10 +36,10 @@ export const RiskCard = ({
   const navigate = useNavigate();
   return (
     <Card 
-      className={`transition-all ${
-        risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500' :
-        risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500' :
-        'border-l-4 border-green-500'
+      className={`transition-all duration-300 hover-lift cursor-pointer group ${
+        risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto' ? 'border-l-4 border-red-500 hover:shadow-red-100' :
+        risk.nivel_risco === 'Médio' ? 'border-l-4 border-yellow-500 hover:shadow-yellow-100' :
+        'border-l-4 border-green-500 hover:shadow-green-100'
       }`}
     >
       <CardContent className="p-4">
@@ -95,12 +95,12 @@ export const RiskCard = ({
             variant="ghost"
             size="sm"
             onClick={() => onToggleExpand(risk.id)}
-            className="w-full text-xs"
+            className="w-full text-xs transition-all duration-200 hover:bg-muted/80"
           >
             {expandedRisk === risk.id ? 'Menos detalhes' : 'Mais detalhes'}
             {expandedRisk === risk.id ? 
-              <ChevronUp className="w-3 h-3 ml-1" /> : 
-              <ChevronDown className="w-3 h-3 ml-1" />
+              <ChevronUp className="w-3 h-3 ml-1 transition-transform" /> : 
+              <ChevronDown className="w-3 h-3 ml-1 transition-transform" />
             }
           </Button>
 
@@ -110,6 +110,7 @@ export const RiskCard = ({
               variant="outline"
               size="sm"
               onClick={() => onEdit(risk)}
+              className="transition-all duration-200 hover:scale-105 focus-ring"
             >
               <Edit className="w-4 h-4 mr-1" />
               Editar
@@ -144,7 +145,7 @@ export const RiskCard = ({
 
           {/* Detalhes expandidos */}
           {expandedRisk === risk.id && (
-            <div className="pt-3 border-t space-y-2 text-sm">
+            <div className="pt-3 border-t space-y-2 text-sm animate-fade-in">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <span className="font-medium">Probabilidade:</span>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserPlus, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { SmartBreadcrumbs } from '@/components/layout/SmartBreadcrumbs';
 import UserList from '@/components/user-management/UserList';
 import UserModal from '@/components/user-management/UserModal';
 
@@ -57,12 +58,15 @@ export default function UserManagement() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Breadcrumbs inteligentes */}
+      <SmartBreadcrumbs />
+      
       <div className="flex items-center gap-4 mb-6">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={handleGoBack}
-          className="gap-2"
+          className="gap-2 hover-lift"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar
