@@ -11,7 +11,7 @@ import MasterDataTabs from '@/components/master-data/MasterDataTabs';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database } from 'lucide-react';
+import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Index = () => {
@@ -120,7 +120,7 @@ const Index = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-lg p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-6 bg-white shadow-lg rounded-lg p-1 h-auto">
             <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
               <TrendingUp className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -146,6 +146,17 @@ const Index = () => {
               <span className="hidden sm:inline">Dados Mestres</span>
               <span className="sm:hidden text-xs">Dados</span>
             </TabsTrigger>
+            {(profile?.role === 'admin' || profile?.role === 'gestor') && (
+              <TabsTrigger 
+                value="users" 
+                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm"
+                onClick={() => navigate('/usuarios')}
+              >
+                <Users className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Usuários</span>
+                <span className="sm:hidden text-xs">Users</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="dashboard">
