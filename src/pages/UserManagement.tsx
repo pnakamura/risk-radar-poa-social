@@ -1,14 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import UserList from '@/components/user-management/UserList';
 import UserModal from '@/components/user-management/UserModal';
 
 export default function UserManagement() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -49,8 +51,25 @@ export default function UserManagement() {
     toast.success(editingUser ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
   };
 
+  const handleGoBack = () => {
+    navigate(-1); // Volta para a página anterior
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleGoBack}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+        <div className="flex-1" />
+      </div>
+      
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Usuários</h1>
