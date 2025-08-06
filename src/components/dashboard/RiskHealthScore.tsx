@@ -31,21 +31,21 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
   const healthScore = healthScoreBreakdown.finalScore;
   
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (score >= 70) return 'text-green-600 bg-green-50 border-green-200';
+    if (score >= 50) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
     return 'text-red-600 bg-red-50 border-red-200';
   };
 
   const getScoreIcon = (score: number) => {
-    if (score >= 80) return <TrendingUp className="w-5 h-5 text-green-600" />;
-    if (score >= 60) return <Minus className="w-5 h-5 text-yellow-600" />;
+    if (score >= 70) return <TrendingUp className="w-5 h-5 text-green-600" />;
+    if (score >= 50) return <Minus className="w-5 h-5 text-yellow-600" />;
     return <TrendingDown className="w-5 h-5 text-red-600" />;
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excelente';
-    if (score >= 60) return 'Boa';
-    return 'Requer Atenção';
+    if (score >= 70) return 'Excelente';
+    if (score >= 50) return 'Boa';
+    return 'Requer Atenção Urgente';
   };
 
   const getBadges = () => {
@@ -198,7 +198,7 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
         )}
 
         {/* Dicas gerais quando score bom */}
-        {healthScore >= 80 && suggestions.length === 0 && (
+        {healthScore >= 70 && suggestions.length === 0 && (
           <div className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
             🎉 Excelente gestão de riscos! Continue monitorando e atualizando.
           </div>
