@@ -358,7 +358,7 @@ Foco na resposta rápida e eficaz quando o risco ocorre.`,
   risk_health_score: {
     field: 'risk_health_score',
     title: 'Risk Health Score',
-    definition: 'Indicador recalibrado (0-85) que mede com rigor a saúde da gestão de riscos organizacional. Sistema multi-dimensional que aplica penalidades severas por riscos críticos e premia apenas mitigação efetiva.',
+    definition: 'Métrica avançada de saúde organizacional que avalia a maturidade e eficácia da gestão de riscos através de um sistema de pontuação calibrado (0-85 pontos). Combina análise quantitativa de distribuição de riscos, qualidade das ações de mitigação, progresso de implementação e aderência às melhores práticas de governança. Utiliza algoritmo multi-dimensional que aplica penalidades proporcionais aos riscos críticos e recompensa apenas resultados concretos de mitigação, fornecendo uma visão realista e acionável do estado da gestão de riscos.',
     iso31000Guidelines: `O Risk Health Score v2.0 alinha-se rigorosamente aos princípios da ISO 31000:
 • Monitoramento contínuo baseado em métricas objetivas
 • Transparência na comunicação através de score interpretável
@@ -395,10 +395,39 @@ Este indicador reflete a maturidade real da gestão e urgência de ações corre
 • Progresso de mitigação: apenas se eficiência >50%
 • Riscos efetivamente mitigados: proporcional ao total
 
-📊 INTERPRETAÇÃO REALISTA DOS RESULTADOS:
-• 70-85: Excelente (Verde) - Gestão exemplar e madura
-• 50-69: Boa (Amarelo) - Gestão adequada com oportunidades
-• 0-49: Requer Atenção Urgente (Vermelho) - Intervenção crítica necessária
+📊 FAIXAS DE INTERPRETAÇÃO DETALHADAS:
+
+🟢 EXCELENTE (70-85 pontos):
+• Gestão de riscos exemplar e madura
+• Portfolio equilibrado com poucos riscos críticos (<20%)
+• Ações de mitigação robustas com responsáveis e prazos definidos
+• Alta eficiência de mitigação (>70%)
+• Processos bem estruturados e em conformidade com melhores práticas
+• Indicador de organização com governança sólida
+
+🟡 BOA (50-69 pontos):
+• Gestão adequada com oportunidades de melhoria identificadas
+• Presença moderada de riscos críticos (20-40%)
+• Maioria das ações possui responsáveis, alguns prazos indefinidos
+• Eficiência de mitigação moderada (40-70%)
+• Processos estabelecidos mas com gaps pontuais
+• Necessita refinamentos para alcançar excelência
+
+🔴 REQUER ATENÇÃO URGENTE (0-49 pontos):
+• Situação crítica que demanda intervenção imediata
+• Alta concentração de riscos críticos (>40%)
+• Deficiências significativas em responsabilidades e prazos
+• Baixa eficiência de mitigação (<40%)
+• Processos de gestão imaturos ou inexistentes
+• Exposição elevada a impactos organizacionais severos
+
+📋 INDICADORES ESPECÍFICOS POR FAIXA:
+• Score 80-85: Benchmarking de mercado, governança exemplar
+• Score 70-79: Gestão sólida, refinamentos pontuais
+• Score 60-69: Gestão funcional, melhorias estruturais necessárias
+• Score 50-59: Gestão básica, revisão de processos recomendada
+• Score 30-49: Gestão deficiente, ação corretiva urgente
+• Score 0-29: Gestão crítica, intervenção executiva imediata
 
 🔍 MÉTRICAS COMPLEMENTARES EXPOSTAS:
 • Dashboard de progresso de mitigação (ações → execução → mitigação)
