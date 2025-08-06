@@ -38,6 +38,11 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   const handleCardClick = (filterType: string, filterValue?: string) => {
     const params = new URLSearchParams();
     
+    // Adicionar filtro de projeto se selecionado
+    if (selectedProject) {
+      params.set('project', selectedProject);
+    }
+    
     switch (filterType) {
       case 'critical-high':
         params.set('level', 'Crítico,Alto');
@@ -75,15 +80,20 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
     );
   }
 
-  // Calcular métricas baseadas nos riscos reais
-  const totalRisks = risks.length;
-  const highRisks = risks.filter(r => r.nivel_risco === 'Alto' || r.nivel_risco === 'Crítico').length;
-  const mediumRisks = risks.filter(r => r.nivel_risco === 'Médio').length;
-  const lowRisks = risks.filter(r => r.nivel_risco === 'Baixo').length;
-  const mitigatedRisks = risks.filter(r => r.status === 'Mitigado').length;
+  // Filtrar riscos por projeto se selecionado
+  const filteredRisks = selectedProject 
+    ? risks.filter(risk => risk.projeto?.nome === selectedProject)
+    : risks;
 
-  // Dados para gráficos
-  const riskByCategory = risks.reduce((acc, risk) => {
+  // Calcular métricas baseadas nos riscos filtrados
+  const totalRisks = filteredRisks.length;
+  const highRisks = filteredRisks.filter(r => r.nivel_risco === 'Alto' || r.nivel_risco === 'Crítico').length;
+  const mediumRisks = filteredRisks.filter(r => r.nivel_risco === 'Médio').length;
+  const lowRisks = filteredRisks.filter(r => r.nivel_risco === 'Baixo').length;
+  const mitigatedRisks = filteredRisks.filter(r => r.status === 'Mitigado').length;
+
+  // Dados para gráficos baseados nos riscos filtrados
+  const riskByCategory = filteredRisks.reduce((acc, risk) => {
     acc[risk.categoria] = (acc[risk.categoria] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -94,10 +104,10 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   }));
 
   const riskByLevel = [
-    { name: 'Crítico', value: risks.filter(r => r.nivel_risco === 'Crítico').length, color: '#DC2626' },
-    { name: 'Alto', value: risks.filter(r => r.nivel_risco === 'Alto').length, color: '#EA580C' },
-    { name: 'Médio', value: risks.filter(r => r.nivel_risco === 'Médio').length, color: '#D97706' },
-    { name: 'Baixo', value: risks.filter(r => r.nivel_risco === 'Baixo').length, color: '#16A34A' }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: '#DC2626' },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: '#EA580C' },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: '#D97706' },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: '#16A34A' }
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -108,7 +118,10 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         <div>
           <h3 className="text-2xl font-bold mb-2">Dashboard de Riscos</h3>
           <p className="text-gray-600">
-            Visão geral dos riscos identificados e métricas principais
+            {selectedProject 
+              ? `${totalRisks} riscos no projeto "${selectedProject}"`
+              : `Visão geral de ${totalRisks} riscos identificados`
+            }
           </p>
         </div>
         
@@ -136,10 +149,13 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
       {/* Risk Health Score e Activity Timeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RiskHealthScore 
-          risks={risks} 
+          risks={filteredRisks} 
           selectedProject={selectedProject || undefined}
         />
-        <ActivityTimeline risks={risks} />
+        <ActivityTimeline 
+          risks={filteredRisks} 
+          selectedProject={selectedProject}
+        />
       </div>
 
       {/* Métricas Principais */}

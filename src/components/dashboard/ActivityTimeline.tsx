@@ -23,9 +23,10 @@ type Risk = Database['public']['Tables']['riscos']['Row'] & {
 
 interface ActivityTimelineProps {
   risks: Risk[];
+  selectedProject?: string;
 }
 
-export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
+export const ActivityTimeline = ({ risks, selectedProject }: ActivityTimelineProps) => {
   const generateActivities = () => {
     const activities = [];
     const now = new Date();
@@ -60,7 +61,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: `Prazos nos próximos 30 dias`,
         time: 'Hoje',
         action: 'Revisar prazos',
-        link: '/?tab=matrix',
+        link: selectedProject ? `/?tab=matrix&project=${encodeURIComponent(selectedProject)}` : '/?tab=matrix',
         color: 'text-yellow-600 bg-yellow-50'
       });
     }
@@ -74,7 +75,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: 'Requerem ação imediata',
         time: 'Hoje',
         action: 'Revisar riscos',
-        link: '/?tab=matrix',
+        link: selectedProject ? `/?tab=matrix&project=${encodeURIComponent(selectedProject)}&level=Crítico,Alto` : '/?tab=matrix&level=Crítico,Alto',
         color: 'text-red-600 bg-red-50'
       });
     }
@@ -88,7 +89,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: 'Atribuir responsabilidades',
         time: 'Hoje',
         action: 'Atribuir responsáveis',
-        link: '/?tab=form',
+        link: selectedProject ? `/?tab=matrix&project=${encodeURIComponent(selectedProject)}` : '/?tab=matrix',
         color: 'text-blue-600 bg-blue-50'
       });
     }
@@ -104,7 +105,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: 'Bom trabalho na gestão de riscos!',
         time: 'Esta semana',
         action: 'Ver relatório',
-        link: '/?tab=reports',
+        link: selectedProject ? `/?tab=reports&project=${encodeURIComponent(selectedProject)}` : '/?tab=reports',
         color: 'text-green-600 bg-green-50'
       });
     }
@@ -119,7 +120,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: 'Comece criando seu primeiro risco',
         time: 'Agora',
         action: 'Criar risco',
-        link: '/?tab=form',
+        link: selectedProject ? `/?tab=form&project=${encodeURIComponent(selectedProject)}` : '/?tab=form',
         color: 'text-purple-600 bg-purple-50'
       });
     } else if (risks.length > 0 && risks.length < 5) {
@@ -131,7 +132,7 @@ export const ActivityTimeline = ({ risks }: ActivityTimelineProps) => {
         description: 'Considere mapear riscos adicionais',
         time: 'Sugestão',
         action: 'Adicionar riscos',
-        link: '/?tab=form',
+        link: selectedProject ? `/?tab=form&project=${encodeURIComponent(selectedProject)}` : '/?tab=form',
         color: 'text-indigo-600 bg-indigo-50'
       });
     }
