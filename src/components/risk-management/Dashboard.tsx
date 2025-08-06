@@ -116,12 +116,12 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         {availableProjects.length > 0 && (
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <Select value={selectedProject || "all"} onValueChange={(value) => setSelectedProject(value === "all" ? "" : value)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Todos os projetos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os projetos</SelectItem>
+                <SelectItem value="all">Todos os projetos</SelectItem>
                 {availableProjects.map((project) => (
                   <SelectItem key={project} value={project}>
                     {project}
