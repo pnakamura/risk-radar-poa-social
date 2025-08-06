@@ -23,6 +23,27 @@ export interface HealthScoreBreakdown {
   finalScore: number;
 }
 
+export interface CategoryHealthScore {
+  category: string;
+  risks: Risk[];
+  healthScore: HealthScoreBreakdown;
+  mitigationMetrics: MitigationMetrics;
+  categoryWeight: number;
+  benchmarkScore: number;
+  insights: string[];
+  trend: 'improving' | 'stable' | 'declining';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+}
+
+export interface CategoryBenchmarks {
+  [category: string]: {
+    target: number;
+    good: number;
+    acceptable: number;
+    weight: number; // Peso estratégico da categoria
+  };
+}
+
 // Analisa a qualidade das ações de mitigação com critérios mais rigorosos
 export const analyzeActionQuality = (risk: Risk): number => {
   const actionLength = risk.acoes_mitigacao?.length || 0;
@@ -262,4 +283,124 @@ export const generateProactiveSuggestions = (risks: Risk[]): string[] => {
   }
 
   return suggestions.slice(0, 4); // Limitar a 4 sugestões mais relevantes
+};
+
+// Benchmarks por categoria baseados em padrões de mercado
+export const getCategoryBenchmarks = (): CategoryBenchmarks => ({
+  'Estratégico': { target: 75, good: 65, acceptable: 45, weight: 0.35 },
+  'Operacional': { target: 70, good: 60, acceptable: 40, weight: 0.25 },
+  'Financeiro': { target: 80, good: 70, acceptable: 50, weight: 0.20 },
+  'Compliance': { target: 85, good: 75, acceptable: 55, weight: 0.15 },
+  'Regulatório': { target: 85, good: 75, acceptable: 55, weight: 0.05 }
+});
+
+// Calcula health scores separados por categoria
+export const calculateCategoryHealthScores = (risks: Risk[]): CategoryHealthScore[] => {
+  const categories = [...new Set(risks.map(r => r.categoria))];
+  const benchmarks = getCategoryBenchmarks();
+  
+  return categories.map(category => {
+    const categoryRisks = risks.filter(r => r.categoria === category);
+    const healthScore = calculateAdvancedHealthScore(categoryRisks);
+    const mitigationMetrics = calculateMitigationMetrics(categoryRisks);
+    const benchmark = benchmarks[category] || benchmarks['Operacional'];
+    
+    // Determinar prioridade baseada no score vs benchmark
+    const priority = healthScore.finalScore < benchmark.acceptable ? 'critical' :
+                    healthScore.finalScore < benchmark.good ? 'high' :
+                    healthScore.finalScore < benchmark.target ? 'medium' : 'low';
+    
+    // Análise de tendência (simulada - em produção seria baseada em histórico)
+    const criticalRatio = categoryRisks.filter(r => r.nivel_risco === 'Crítico').length / categoryRisks.length;
+    const trend: CategoryHealthScore['trend'] = criticalRatio > 0.3 ? 'declining' : 
+                 mitigationMetrics.mitigationEfficiency > 60 ? 'improving' : 'stable';
+    
+    return {
+      category,
+      risks: categoryRisks,
+      healthScore,
+      mitigationMetrics,
+      categoryWeight: benchmark.weight,
+      benchmarkScore: benchmark.target,
+      insights: generateCategoryInsights(category, categoryRisks, healthScore, mitigationMetrics),
+      trend,
+      priority: priority as CategoryHealthScore['priority']
+    };
+  }).sort((a, b) => b.categoryWeight - a.categoryWeight); // Ordenar por peso estratégico
+};
+
+// Gera insights específicos por categoria
+export const generateCategoryInsights = (
+  category: string,
+  risks: Risk[],
+  healthScore: HealthScoreBreakdown,
+  mitigationMetrics: MitigationMetrics
+): string[] => {
+  const insights: string[] = [];
+  const criticalCount = risks.filter(r => r.nivel_risco === 'Crítico').length;
+  const unassignedCount = risks.filter(r => !r.responsavel_id).length;
+  
+  switch (category) {
+    case 'Estratégico':
+      if (criticalCount > 0) {
+        insights.push(`${criticalCount} riscos estratégicos críticos demandam atenção executiva imediata`);
+      }
+      if (mitigationMetrics.mitigationEfficiency < 50) {
+        insights.push('Riscos estratégicos requerem planos de contingência robustos');
+      }
+      if (healthScore.finalScore > 65) {
+        insights.push('Governança estratégica demonstra maturidade organizacional');
+      }
+      break;
+      
+    case 'Operacional':
+      if (unassignedCount > risks.length * 0.3) {
+        insights.push('Definir responsabilidades operacionais claras para execução eficaz');
+      }
+      if (mitigationMetrics.risksInProgress > mitigationMetrics.effectivelyMitigated) {
+        insights.push('Foco na conclusão das ações operacionais em andamento');
+      }
+      break;
+      
+    case 'Financeiro':
+      if (criticalCount > 0) {
+        insights.push('Riscos financeiros críticos podem impactar liquidez e rentabilidade');
+      }
+      if (mitigationMetrics.actionQualityScore < 0.6) {
+        insights.push('Controles financeiros demandam detalhamento adicional');
+      }
+      break;
+      
+    case 'Compliance':
+      if (healthScore.finalScore < 70) {
+        insights.push('Não conformidade pode resultar em sanções regulatórias');
+      }
+      if (risks.filter(r => !r.prazo).length > 0) {
+        insights.push('Estabelecer cronogramas rígidos para adequação normativa');
+      }
+      break;
+      
+    case 'Regulatório':
+      if (criticalCount > 0) {
+        insights.push('Riscos regulatórios críticos requerem monitoramento contínuo');
+      }
+      if (mitigationMetrics.effectivelyMitigated < risks.length * 0.5) {
+        insights.push('Acelerar implementação de controles regulatórios');
+      }
+      break;
+  }
+  
+  return insights.slice(0, 2);
+};
+
+// Calcula score geral ponderado baseado nas categorias
+export const calculateWeightedOverallScore = (categoryScores: CategoryHealthScore[]): number => {
+  if (categoryScores.length === 0) return 60;
+  
+  const totalWeight = categoryScores.reduce((sum, cat) => sum + cat.categoryWeight, 0);
+  const weightedSum = categoryScores.reduce((sum, cat) => 
+    sum + (cat.healthScore.finalScore * cat.categoryWeight), 0
+  );
+  
+  return Math.round(weightedSum / totalWeight);
 };
