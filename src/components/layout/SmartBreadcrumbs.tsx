@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -19,6 +19,7 @@ interface SmartBreadcrumbsProps {
 
 export const SmartBreadcrumbs = ({ risks = [], currentTab }: SmartBreadcrumbsProps) => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   
   const getTabInfo = (tab: string) => {
     const tabData = {
@@ -119,6 +120,21 @@ export const SmartBreadcrumbs = ({ risks = [], currentTab }: SmartBreadcrumbsPro
   if (tabInfo) {
     const Icon = tabInfo.icon;
     
+    // Check for applied filters in matrix tab
+    const appliedFilters = [];
+    if (currentTab === 'matrix') {
+      const level = searchParams.get('level');
+      const status = searchParams.get('status');
+      const category = searchParams.get('category');
+      const search = searchParams.get('search');
+
+      if (level === 'Crítico,Alto' || level === 'critical-high') appliedFilters.push('Críticos/Altos');
+      else if (level && level !== 'all') appliedFilters.push(`Nível: ${level}`);
+      if (status && status !== 'all') appliedFilters.push(`Status: ${status}`);
+      if (category && category !== 'all') appliedFilters.push(`Categoria: ${category}`);
+      if (search) appliedFilters.push(`Busca: ${search}`);
+    }
+    
     return (
       <div className="mb-4 p-3 bg-card rounded-lg border">
         <Breadcrumb>
@@ -145,19 +161,24 @@ export const SmartBreadcrumbs = ({ risks = [], currentTab }: SmartBreadcrumbsPro
           </BreadcrumbList>
         </Breadcrumb>
         
-        {tabInfo.suggestion && (
-          <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2 flex-wrap">
+          {appliedFilters.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              🔍 {appliedFilters.length} filtro{appliedFilters.length > 1 ? 's' : ''} ativo{appliedFilters.length > 1 ? 's' : ''}
+            </Badge>
+          )}
+          {!appliedFilters.length && tabInfo.suggestion && (
             <Badge variant="secondary" className="text-xs">
               💡 {tabInfo.suggestion}
             </Badge>
-            {currentTab === 'matrix' && risks.length === 0 && (
-              <Badge variant="outline" className="text-xs">
-                <Plus className="w-3 h-3 mr-1" />
-                <Link to="/?tab=form">Criar primeiro risco</Link>
-              </Badge>
-            )}
-          </div>
-        )}
+          )}
+          {currentTab === 'matrix' && risks.length === 0 && (
+            <Badge variant="outline" className="text-xs">
+              <Plus className="w-3 h-3 mr-1" />
+              <Link to="/?tab=form">Criar primeiro risco</Link>
+            </Badge>
+          )}
+        </div>
       </div>
     );
   }

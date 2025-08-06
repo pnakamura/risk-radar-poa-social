@@ -70,12 +70,13 @@ export const RiskFilters = ({
                 </SelectContent>
               </Select>
 
-              <Select value={levelFilter} onValueChange={onLevelChange}>
+               <Select value={levelFilter} onValueChange={onLevelChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Nível" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="critical-high">Críticos/Altos</SelectItem>
                   <SelectItem value="Crítico">Crítico</SelectItem>
                   <SelectItem value="Alto">Alto</SelectItem>
                   <SelectItem value="Médio">Médio</SelectItem>

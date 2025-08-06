@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, Award, Target } from 'lucide-react';
+import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
+import { helpContent } from '@/components/risk-management/help/helpContent';
 import { Database } from '@/integrations/supabase/types';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -86,7 +88,13 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
     <Card className={`border-2 ${getScoreColor(healthScore)}`}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
-          <span className="text-lg font-bold">Risk Health Score</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold">Risk Health Score</span>
+            <FieldHelpButton 
+              field="risk_health_score" 
+              content={helpContent.risk_health_score}
+            />
+          </div>
           {getScoreIcon(healthScore)}
         </CardTitle>
       </CardHeader>

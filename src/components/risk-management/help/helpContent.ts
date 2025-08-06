@@ -352,7 +352,51 @@ Foco na resposta rápida e eficaz quando o risco ocorre.`,
       'Procedimentos de recuperação',
       'Testado e validado periodicamente'
     ],
-    relatedFields: ['Consequências', 'Estratégia', 'Status', 'Responsável']
+  relatedFields: ['Consequências', 'Estratégia', 'Status', 'Responsável']
+  },
+
+  risk_health_score: {
+    field: 'risk_health_score',
+    title: 'Risk Health Score',
+    definition: 'Indicador consolidado (0-100) que mede a saúde geral da gestão de riscos organizacional, baseado em múltiplos fatores como distribuição de riscos, atribuição de responsáveis e eficácia das ações de mitigação.',
+    iso31000Guidelines: `O Risk Health Score alinha-se aos princípios da ISO 31000 de:
+• Monitoramento contínuo da eficácia da gestão de riscos
+• Comunicação transparente do status dos riscos
+• Melhoria contínua dos processos de gestão
+• Tomada de decisão baseada em evidências
+
+Este indicador facilita a comunicação executiva e identificação de áreas que necessitam atenção.`,
+    howToFill: `O score é calculado automaticamente pelo sistema com base em:
+
+FÓRMULA BASE: Inicia com 100 pontos
+
+PENALIDADES APLICADAS:
+• Riscos Críticos: -40% do peso proporcional
+• Riscos Altos: -20% do peso proporcional  
+• Riscos sem Responsável: -15% do peso proporcional
+• Riscos sem Prazo: -10% do peso proporcional
+
+BÔNUS APLICADOS:
+• Riscos Mitigados: +15% do peso proporcional
+
+INTERPRETAÇÃO DOS RESULTADOS:
+• 80-100: Excelente (Verde) - Gestão madura e eficaz
+• 60-79: Boa (Amarelo) - Gestão adequada com oportunidades
+• 0-59: Requer Atenção (Vermelho) - Necessita intervenção urgente`,
+    examples: [
+      'Score 95: Portfolio com poucos riscos críticos, todos com responsáveis definidos',
+      'Score 75: Gestão boa, mas com alguns riscos críticos pendentes de mitigação',
+      'Score 45: Muitos riscos críticos/altos sem responsável ou ações definidas',
+      'Score 85 inicial: Sistema novo sem histórico (score padrão para início)'
+    ],
+    criteria: [
+      'Baseado em dados reais do sistema',
+      'Atualizado automaticamente com mudanças',
+      'Considera múltiplas dimensões da gestão',
+      'Facilita comparação temporal',
+      'Orienta priorização de ações'
+    ],
+    relatedFields: ['Nível de Risco', 'Status', 'Responsável', 'Prazo', 'Ações de Mitigação']
   },
 
   responsavel_id: {

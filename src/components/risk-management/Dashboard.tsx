@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
+import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -18,6 +19,33 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ risks, loading }: DashboardProps) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = (filterType: string, filterValue?: string) => {
+    const params = new URLSearchParams();
+    
+    switch (filterType) {
+      case 'critical-high':
+        params.set('level', 'Crítico,Alto');
+        break;
+      case 'mitigated':
+        params.set('status', 'Mitigado');
+        break;
+      case 'monitoring':
+        params.set('level', 'Médio');
+        break;
+      case 'total':
+        // Sem filtros para mostrar todos
+        break;
+      default:
+        if (filterValue) {
+          params.set(filterType, filterValue);
+        }
+    }
+    
+    navigate(`/?tab=matrix&${params.toString()}`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -77,58 +105,86 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
 
       {/* Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          onClick={() => handleCardClick('total')}
+        >
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total de Riscos</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalRisks}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Clique para ver todos</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Riscos</p>
-                <p className="text-2xl font-bold text-gray-900">{totalRisks}</p>
-              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          onClick={() => handleCardClick('critical-high')}
+        >
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Riscos Críticos/Altos</p>
+                  <p className="text-2xl font-bold text-red-600">{highRisks}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Riscos Críticos/Altos</p>
-                <p className="text-2xl font-bold text-red-600">{highRisks}</p>
-              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          onClick={() => handleCardClick('mitigated')}
+        >
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Riscos Mitigados</p>
+                  <p className="text-2xl font-bold text-green-600">{mitigatedRisks}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Riscos Mitigados</p>
-                <p className="text-2xl font-bold text-green-600">{mitigatedRisks}</p>
-              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          onClick={() => handleCardClick('monitoring')}
+        >
           <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-600" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Clock className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Em Monitoramento</p>
+                  <p className="text-2xl font-bold text-yellow-600">{mediumRisks}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Em Monitoramento</p>
-                <p className="text-2xl font-bold text-yellow-600">{mediumRisks}</p>
-              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>

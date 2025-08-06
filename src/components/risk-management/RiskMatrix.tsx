@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { RiskEditModal } from './RiskEditModal';
@@ -10,6 +10,7 @@ import { RiskFilters } from './matrix/RiskFilters';
 import { RiskTable } from './matrix/RiskTable';
 import { RiskCards } from './matrix/RiskCards';
 import { useRiskActions } from '@/hooks/useRiskActions';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
@@ -29,6 +30,8 @@ interface RiskMatrixProps {
 const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   console.log('RiskMatrix rendering with risks:', risks.length, 'loading:', loading);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // State para filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -46,6 +49,31 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   const [showExportModal, setShowExportModal] = useState(false);
 
   const { removeRisk, isLoading } = useRiskActions();
+
+  // Aplicar filtros da URL quando o componente carregar
+  useEffect(() => {
+    const levelParam = searchParams.get('level');
+    const statusParam = searchParams.get('status');
+    const categoryParam = searchParams.get('category');
+    const searchParam = searchParams.get('search');
+
+    if (levelParam) {
+      if (levelParam.includes(',')) {
+        // Multiple levels (e.g., "Crítico,Alto")
+        setLevelFilter('critical-high'); // Special value for combined critical/high
+      } else {
+        setLevelFilter(levelParam);
+      }
+    }
+    if (statusParam) setStatusFilter(statusParam);
+    if (categoryParam) setCategoryFilter(categoryParam);
+    if (searchParam) setSearchTerm(searchParam);
+
+    // Auto-show filters if any are applied
+    if (levelParam || statusParam || categoryParam || searchParam) {
+      setShowFilters(true);
+    }
+  }, [searchParams]);
 
   if (loading) {
     console.log('RiskMatrix showing loading state');
@@ -69,7 +97,17 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
       const matchesSearch = risk.descricao_risco?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            risk.codigo.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !categoryFilter || categoryFilter === 'all' || risk.categoria === categoryFilter;
-      const matchesLevel = !levelFilter || levelFilter === 'all' || risk.nivel_risco === levelFilter;
+      
+      // Handle special case for critical-high filter
+      let matchesLevel = true;
+      if (levelFilter && levelFilter !== 'all') {
+        if (levelFilter === 'critical-high') {
+          matchesLevel = risk.nivel_risco === 'Crítico' || risk.nivel_risco === 'Alto';
+        } else {
+          matchesLevel = risk.nivel_risco === levelFilter;
+        }
+      }
+      
       const matchesProject = !projectFilter || projectFilter === 'all' || risk.projeto?.nome === projectFilter;
       const matchesStatus = !statusFilter || statusFilter === 'all' || risk.status === statusFilter;
       
