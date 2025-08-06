@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,30 +13,33 @@ import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-
 const Index = () => {
-  const { risks, loading, refreshData } = useSupabaseRiskData();
-  const { profile } = useAuth();
+  const {
+    risks,
+    loading,
+    refreshData
+  } = useSupabaseRiskData();
+  const {
+    profile
+  } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   // Obter aba ativa da URL, padrão é "dashboard"
   const activeTab = searchParams.get('tab') || 'dashboard';
 
   // Função para navegar entre as abas
   const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value });
+    setSearchParams({
+      tab: value
+    });
   };
-
   console.log('Index - Raw risks data:', risks);
-
   const handleSearchResult = (risk: any) => {
     // Navegar para a página de detalhes do risco ou abrir modal
     navigate(`/risco/${risk.id}`);
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-3 sm:p-6">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
@@ -48,9 +49,7 @@ const Index = () => {
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
-                  Matriz de Risco do Programa - POA+SOCIAL
-                </h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">Matriz de Riscos DPF</h1>
                 <p className="text-sm sm:text-base text-gray-600 mt-1">
                   Sistema de Gestão de Riscos conforme ISO 31000
                 </p>
@@ -59,19 +58,13 @@ const Index = () => {
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Busca Global */}
               <div className="hidden sm:block">
-                <GlobalSearch 
-                  risks={risks} 
-                  onResultClick={handleSearchResult}
-                  placeholder="Buscar riscos..."
-                />
+                <GlobalSearch risks={risks} onResultClick={handleSearchResult} placeholder="Buscar riscos..." />
               </div>
               
-              {profile && (
-                <div className="text-right hidden lg:block">
+              {profile && <div className="text-right hidden lg:block">
                   <p className="text-sm text-gray-600">Bem-vindo,</p>
                   <p className="font-medium">{profile.nome}</p>
-                </div>
-              )}
+                </div>}
               <UserMenu />
             </div>
           </div>
@@ -109,17 +102,11 @@ const Index = () => {
               <span className="hidden sm:inline">Dados Mestres</span>
               <span className="sm:hidden text-xs">Dados</span>
             </TabsTrigger>
-            {(profile?.role === 'admin' || profile?.role === 'gestor') && (
-              <TabsTrigger 
-                value="users" 
-                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm"
-                onClick={() => navigate('/usuarios')}
-              >
+            {(profile?.role === 'admin' || profile?.role === 'gestor') && <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm" onClick={() => navigate('/usuarios')}>
                 <Users className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">Usuários</span>
                 <span className="sm:hidden text-xs">Users</span>
-              </TabsTrigger>
-            )}
+              </TabsTrigger>}
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -143,9 +130,6 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
-
