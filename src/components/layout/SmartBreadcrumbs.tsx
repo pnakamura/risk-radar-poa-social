@@ -1,5 +1,6 @@
 import React from 'react';
-import { useLocation, useSearchParams, Link } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
