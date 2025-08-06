@@ -56,6 +56,7 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     const statusParam = searchParams.get('status');
     const categoryParam = searchParams.get('category');
     const searchParam = searchParams.get('search');
+    const projectParam = searchParams.get('project');
 
     if (levelParam) {
       if (levelParam.includes(',')) {
@@ -68,9 +69,10 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     if (statusParam) setStatusFilter(statusParam);
     if (categoryParam) setCategoryFilter(categoryParam);
     if (searchParam) setSearchTerm(searchParam);
+    if (projectParam) setProjectFilter(projectParam);
 
     // Auto-show filters if any are applied
-    if (levelParam || statusParam || categoryParam || searchParam) {
+    if (levelParam || statusParam || categoryParam || searchParam || projectParam) {
       setShowFilters(true);
     }
   }, [searchParams]);
