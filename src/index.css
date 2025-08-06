@@ -38,20 +38,48 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Risk Health Score Colors */
+    --risk-excellent: 142 76% 36%;
+    --risk-excellent-bg: 138 76% 97%;
+    --risk-excellent-border: 138 76% 88%;
+    
+    --risk-good: 45 93% 47%;
+    --risk-good-bg: 48 100% 96%;
+    --risk-good-border: 48 96% 89%;
+    
+    --risk-warning: 25 95% 53%;
+    --risk-warning-bg: 25 100% 97%;
+    --risk-warning-border: 25 95% 84%;
+    
+    --risk-critical: 0 84% 60%;
+    --risk-critical-bg: 0 86% 97%;
+    --risk-critical-border: 0 84% 89%;
+
+    /* Category Colors */
+    --category-strategic: 229 84% 5%;
+    --category-strategic-bg: 229 84% 97%;
+    --category-operational: 142 71% 45%;
+    --category-operational-bg: 142 76% 97%;
+    --category-financial: 262 83% 58%;
+    --category-financial-bg: 262 83% 97%;
+    --category-compliance: 217 91% 60%;
+    --category-compliance-bg: 217 91% 97%;
+    --category-regulatory: 335 78% 42%;
+    --category-regulatory-bg: 335 78% 97%;
+
+    /* Gradient Colors */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(222 70% 20%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--risk-excellent)), hsl(142 70% 45%));
+    --gradient-warning: linear-gradient(135deg, hsl(var(--risk-warning)), hsl(35 95% 60%));
+    --gradient-danger: linear-gradient(135deg, hsl(var(--risk-critical)), hsl(0 90% 67%));
+
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -83,6 +111,36 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Risk Health Score Colors - Dark */
+    --risk-excellent: 142 71% 45%;
+    --risk-excellent-bg: 142 76% 7%;
+    --risk-excellent-border: 142 76% 15%;
+    
+    --risk-good: 45 93% 58%;
+    --risk-good-bg: 48 100% 8%;
+    --risk-good-border: 48 96% 16%;
+    
+    --risk-warning: 25 95% 60%;
+    --risk-warning-bg: 25 100% 8%;
+    --risk-warning-border: 25 95% 18%;
+    
+    --risk-critical: 0 84% 67%;
+    --risk-critical-bg: 0 86% 7%;
+    --risk-critical-border: 0 84% 15%;
+
+    /* Category Colors - Dark */
+    --category-strategic: 229 84% 85%;
+    --category-strategic-bg: 229 84% 7%;
+    --category-operational: 142 71% 55%;
+    --category-operational-bg: 142 76% 7%;
+    --category-financial: 262 83% 68%;
+    --category-financial-bg: 262 83% 7%;
+    --category-compliance: 217 91% 70%;
+    --category-compliance-bg: 217 91% 7%;
+    --category-regulatory: 335 78% 52%;
+    --category-regulatory-bg: 335 78% 7%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink, Filter } from 'lucide-react';
 import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,19 @@ interface DashboardProps {
 
 const Dashboard = ({ risks, loading }: DashboardProps) => {
   const navigate = useNavigate();
+  
+  // State para filtro de projeto
+  const [selectedProject, setSelectedProject] = React.useState<string>("");
+  
+  // Obter lista única de projetos
+  const availableProjects = React.useMemo(() => {
+    const projects = risks
+      .map(risk => risk.projeto?.nome)
+      .filter((nome): nome is string => Boolean(nome))
+      .filter((nome, index, array) => array.indexOf(nome) === index)
+      .sort();
+    return projects;
+  }, [risks]);
 
   const handleCardClick = (filterType: string, filterValue?: string) => {
     const params = new URLSearchParams();
@@ -90,16 +104,41 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-2xl font-bold mb-2">Dashboard de Riscos</h3>
-        <p className="text-gray-600">
-          Visão geral dos riscos identificados e métricas principais
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-2xl font-bold mb-2">Dashboard de Riscos</h3>
+          <p className="text-gray-600">
+            Visão geral dos riscos identificados e métricas principais
+          </p>
+        </div>
+        
+        {/* Filtro de Projeto */}
+        {availableProjects.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Todos os projetos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os projetos</SelectItem>
+                {availableProjects.map((project) => (
+                  <SelectItem key={project} value={project}>
+                    {project}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* Risk Health Score e Activity Timeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RiskHealthScore risks={risks} />
+        <RiskHealthScore 
+          risks={risks} 
+          selectedProject={selectedProject || undefined}
+        />
         <ActivityTimeline risks={risks} />
       </div>
 
