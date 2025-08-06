@@ -358,45 +358,69 @@ Foco na resposta rápida e eficaz quando o risco ocorre.`,
   risk_health_score: {
     field: 'risk_health_score',
     title: 'Risk Health Score',
-    definition: 'Indicador consolidado (0-100) que mede a saúde geral da gestão de riscos organizacional, baseado em múltiplos fatores como distribuição de riscos, atribuição de responsáveis e eficácia das ações de mitigação.',
-    iso31000Guidelines: `O Risk Health Score alinha-se aos princípios da ISO 31000 de:
-• Monitoramento contínuo da eficácia da gestão de riscos
-• Comunicação transparente do status dos riscos
-• Melhoria contínua dos processos de gestão
-• Tomada de decisão baseada em evidências
+    definition: 'Indicador recalibrado (0-85) que mede com rigor a saúde da gestão de riscos organizacional. Sistema multi-dimensional que aplica penalidades severas por riscos críticos e premia apenas mitigação efetiva.',
+    iso31000Guidelines: `O Risk Health Score v2.0 alinha-se rigorosamente aos princípios da ISO 31000:
+• Monitoramento contínuo baseado em métricas objetivas
+• Transparência na comunicação através de score interpretável
+• Melhoria contínua por identificação de gaps críticos
+• Decisão baseada em evidências quantificadas
+• Gestão proporcional ao nível de risco identificado
 
-Este indicador facilita a comunicação executiva e identificação de áreas que necessitam atenção.`,
-    howToFill: `O score é calculado automaticamente pelo sistema com base em:
+Este indicador reflete a maturidade real da gestão e urgência de ações corretivas.`,
+    howToFill: `O score é calculado automaticamente pelo sistema v2.0 com metodologia recalibrada:
 
-FÓRMULA BASE: Inicia com 100 pontos
+🎯 FÓRMULA BASE CONSERVADORA:
+• Score inicial: 60 pontos (ao invés de 100)
+• Score máximo possível: 85 pontos
 
-PENALIDADES APLICADAS:
-• Riscos Críticos: -40% do peso proporcional
-• Riscos Altos: -20% do peso proporcional  
-• Riscos sem Responsável: -15% do peso proporcional
-• Riscos sem Prazo: -10% do peso proporcional
+⚠️ PENALIDADES SEVERAS POR RISCO:
+• Riscos Críticos: -50 pontos por risco ÷ total
+• Riscos Altos: -30 pontos por risco ÷ total  
+• Riscos Médios: -10 pontos por risco ÷ total
 
-BÔNUS APLICADOS:
-• Riscos Mitigados: +15% do peso proporcional
+🎯 PENALIDADES POR GESTÃO DEFICIENTE:
+• Sem Responsável: -25 pontos por risco ÷ total
+• Sem Prazo: -15 pontos por risco ÷ total
+• Status "Identificado" >30 dias: -10 pontos adicionais
 
-INTERPRETAÇÃO DOS RESULTADOS:
-• 80-100: Excelente (Verde) - Gestão madura e eficaz
-• 60-79: Boa (Amarelo) - Gestão adequada com oportunidades
-• 0-59: Requer Atenção (Vermelho) - Necessita intervenção urgente`,
+📋 CRITÉRIOS RIGOROSOS PARA QUALIDADE DE AÇÕES:
+• Excelente (1.0): >500 chars + responsável + prazo + estratégia ativa
+• Detalhado (0.6): >300 chars + responsável + prazo
+• Adequado (0.3): >150 chars + responsável
+• Básico (0.1): >50 chars
+• Insuficiente (0.0): <50 chars
+
+🏆 BÔNUS CONSERVADORES (apenas para resultados efetivos):
+• Qualidade de ações: máximo 10 pontos
+• Progresso de mitigação: apenas se eficiência >50%
+• Riscos efetivamente mitigados: proporcional ao total
+
+📊 INTERPRETAÇÃO REALISTA DOS RESULTADOS:
+• 70-85: Excelente (Verde) - Gestão exemplar e madura
+• 50-69: Boa (Amarelo) - Gestão adequada com oportunidades
+• 0-49: Requer Atenção Urgente (Vermelho) - Intervenção crítica necessária
+
+🔍 MÉTRICAS COMPLEMENTARES EXPOSTAS:
+• Dashboard de progresso de mitigação (ações → execução → mitigação)
+• Eficiência de mitigação em percentual
+• Qualidade média das ações de mitigação
+• Badges de conquistas por marcos atingidos`,
     examples: [
-      'Score 95: Portfolio com poucos riscos críticos, todos com responsáveis definidos',
-      'Score 75: Gestão boa, mas com alguns riscos críticos pendentes de mitigação',
-      'Score 45: Muitos riscos críticos/altos sem responsável ou ações definidas',
-      'Score 85 inicial: Sistema novo sem histórico (score padrão para início)'
+      'Score 75: Portfolio balanceado, poucos críticos, todos com ações detalhadas e responsáveis',
+      'Score 50: Gestão adequada, mas muitos riscos sem prazo ou ações superficiais',
+      'Score 25: Portfolio com muitos críticos, gestão deficiente, ações insuficientes',
+      'Score 12: Situação crítica - 60% riscos críticos, 87% sem prazo definido',
+      'Score 60: Portfolio inicial limpo, baseline para novos projetos'
     ],
     criteria: [
-      'Baseado em dados reais do sistema',
-      'Atualizado automaticamente com mudanças',
-      'Considera múltiplas dimensões da gestão',
-      'Facilita comparação temporal',
-      'Orienta priorização de ações'
+      'Metodologia científica e calibrada com dados reais',
+      'Penalidades proporcionais ao risco real para a organização',
+      'Premia apenas resultados efetivos de mitigação',
+      'Facilita comparação temporal e benchmarking',
+      'Orienta priorização baseada em criticidade real',
+      'Expõe métricas intermediárias para ação direcionada'
     ],
-    relatedFields: ['Nível de Risco', 'Status', 'Responsável', 'Prazo', 'Ações de Mitigação']
+    relatedFields: ['Nível de Risco', 'Status', 'Responsável', 'Prazo', 'Ações de Mitigação', 'Estratégia', 'Data de Identificação']
   },
 
   responsavel_id: {

@@ -79,62 +79,6 @@ const Index = () => {
           {/* Breadcrumbs */}
           <SmartBreadcrumbs risks={risks} currentTab={activeTab} />
           
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-red-600 text-xs sm:text-sm font-medium">Riscos Críticos/Altos</p>
-                    <p className="text-xl sm:text-2xl font-bold text-red-700">
-                      {risks.filter(r => r.nivel_risco === 'Alto' || r.nivel_risco === 'Crítico').length}
-                    </p>
-                  </div>
-                  <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-yellow-50 border-yellow-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-yellow-600 text-xs sm:text-sm font-medium">Riscos Médios</p>
-                    <p className="text-xl sm:text-2xl font-bold text-yellow-700">
-                      {risks.filter(r => r.nivel_risco === 'Médio').length}
-                    </p>
-                  </div>
-                  <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-green-50 border-green-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-600 text-xs sm:text-sm font-medium">Riscos Baixos</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-700">
-                      {risks.filter(r => r.nivel_risco === 'Baixo').length}
-                    </p>
-                  </div>
-                  <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-600 text-xs sm:text-sm font-medium">Total de Riscos</p>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-700">{risks.length}</p>
-                  </div>
-                  <FileBarChart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         {/* Main Content */}

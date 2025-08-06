@@ -163,46 +163,103 @@ export const calculateAdvancedHealthScore = (risks: Risk[]): HealthScoreBreakdow
   };
 };
 
-// Gera sugestões proativas baseadas nos dados
+// Gera sugestões proativas detalhadas baseadas nos dados
 export const generateProactiveSuggestions = (risks: Risk[]): string[] => {
   const suggestions: string[] = [];
   const mitigationMetrics = calculateMitigationMetrics(risks);
 
-  // Sugestões para ações de mitigação
-  const risksWithoutActions = risks.filter(r => 
-    !r.acoes_mitigacao || r.acoes_mitigacao.length < 20
-  ).length;
-
-  if (risksWithoutActions > 0) {
-    suggestions.push(`${risksWithoutActions} riscos precisam de ações de mitigação detalhadas`);
-  }
-
-  // Sugestões para progresso de status
-  const stagnantRisks = risks.filter(r => 
-    r.status === 'Identificado' && r.acoes_mitigacao && r.acoes_mitigacao.length > 50
-  ).length;
-
-  if (stagnantRisks > 0) {
-    suggestions.push(`${stagnantRisks} riscos podem ser promovidos para "Em Andamento"`);
-  }
-
-  // Sugestões para riscos críticos
-  const criticalWithoutActions = risks.filter(r => 
-    r.nivel_risco === 'Crítico' && (!r.acoes_mitigacao || r.acoes_mitigacao.length < 50)
+  // Análise de criticidade urgente
+  const criticalRisks = risks.filter(r => r.nivel_risco === 'Crítico');
+  const criticalWithoutActions = criticalRisks.filter(r => 
+    !r.acoes_mitigacao || r.acoes_mitigacao.length < 100
   ).length;
 
   if (criticalWithoutActions > 0) {
-    suggestions.push(`${criticalWithoutActions} riscos críticos precisam de ações urgentes`);
+    suggestions.push(`🚨 ${criticalWithoutActions}/${criticalRisks.length} riscos críticos sem plano detalhado - Definir ações >300 caracteres`);
   }
 
-  // Sugestões para atribuição
+  // Análise de atribuição crítica
   const unassignedCritical = risks.filter(r => 
     (r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto') && !r.responsavel_id
   ).length;
 
   if (unassignedCritical > 0) {
-    suggestions.push(`${unassignedCritical} riscos de alta prioridade precisam de responsável`);
+    suggestions.push(`👤 ${unassignedCritical} riscos de alta prioridade sem responsável - Atribuir imediatamente`);
   }
 
-  return suggestions;
+  // Análise de prazos ausentes
+  const highRisksWithoutDeadline = risks.filter(r => 
+    (r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto') && !r.prazo
+  ).length;
+
+  if (highRisksWithoutDeadline > 0) {
+    suggestions.push(`⏰ ${highRisksWithoutDeadline} riscos críticos/altos sem prazo - Estabelecer cronograma`);
+  }
+
+  // Análise de eficiência de mitigação
+  if (mitigationMetrics.mitigationEfficiency < 30) {
+    suggestions.push(`📊 Eficiência de mitigação baixa (${Math.round(mitigationMetrics.mitigationEfficiency)}%) - Acelerar execução das ações planejadas`);
+  }
+
+  // Análise de qualidade das ações
+  if (mitigationMetrics.actionQualityScore < 0.4) {
+    const lowQualityCount = risks.filter(r => analyzeActionQuality(r) < 0.3).length;
+    suggestions.push(`📝 ${lowQualityCount} riscos com ações superficiais - Detalhar responsável, prazo e estratégia`);
+  }
+
+  // Análise de progresso estagnado
+  const stagnantRisks = risks.filter(r => 
+    r.status === 'Identificado' && r.acoes_mitigacao && r.acoes_mitigacao.length > 100
+  ).length;
+
+  if (stagnantRisks > 0) {
+    suggestions.push(`⚡ ${stagnantRisks} riscos prontos para execução - Promover status para "Em Andamento"`);
+  }
+
+  // Análise de estratégias passivas
+  const passiveStrategy = risks.filter(r => 
+    (r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto') && r.estrategia === 'Aceitar'
+  ).length;
+
+  if (passiveStrategy > 0) {
+    suggestions.push(`🛡️ ${passiveStrategy} riscos altos/críticos com estratégia passiva - Considerar mitigação ou transferência`);
+  }
+
+  // Análise de concentração de riscos por responsável
+  const responsibleCount: { [key: string]: number } = {};
+  risks.filter(r => r.responsavel_id).forEach(r => {
+    const key = r.responsavel_id!;
+    responsibleCount[key] = (responsibleCount[key] || 0) + 1;
+  });
+
+  const overloadedResponsible = Object.values(responsibleCount).filter(count => count > 5).length;
+  if (overloadedResponsible > 0) {
+    suggestions.push(`⚖️ ${overloadedResponsible} responsável(is) com >5 riscos - Redistribuir carga para melhor acompanhamento`);
+  }
+
+  // Sugestões específicas por categoria dominante
+  const categoryDistribution: { [key: string]: number } = {};
+  risks.forEach(r => {
+    categoryDistribution[r.categoria] = (categoryDistribution[r.categoria] || 0) + 1;
+  });
+
+  const dominantCategory = Object.entries(categoryDistribution)
+    .sort(([,a], [,b]) => b - a)[0];
+
+  if (dominantCategory && dominantCategory[1] > risks.length * 0.4) {
+    suggestions.push(`📊 Concentração alta em ${dominantCategory[0]} (${dominantCategory[1]} riscos) - Revisar controles desta categoria`);
+  }
+
+  // Análise temporal - riscos identificados há muito tempo
+  const oldRisks = risks.filter(r => {
+    if (!r.data_identificacao) return false;
+    const daysSince = Math.floor((Date.now() - new Date(r.data_identificacao).getTime()) / (1000 * 60 * 60 * 24));
+    return daysSince > 60 && r.status === 'Identificado';
+  }).length;
+
+  if (oldRisks > 0) {
+    suggestions.push(`📅 ${oldRisks} riscos identificados há >60 dias sem progresso - Revisar relevância ou acelerar tratamento`);
+  }
+
+  return suggestions.slice(0, 4); // Limitar a 4 sugestões mais relevantes
 };
