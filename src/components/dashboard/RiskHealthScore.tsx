@@ -2,10 +2,15 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus, Award, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Award, Target, AlertTriangle, CheckCircle2, Clock, Zap } from 'lucide-react';
 import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
 import { helpContent } from '@/components/risk-management/help/helpContent';
 import { Database } from '@/integrations/supabase/types';
+import { 
+  calculateAdvancedHealthScore, 
+  calculateMitigationMetrics, 
+  generateProactiveSuggestions 
+} from '@/utils/riskHealthCalculations';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -18,33 +23,12 @@ interface RiskHealthScoreProps {
 }
 
 export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
-  // Calcular score de saúde (0-100)
-  const calculateHealthScore = () => {
-    if (risks.length === 0) return 85; // Score inicial para sistema vazio
-    
-    const totalRisks = risks.length;
-    const criticalRisks = risks.filter(r => r.nivel_risco === 'Crítico').length;
-    const highRisks = risks.filter(r => r.nivel_risco === 'Alto').length;
-    const mitigatedRisks = risks.filter(r => r.status === 'Mitigado').length;
-    const assignedRisks = risks.filter(r => r.responsavel_id).length;
-    const withDeadlines = risks.filter(r => r.prazo).length;
-    
-    // Fórmula de cálculo do score
-    let score = 100;
-    
-    // Penalidades
-    score -= (criticalRisks / totalRisks) * 40; // Riscos críticos pesam muito
-    score -= (highRisks / totalRisks) * 20; // Riscos altos pesam moderadamente
-    score -= ((totalRisks - assignedRisks) / totalRisks) * 15; // Riscos sem responsável
-    score -= ((totalRisks - withDeadlines) / totalRisks) * 10; // Riscos sem prazo
-    
-    // Bônus
-    score += (mitigatedRisks / totalRisks) * 15; // Riscos mitigados são positivos
-    
-    return Math.max(0, Math.min(100, Math.round(score)));
-  };
-
-  const healthScore = calculateHealthScore();
+  // Calcular métricas avançadas
+  const healthScoreBreakdown = calculateAdvancedHealthScore(risks);
+  const mitigationMetrics = calculateMitigationMetrics(risks);
+  const suggestions = generateProactiveSuggestions(risks);
+  
+  const healthScore = healthScoreBreakdown.finalScore;
   
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
@@ -66,19 +50,60 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
 
   const getBadges = () => {
     const badges = [];
-    const mitigatedRisks = risks.filter(r => r.status === 'Mitigado').length;
     const assignedRisks = risks.filter(r => r.responsavel_id).length;
     
-    if (mitigatedRisks > 5) {
-      badges.push({ icon: Award, text: 'Mitigação Ativa', color: 'bg-green-100 text-green-700' });
+    // Badge por mitigação efetiva
+    if (mitigationMetrics.effectivelyMitigated > 0) {
+      badges.push({ 
+        icon: CheckCircle2, 
+        text: `${mitigationMetrics.effectivelyMitigated} Mitigados`, 
+        color: 'bg-green-100 text-green-700' 
+      });
     }
     
+    // Badge por progresso em andamento
+    if (mitigationMetrics.risksInProgress > 0) {
+      badges.push({ 
+        icon: Clock, 
+        text: `${mitigationMetrics.risksInProgress} Em Execução`, 
+        color: 'bg-yellow-100 text-yellow-700' 
+      });
+    }
+    
+    // Badge por qualidade das ações
+    if (mitigationMetrics.actionQualityScore > 0.7) {
+      badges.push({ 
+        icon: Award, 
+        text: 'Ações Detalhadas', 
+        color: 'bg-blue-100 text-blue-700' 
+      });
+    }
+    
+    // Badge por atribuição completa
     if (assignedRisks === risks.length && risks.length > 0) {
-      badges.push({ icon: Target, text: 'Todos Atribuídos', color: 'bg-blue-100 text-blue-700' });
+      badges.push({ 
+        icon: Target, 
+        text: 'Todos Atribuídos', 
+        color: 'bg-indigo-100 text-indigo-700' 
+      });
     }
 
-    if (risks.filter(r => r.nivel_risco === 'Crítico').length === 0) {
-      badges.push({ icon: Award, text: 'Zero Críticos', color: 'bg-purple-100 text-purple-700' });
+    // Badge por zero críticos
+    if (risks.filter(r => r.nivel_risco === 'Crítico').length === 0 && risks.length > 0) {
+      badges.push({ 
+        icon: Award, 
+        text: 'Zero Críticos', 
+        color: 'bg-purple-100 text-purple-700' 
+      });
+    }
+
+    // Badge por alta eficiência
+    if (mitigationMetrics.mitigationEfficiency > 80) {
+      badges.push({ 
+        icon: Zap, 
+        text: 'Alta Eficiência', 
+        color: 'bg-emerald-100 text-emerald-700' 
+      });
     }
     
     return badges;
@@ -108,15 +133,35 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
           <Progress value={healthScore} className="h-3" />
         </div>
 
-        {/* Métricas resumidas */}
-        <div className="grid grid-cols-2 gap-3 text-center text-sm">
+        {/* Dashboard de Progresso da Mitigação */}
+        <div className="grid grid-cols-4 gap-2 text-center text-sm">
           <div>
-            <div className="font-semibold">{risks.filter(r => r.status === 'Mitigado').length}</div>
-            <div className="text-muted-foreground">Mitigados</div>
+            <div className="font-semibold text-blue-600">{mitigationMetrics.risksWithActions}</div>
+            <div className="text-xs text-muted-foreground">Ações Definidas</div>
           </div>
+          <div>
+            <div className="font-semibold text-yellow-600">{mitigationMetrics.risksInProgress}</div>
+            <div className="text-xs text-muted-foreground">Em Execução</div>
+          </div>
+          <div>
+            <div className="font-semibold text-green-600">{mitigationMetrics.effectivelyMitigated}</div>
+            <div className="text-xs text-muted-foreground">Mitigados</div>
+          </div>
+          <div>
+            <div className="font-semibold text-purple-600">{Math.round(mitigationMetrics.mitigationEfficiency)}%</div>
+            <div className="text-xs text-muted-foreground">Eficiência</div>
+          </div>
+        </div>
+
+        {/* Métricas detalhadas */}
+        <div className="grid grid-cols-2 gap-3 text-center text-sm border-t pt-3">
           <div>
             <div className="font-semibold">{risks.filter(r => r.responsavel_id).length}/{risks.length}</div>
             <div className="text-muted-foreground">Atribuídos</div>
+          </div>
+          <div>
+            <div className="font-semibold">{Math.round(mitigationMetrics.actionQualityScore * 100)}%</div>
+            <div className="text-muted-foreground">Qualidade</div>
           </div>
         </div>
 
@@ -135,10 +180,27 @@ export const RiskHealthScore = ({ risks }: RiskHealthScoreProps) => {
           </div>
         )}
 
-        {/* Dicas para melhorar */}
-        {healthScore < 80 && (
-          <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-            💡 Para melhorar: {healthScore < 60 ? 'Migre riscos críticos e atribua responsáveis' : 'Continue mitigando riscos e monitore prazos'}
+        {/* Alertas Proativos e Sugestões */}
+        {suggestions.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <AlertTriangle className="w-3 h-3" />
+              Sugestões de Melhoria
+            </div>
+            <div className="space-y-1">
+              {suggestions.slice(0, 2).map((suggestion, index) => (
+                <div key={index} className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                  💡 {suggestion}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dicas gerais quando score bom */}
+        {healthScore >= 80 && suggestions.length === 0 && (
+          <div className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
+            🎉 Excelente gestão de riscos! Continue monitorando e atualizando.
           </div>
         )}
       </CardContent>
