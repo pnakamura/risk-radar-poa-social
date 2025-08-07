@@ -7,7 +7,7 @@ import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
-
+import { useGlobalFilters } from '@/context/GlobalFilterContext';
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
   projeto?: { nome: string } | null;
@@ -21,9 +21,8 @@ interface DashboardProps {
 
 const Dashboard = ({ risks, loading }: DashboardProps) => {
   const navigate = useNavigate();
-  
-  // State para filtro de projeto
-  const [selectedProject, setSelectedProject] = React.useState<string>("");
+  const { filters, setFilters, clearFilters } = useGlobalFilters();
+  const selectedProject = filters.project;
   
   // Obter lista única de projetos
   const availableProjects = React.useMemo(() => {
@@ -36,33 +35,30 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   }, [risks]);
 
   const handleCardClick = (filterType: string, filterValue?: string) => {
-    const params = new URLSearchParams();
-    
-    // Adicionar filtro de projeto se selecionado
-    if (selectedProject) {
-      params.set('project', selectedProject);
-    }
-    
+    // Limpa filtros específicos mas mantém o projeto atual, se houver
+    const keepProject = selectedProject ? { project: selectedProject } : {};
+
     switch (filterType) {
       case 'critical-high':
-        params.set('level', 'Crítico,Alto');
+        setFilters({ ...keepProject, level: 'critical-high', status: '', category: '', search: '' });
         break;
       case 'mitigated':
-        params.set('status', 'Mitigado');
+        setFilters({ ...keepProject, status: 'Mitigado', level: '', category: '', search: '' });
         break;
       case 'monitoring':
-        params.set('level', 'Médio');
+        setFilters({ ...keepProject, level: 'Médio', status: '', category: '', search: '' });
         break;
       case 'total':
-        // Sem filtros para mostrar todos
+        // Limpa todos os filtros, preservando apenas o projeto
+        clearFilters({ preserve: ['project'] });
         break;
       default:
         if (filterValue) {
-          params.set(filterType, filterValue);
+          setFilters({ ...keepProject, [filterType]: filterValue, search: '' });
         }
     }
     
-    navigate(`/?tab=matrix&${params.toString()}`);
+    navigate('/?tab=matrix');
   };
 
   if (loading) {
@@ -104,10 +100,10 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   }));
 
   const riskByLevel = [
-    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: '#DC2626' },
-    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: '#EA580C' },
-    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: '#D97706' },
-    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: '#16A34A' }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: 'hsl(var(--risk-critical))' },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: 'hsl(25 95% 53%)' },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: 'hsl(45 93% 47%)' },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: 'hsl(var(--risk-excellent))' }
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -129,7 +125,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         {availableProjects.length > 0 && (
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            <Select value={selectedProject || "all"} onValueChange={(value) => setSelectedProject(value === "all" ? "" : value)}>
+            <Select value={selectedProject || 'all'} onValueChange={(value) => value === 'all' ? clearFilters({ preserve: [] }) : setFilters({ project: value })}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Todos os projetos" />
               </SelectTrigger>
@@ -253,13 +249,13 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8884d8" />
-              </BarChart>
+                <BarChart data={categoryData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

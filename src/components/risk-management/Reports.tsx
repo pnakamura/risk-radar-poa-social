@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { toast } from 'sonner';
 import { ExportModal } from './ExportModal';
 import { DateRange } from 'react-day-picker';
 import { Database } from '@/integrations/supabase/types';
+import { useGlobalFilters } from '@/context/GlobalFilterContext';
 
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -24,9 +24,8 @@ interface ReportsProps {
 }
 
 const Reports = ({ risks, loading }: ReportsProps) => {
+  const { filters, setFilter } = useGlobalFilters();
   const [selectedPeriod, setSelectedPeriod] = useState<DateRange | undefined>();
-  const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
   const [showExportModal, setShowExportModal] = useState(false);
 
@@ -45,9 +44,10 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     );
   }
 
-  // Filtrar riscos baseado nos filtros aplicados
   const filteredRisks = risks
     .filter(risk => {
+      const selectedProject = filters.project || 'all';
+      const selectedCategory = filters.category || 'all';
       const matchesProject = selectedProject === 'all' || risk.projeto?.nome === selectedProject;
       const matchesCategory = selectedCategory === 'all' || risk.categoria === selectedCategory;
       
@@ -62,10 +62,10 @@ const Reports = ({ risks, loading }: ReportsProps) => {
 
   // Preparar dados para gráficos
   const risksByLevel = [
-    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: '#DC2626' },
-    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: '#EA580C' },
-    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: '#D97706' },
-    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: '#16A34A' }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: 'hsl(var(--risk-critical))' },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: 'hsl(25 95% 53%)' },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: 'hsl(45 93% 47%)' },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: 'hsl(var(--risk-excellent))' }
   ];
 
   const risksByCategory = Object.entries(
@@ -96,7 +96,6 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     return { month: monthName, risks: risksInMonth };
   });
 
-  // Obter listas únicas para filtros
   const projects = [...new Set(risks.map(r => r.projeto?.nome).filter(Boolean))];
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
 
@@ -104,14 +103,12 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     setShowExportModal(true);
   };
 
-  const getAppliedFilters = () => {
     return {
       'Período': selectedPeriod,
-      'Projeto': selectedProject || 'Todos',
-      'Categoria': selectedCategory || 'Todas',
+      'Projeto': filters.project || 'Todos',
+      'Categoria': filters.category || 'Todas',
       'Tipo de Relatório': reportType
     };
-  };
 
   return (
     <div className="space-y-6">
@@ -152,7 +149,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
             
             <div>
               <label className="block text-sm font-medium mb-2">Projeto</label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <Select value={filters.project || 'all'} onValueChange={(v) => setFilter('project', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um projeto" />
                 </SelectTrigger>
@@ -167,7 +164,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
             
             <div>
               <label className="block text-sm font-medium mb-2">Categoria</label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select value={filters.category || 'all'} onValueChange={(v) => setFilter('category', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
@@ -244,7 +241,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -264,7 +261,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#82ca9d" />
+                  <Bar dataKey="value" fill="hsl(var(--risk-excellent))" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import RiskDetail from "./pages/RiskDetail";
 import UserManagement from "./pages/UserManagement";
 import { Loader2 } from "lucide-react";
+import { GlobalFilterProvider } from "@/context/GlobalFilterContext";
 
 const queryClient = new QueryClient();
 
@@ -47,9 +47,11 @@ const App = () => (
     <BrowserRouter>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <AppContent />
+          <GlobalFilterProvider>
+            <Toaster />
+            <Sonner />
+            <AppContent />
+          </GlobalFilterProvider>
         </AuthProvider>
       </TooltipProvider>
     </BrowserRouter>

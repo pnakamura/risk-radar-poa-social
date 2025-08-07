@@ -37,24 +37,25 @@ export const CategoryRadarChart = ({ categoryScores }: CategoryRadarChartProps) 
                 domain={[0, 85]} 
                 className="text-xs fill-muted-foreground"
                 tick={{ fontSize: 8 }}
+                tickFormatter={(v) => `${v}`}
               />
               <Radar
                 name="Score Atual"
                 dataKey="score"
-                stroke="hsl(142 76% 36%)"
-                fill="hsl(142 76% 36%)"
+                stroke={"hsl(var(--risk-excellent))"}
+                fill={"hsl(var(--risk-excellent))"}
                 fillOpacity={0.6}
                 strokeWidth={3}
-                dot={{ fill: 'hsl(142 76% 36%)', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'hsl(var(--risk-excellent))', strokeWidth: 2, r: 4 }}
               />
               <Radar
                 name="Meta"
                 dataKey="benchmark"
-                stroke="hsl(25 95% 53%)"
+                stroke={"hsl(var(--risk-warning))"}
                 fill="transparent"
                 strokeWidth={2}
                 strokeDasharray="8 4"
-                dot={{ fill: 'hsl(25 95% 53%)', strokeWidth: 2, r: 3 }}
+                dot={{ fill: 'hsl(var(--risk-warning))', strokeWidth: 2, r: 3 }}
               />
             </RadarChart>
           </ResponsiveContainer>
@@ -63,11 +64,11 @@ export const CategoryRadarChart = ({ categoryScores }: CategoryRadarChartProps) 
         {/* Legenda */}
         <div className="flex justify-center gap-6 mt-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }}></div>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(var(--risk-excellent))' }}></div>
             <span className="font-medium">Score Atual</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-2 border-2 border-dashed rounded" style={{ borderColor: 'hsl(25 95% 53%)' }}></div>
+            <div className="w-4 h-2 border-2 border-dashed rounded" style={{ borderColor: 'hsl(var(--risk-warning))' }}></div>
             <span className="font-medium">Meta</span>
           </div>
         </div>

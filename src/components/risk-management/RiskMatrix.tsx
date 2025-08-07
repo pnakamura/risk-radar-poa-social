@@ -13,6 +13,7 @@ import { useRiskActions } from '@/hooks/useRiskActions';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { useGlobalFilters } from '@/context/GlobalFilterContext';
 
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -30,14 +31,15 @@ interface RiskMatrixProps {
 const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
   console.log('RiskMatrix rendering with risks:', risks.length, 'loading:', loading);
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const { filters, setFilter, setFilters, clearFilters } = useGlobalFilters();
 
   // State para filtros
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
-  const [projectFilter, setProjectFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState(filters.search || '');
+  const [categoryFilter, setCategoryFilter] = useState(filters.category || '');
+  const [levelFilter, setLevelFilter] = useState(filters.level || '');
+  const [projectFilter, setProjectFilter] = useState(filters.project || '');
+  const [statusFilter, setStatusFilter] = useState(filters.status || '');
   const [expandedRisk, setExpandedRisk] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'date' | 'level' | 'status' | 'code'>('date');
@@ -50,7 +52,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
 
   const { removeRisk, isLoading } = useRiskActions();
 
-  // Aplicar filtros da URL quando o componente carregar
   useEffect(() => {
     const levelParam = searchParams.get('level');
     const statusParam = searchParams.get('status');
@@ -60,18 +61,18 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
 
     if (levelParam) {
       if (levelParam.includes(',')) {
-        // Multiple levels (e.g., "Crítico,Alto")
-        setLevelFilter('critical-high'); // Special value for combined critical/high
+        setLevelFilter('critical-high');
       } else {
         setLevelFilter(levelParam);
       }
+    } else {
+      setLevelFilter('');
     }
-    if (statusParam) setStatusFilter(statusParam);
-    if (categoryParam) setCategoryFilter(categoryParam);
-    if (searchParam) setSearchTerm(searchParam);
-    if (projectParam) setProjectFilter(projectParam);
+    if (statusParam) setStatusFilter(statusParam); else setStatusFilter('');
+    if (categoryParam) setCategoryFilter(categoryParam); else setCategoryFilter('');
+    if (searchParam) setSearchTerm(searchParam); else setSearchTerm('');
+    if (projectParam) setProjectFilter(projectParam); else setProjectFilter('');
 
-    // Auto-show filters if any are applied
     if (levelParam || statusParam || categoryParam || searchParam || projectParam) {
       setShowFilters(true);
     }
@@ -155,10 +156,10 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
-      case 'Crítico': return 'bg-red-500 text-white';
-      case 'Alto': return 'bg-red-400 text-white';
-      case 'Médio': return 'bg-yellow-500 text-white';
-      case 'Baixo': return 'bg-green-500 text-white';
+      case 'Crítico': return 'bg-[hsl(var(--risk-critical))] text-white';
+      case 'Alto': return 'bg-[hsl(25_95%_53%)] text-white';
+      case 'Médio': return 'bg-[hsl(45_93%_47%)] text-white';
+      case 'Baixo': return 'bg-[hsl(var(--risk-excellent))] text-white';
       default: return 'bg-gray-500 text-white';
     }
   };
@@ -235,14 +236,6 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
     setEditingRisk(null);
   };
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setCategoryFilter('');
-    setLevelFilter('');
-    setProjectFilter('');
-    setStatusFilter('');
-  };
-
   return (
     <div className="space-y-4">
       <RiskMatrixHeader
@@ -264,11 +257,11 @@ const RiskMatrix = ({ risks, loading, onRefresh }: RiskMatrixProps) => {
         projects={projects}
         statuses={statuses}
         onSearchChange={setSearchTerm}
-        onCategoryChange={setCategoryFilter}
-        onLevelChange={setLevelFilter}
-        onProjectChange={setProjectFilter}
-        onStatusChange={setStatusFilter}
-        onClearFilters={clearFilters}
+        onCategoryChange={(v) => { setCategoryFilter(v); setFilter('category', v); }}
+        onLevelChange={(v) => { setLevelFilter(v); setFilter('level', v); }}
+        onProjectChange={(v) => { setProjectFilter(v); setFilter('project', v); }}
+        onStatusChange={(v) => { setStatusFilter(v); setFilter('status', v); }}
+        onClearFilters={() => { clearFilters(); setSearchTerm(''); setCategoryFilter(''); setLevelFilter(''); setProjectFilter(''); setStatusFilter(''); }}
       />
 
       {/* Tabela de Riscos */}
