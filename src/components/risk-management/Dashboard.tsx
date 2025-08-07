@@ -21,7 +21,7 @@ interface DashboardProps {
 
 const Dashboard = ({ risks, loading }: DashboardProps) => {
   const navigate = useNavigate();
-  const { filters, setFilters, clearFilters } = useGlobalFilters();
+  const { filters, setFilters, clearFilters, buildSearchString } = useGlobalFilters();
   const selectedProject = filters.project;
   
   // Obter lista única de projetos
@@ -35,30 +35,34 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   }, [risks]);
 
   const handleCardClick = (filterType: string, filterValue?: string) => {
-    // Limpa filtros específicos mas mantém o projeto atual, se houver
-    const keepProject = selectedProject ? { project: selectedProject } : {};
+    type FilterOverrides = Partial<Record<'project' | 'category' | 'level' | 'status' | 'search', string>>;
+    const base: FilterOverrides = { category: '', status: '', search: '', level: '' };
+    let overrides: FilterOverrides = base;
 
     switch (filterType) {
       case 'critical-high':
-        setFilters({ ...keepProject, level: 'critical-high', status: '', category: '', search: '' });
+        overrides = { ...base, level: 'critical-high' };
         break;
       case 'mitigated':
-        setFilters({ ...keepProject, status: 'Mitigado', level: '', category: '', search: '' });
+        overrides = { ...base, status: 'Mitigado' };
         break;
       case 'monitoring':
-        setFilters({ ...keepProject, level: 'Médio', status: '', category: '', search: '' });
+        overrides = { ...base, level: 'Médio' };
         break;
       case 'total':
-        // Limpa todos os filtros, preservando apenas o projeto
-        clearFilters({ preserve: ['project'] });
+        overrides = base; // limpa filtros, mantém projeto atual
         break;
       default:
         if (filterValue) {
-          setFilters({ ...keepProject, [filterType]: filterValue, search: '' });
+          overrides = { ...base, [filterType]: filterValue } as FilterOverrides;
         }
     }
-    
-    navigate('/?tab=matrix');
+
+    const qs = buildSearchString(overrides);
+    const params = new URLSearchParams(qs);
+    params.set('tab', 'matrix');
+    if (selectedProject) params.set('project', selectedProject);
+    navigate(`/?${params.toString()}`);
   };
 
   if (loading) {
