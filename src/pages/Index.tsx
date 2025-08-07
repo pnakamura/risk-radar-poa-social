@@ -13,6 +13,7 @@ import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { GlobalFilterProvider } from '@/context/GlobalFilterContext';
 const Index = () => {
   const {
     risks,
@@ -110,15 +111,21 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard">
-            <Dashboard risks={risks} loading={loading} />
+            <GlobalFilterProvider>
+              <Dashboard risks={risks} loading={loading} />
+            </GlobalFilterProvider>
           </TabsContent>
 
           <TabsContent value="matrix">
-            <RiskMatrix risks={risks} loading={loading} onRefresh={refreshData} />
+            <GlobalFilterProvider>
+              <RiskMatrix risks={risks} loading={loading} onRefresh={refreshData} />
+            </GlobalFilterProvider>
           </TabsContent>
 
           <TabsContent value="reports">
-            <Reports risks={risks} loading={loading} />
+            <GlobalFilterProvider>
+              <Reports risks={risks} loading={loading} />
+            </GlobalFilterProvider>
           </TabsContent>
 
           <TabsContent value="form">
