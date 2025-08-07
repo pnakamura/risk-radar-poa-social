@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { CSVExporter, ExportOptions } from '@/utils/csvExporter';
+import { exportVisualHTML, exportVisualPDF, exportVisualPNG, exportToExcel as exportExcel } from '@/utils/reportExporter';
 
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   risks: any[];
   appliedFilters?: Record<string, any>;
+  reportRef?: React.RefObject<HTMLDivElement>;
 }
 
 const availableFields = {
@@ -39,11 +41,11 @@ const availableFields = {
   updated_at: 'Última Atualização'
 };
 
-export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportModalProps) => {
+export const ExportModal = ({ isOpen, onClose, risks, appliedFilters, reportRef }: ExportModalProps) => {
   const [selectedFields, setSelectedFields] = useState<string[]>(
     ['codigo', 'categoria', 'descricao_risco', 'nivel_risco', 'probabilidade', 'impacto', 'status', 'estrategia', 'responsavel', 'projeto', 'data_identificacao']
   );
-  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'excel'>('csv');
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'excel' | 'html-visual' | 'pdf-visual' | 'png-visual'>('csv');
   const [filename, setFilename] = useState('');
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [encoding, setEncoding] = useState<'utf-8' | 'utf-8-bom'>('utf-8-bom');
@@ -67,7 +69,15 @@ export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportMo
 
   const generateDefaultFilename = () => {
     const date = new Date().toISOString().split('T')[0];
-    const extension = exportFormat === 'excel' ? 'xlsx' : exportFormat;
+    const extMap: Record<string, string> = {
+      csv: 'csv',
+      json: 'json',
+      excel: 'xlsx',
+      'html-visual': 'html',
+      'pdf-visual': 'pdf',
+      'png-visual': 'png',
+    };
+    const extension = extMap[exportFormat] || 'csv';
     return `riscos-${date}.${extension}`;
   };
 
@@ -99,7 +109,16 @@ export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportMo
           await CSVExporter.exportToJSON(risks, finalFilename, metadata);
           break;
         case 'excel':
-          await CSVExporter.exportToExcel(risks, finalFilename);
+          await exportExcel(risks, selectedFields, finalFilename);
+          break;
+        case 'html-visual':
+          await exportVisualHTML(reportRef as any, finalFilename, includeMetadata ? metadata : undefined);
+          break;
+        case 'pdf-visual':
+          await exportVisualPDF(reportRef as any, finalFilename);
+          break;
+        case 'png-visual':
+          await exportVisualPNG(reportRef as any, finalFilename);
           break;
       }
       onClose();
@@ -130,14 +149,17 @@ export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportMo
           {/* Formato de Exportação */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Formato de Exportação</Label>
-            <Select value={exportFormat} onValueChange={(value: 'csv' | 'json' | 'excel') => setExportFormat(value)}>
+            <Select value={exportFormat} onValueChange={(value: any) => setExportFormat(value as any)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="csv">CSV (Comma Separated Values)</SelectItem>
                 <SelectItem value="json">JSON (JavaScript Object Notation)</SelectItem>
-                <SelectItem value="excel">Excel (XLSX) - Em breve</SelectItem>
+                <SelectItem value="excel">Excel (XLSX)</SelectItem>
+                <SelectItem value="html-visual">HTML (Relatório Visual)</SelectItem>
+                <SelectItem value="pdf-visual">PDF (Relatório Visual)</SelectItem>
+                <SelectItem value="png-visual">PNG (Imagem do Relatório)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -263,7 +285,7 @@ export const ExportModal = ({ isOpen, onClose, risks, appliedFilters }: ExportMo
             </Button>
             <Button 
               onClick={handleExport}
-              disabled={selectedFields.length === 0 && exportFormat !== 'json'}
+              disabled={(exportFormat === 'csv' || exportFormat === 'excel') && selectedFields.length === 0}
             >
               {getFormatIcon()}
               Exportar
