@@ -1,8 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink, Filter } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink, Filter, X } from 'lucide-react';
 import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +23,7 @@ interface DashboardProps {
 
 const Dashboard = ({ risks, loading }: DashboardProps) => {
   const navigate = useNavigate();
-  const { filters, setFilters, clearFilters, buildSearchString } = useGlobalFilters();
+  const { filters, setFilter, setFilters, clearFilters, buildSearchString } = useGlobalFilters();
   const selectedProject = filters.project;
   
   // Obter lista única de projetos
@@ -116,8 +118,8 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold mb-2">Dashboard de Riscos</h3>
-          <p className="text-gray-600">
+          <h3 className="text-2xl font-bold mb-2 font-display tracking-tight">Dashboard de Riscos</h3>
+          <p className="text-muted-foreground">
             {selectedProject 
               ? `${totalRisks} riscos no projeto "${selectedProject}"`
               : `Visão geral de ${totalRisks} riscos identificados`
@@ -130,10 +132,10 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <Select value={selectedProject || 'all'} onValueChange={(value) => value === 'all' ? clearFilters({ preserve: [] }) : setFilters({ project: value })}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="Todos os projetos" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[60]">
                 <SelectItem value="all">Todos os projetos</SelectItem>
                 {availableProjects.map((project) => (
                   <SelectItem key={project} value={project}>
@@ -143,6 +145,46 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
               </SelectContent>
             </Select>
           </div>
+        )}
+      </div>
+
+      {/* Filtros ativos */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {filters.project && (
+          <Badge variant="secondary" className="flex items-center gap-2">
+            Projeto: {filters.project}
+            <button aria-label="Remover filtro de projeto" className="focus-ring" onClick={() => setFilter('project','')}>
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        )}
+        {filters.level && (
+          <Badge variant="secondary" className="flex items-center gap-2">
+            Nível: {filters.level}
+            <button aria-label="Remover filtro de nível" className="focus-ring" onClick={() => setFilter('level','')}>
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        )}
+        {filters.status && (
+          <Badge variant="secondary" className="flex items-center gap-2">
+            Status: {filters.status}
+            <button aria-label="Remover filtro de status" className="focus-ring" onClick={() => setFilter('status','')}>
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        )}
+        {filters.category && (
+          <Badge variant="secondary" className="flex items-center gap-2">
+            Categoria: {filters.category}
+            <button aria-label="Remover filtro de categoria" className="focus-ring" onClick={() => setFilter('category','')}>
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        )}
+
+        {(filters.project || filters.level || filters.status || filters.category) && (
+          <Button variant="ghost" size="sm" onClick={() => clearFilters()}>Limpar</Button>
         )}
       </div>
 
@@ -161,18 +203,18 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
       {/* Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card 
-          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          className="interactive-card hover-lift animate-fade-in"
           onClick={() => handleCardClick('total')}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-muted rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total de Riscos</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalRisks}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total de Riscos</p>
+                  <p className="text-2xl font-bold text-foreground">{totalRisks}</p>
                   <p className="text-xs text-muted-foreground mt-1">Clique para ver todos</p>
                 </div>
               </div>
@@ -182,18 +224,18 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         </Card>
 
         <Card 
-          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          className="interactive-card hover-lift animate-fade-in"
           onClick={() => handleCardClick('critical-high')}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="p-2 bg-risk-critical-bg rounded-lg">
+                  <AlertTriangle className="w-6 h-6 text-risk-critical" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Riscos Críticos/Altos</p>
-                  <p className="text-2xl font-bold text-red-600">{highRisks}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Riscos Críticos/Altos</p>
+                  <p className="text-2xl font-bold text-risk-critical">{highRisks}</p>
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
@@ -203,18 +245,18 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         </Card>
 
         <Card 
-          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          className="interactive-card hover-lift animate-fade-in"
           onClick={() => handleCardClick('mitigated')}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+                <div className="p-2 bg-risk-excellent-bg rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-risk-excellent" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Riscos Mitigados</p>
-                  <p className="text-2xl font-bold text-green-600">{mitigatedRisks}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Riscos Mitigados</p>
+                  <p className="text-2xl font-bold text-risk-excellent">{mitigatedRisks}</p>
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
@@ -224,18 +266,18 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         </Card>
 
         <Card 
-          className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 interactive-card"
+          className="interactive-card hover-lift animate-fade-in"
           onClick={() => handleCardClick('monitoring')}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Clock className="w-6 h-6 text-yellow-600" />
+                <div className="p-2 bg-risk-warning-bg rounded-lg">
+                  <Clock className="w-6 h-6 text-risk-warning" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Em Monitoramento</p>
-                  <p className="text-2xl font-bold text-yellow-600">{mediumRisks}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Em Monitoramento</p>
+                  <p className="text-2xl font-bold text-risk-warning">{mediumRisks}</p>
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
@@ -247,7 +289,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="animate-fade-in">
           <CardHeader>
             <CardTitle>Riscos por Categoria</CardTitle>
           </CardHeader>
@@ -264,7 +306,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-fade-in">
           <CardHeader>
             <CardTitle>Distribuição por Nível de Risco</CardTitle>
           </CardHeader>

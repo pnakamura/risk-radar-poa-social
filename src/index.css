@@ -159,6 +159,11 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
   }
 }
 
@@ -201,11 +206,26 @@ All colors MUST be HSL.
   }
   
   .interactive-card {
-    @apply transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer;
+    @apply transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer rounded-lg;
   }
   
   .smart-gradient {
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .story-link {
+    @apply relative inline-block;
+  }
+  .story-link::after {
+    content: "";
+    @apply absolute w-full scale-x-0 h-0.5 bottom-0 left-0 bg-primary origin-bottom-right transition-transform duration-300;
+  }
+  .story-link:hover::after {
+    @apply scale-x-100 origin-bottom-left;
   }
 }
 
