@@ -28,6 +28,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState<DateRange | undefined>();
   const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
   const [showExportModal, setShowExportModal] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   if (loading) {
     return (
@@ -194,168 +195,171 @@ const Reports = ({ risks, loading }: ReportsProps) => {
       </Card>
 
       {/* Conteúdo dos Relatórios */}
-      {reportType === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChartIcon className="w-5 h-5" />
-                Riscos por Nível
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={risksByLevel}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {risksByLevel.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+      <div ref={reportRef}>
+        {reportType === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChartIcon className="w-5 h-5" />
+                  Riscos por Nível
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={risksByLevel}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {risksByLevel.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Riscos por Categoria
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={risksByCategory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Riscos por Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={risksByCategory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Riscos por Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={risksByStatus}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--risk-excellent))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Riscos por Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={risksByStatus}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="hsl(var(--risk-excellent))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo Executivo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{filteredRisks.length}</div>
-                    <div className="text-sm text-gray-600">Total de Riscos</div>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
-                      {filteredRisks.filter(r => r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto').length}
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo Executivo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{filteredRisks.length}</div>
+                      <div className="text-sm text-gray-600">Total de Riscos</div>
                     </div>
-                    <div className="text-sm text-gray-600">Riscos Críticos/Altos</div>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p>
-                    Este relatório apresenta uma visão geral dos riscos identificados, 
-                    com foco na distribuição por nível de criticidade e categoria.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {reportType === 'trends' && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Tendência de Identificação de Riscos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="risks" stroke="#8884d8" name="Novos Riscos" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {reportType === 'detailed' && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatório Detalhado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredRisks.map((risk, index) => (
-                  <div key={risk.id} className="border-l-4 border-blue-500 pl-4 py-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{risk.codigo} - {risk.descricao_risco}</h4>
-                        <p className="text-sm text-gray-600">Categoria: {risk.categoria}</p>
-                        <p className="text-sm text-gray-600">Nível: {risk.nivel_risco}</p>
-                        <p className="text-sm text-gray-600">Status: {risk.status}</p>
+                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">
+                        {filteredRisks.filter(r => r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto').length}
                       </div>
-                      <div className="text-right text-sm text-gray-500">
-                        <p>Criado em: {new Date(risk.data_identificacao).toLocaleDateString('pt-BR')}</p>
-                        <p>Responsável: {risk.responsavel?.nome || 'Não atribuído'}</p>
-                      </div>
+                      <div className="text-sm text-gray-600">Riscos Críticos/Altos</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                  <div className="text-sm text-gray-600">
+                    <p>
+                      Este relatório apresenta uma visão geral dos riscos identificados, 
+                      com foco na distribuição por nível de criticidade e categoria.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {reportType === 'trends' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Tendência de Identificação de Riscos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="risks" stroke="#8884d8" name="Novos Riscos" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {reportType === 'detailed' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Relatório Detalhado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredRisks.map((risk, index) => (
+                    <div key={risk.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">{risk.codigo} - {risk.descricao_risco}</h4>
+                          <p className="text-sm text-gray-600">Categoria: {risk.categoria}</p>
+                          <p className="text-sm text-gray-600">Nível: {risk.nivel_risco}</p>
+                          <p className="text-sm text-gray-600">Status: {risk.status}</p>
+                        </div>
+                        <div className="text-right text-sm text-gray-500">
+                          <p>Criado em: {new Date(risk.data_identificacao).toLocaleDateString('pt-BR')}</p>
+                          <p>Responsável: {risk.responsavel?.nome || 'Não atribuído'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
 
       <ExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         risks={filteredRisks}
         appliedFilters={getAppliedFilters()}
+        reportRef={reportRef}
       />
     </div>
   );

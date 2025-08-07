@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -143,6 +143,7 @@ export const ExportModal = ({ isOpen, onClose, risks, appliedFilters, reportRef 
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Exportar Dados de Riscos</DialogTitle>
+          <DialogDescription>Configure a exportação de dados e relatórios visuais.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
