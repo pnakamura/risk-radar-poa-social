@@ -103,13 +103,12 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     setShowExportModal(true);
   };
 
-    return {
-      'Período': selectedPeriod,
-      'Projeto': filters.project || 'Todos',
-      'Categoria': filters.category || 'Todas',
-      'Tipo de Relatório': reportType
-    };
-
+  const getAppliedFilters = () => ({
+    'Período': selectedPeriod,
+    'Projeto': filters.project || 'Todos',
+    'Categoria': filters.category || 'Todas',
+    'Tipo de Relatório': reportType
+  });
   return (
     <div className="space-y-6">
       {/* Header */}
