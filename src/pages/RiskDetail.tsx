@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Briefcase, AlertTriangle, TrendingUp, Clock, Edit, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Briefcase, AlertTriangle, TrendingUp, Clock, Edit, RefreshCw, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { useRiskHistory } from '@/hooks/useRiskHistory';
 import { useAuth } from '@/hooks/useAuth';
 import { RiskEditModal } from '@/components/risk-management/RiskEditModal';
 import { Loader2 } from 'lucide-react';
+import { ExportModal } from '@/components/risk-management/ExportModal';
 
 const RiskDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,8 @@ const RiskDetail = () => {
   const { variablesHistory, riskHistory, loading: historyLoading } = useRiskHistory(id || '');
   const { user } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const risk = risks.find(r => r.id === id);
 
@@ -129,11 +132,11 @@ const RiskDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div ref={reportRef} className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/?tab=matrix">
+            <Link to="/?tab=matrix" className="no-export">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar
@@ -147,12 +150,20 @@ const RiskDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setIsExportOpen(true)}
+              size="sm"
+              className="no-export"
+            >
+              <Download className="w-4 h-4" />
+              Exportar
+            </Button>
             {canEditRisk && (
               <Button
                 onClick={() => setIsEditModalOpen(true)}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 no-export"
               >
                 <Edit className="w-4 h-4" />
                 Editar Risco
@@ -613,6 +624,14 @@ const RiskDetail = () => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSuccess={handleEditSuccess}
+      />
+
+      {/* Modal de Exportação */}
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        risks={[risk]}
+        reportRef={reportRef}
       />
     </div>
   );
