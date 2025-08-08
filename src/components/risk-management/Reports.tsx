@@ -5,14 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { FileDown, Calendar, Filter, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import { FileDown, Calendar, Filter, BarChart3, PieChart as PieChartIcon, TrendingUp, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExportModal } from './ExportModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DateRange } from 'react-day-picker';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
-
+import { getChartPalette } from '@/utils/theme';
+import { ReportsHelpModal } from './help/ReportsHelpModal';
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -31,8 +32,10 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const [quickPeriod, setQuickPeriod] = useState<'all' | '3m' | '6m' | '12m' | 'ytd' | 'custom'>('all');
   const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
+  const palette = getChartPalette();
   if (loading) {
     return (
       <div className="space-y-4">
@@ -79,10 +82,10 @@ const Reports = ({ risks, loading }: ReportsProps) => {
 
   // Preparar dados para gráficos
   const risksByLevel = [
-    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: 'hsl(var(--risk-critical))' },
-    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: 'hsl(25 95% 53%)' },
-    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: 'hsl(45 93% 47%)' },
-    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: 'hsl(var(--risk-excellent))' }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: palette.critical },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: palette.warning },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: palette.good },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: palette.excellent }
   ];
 
   const risksByCategory = Object.entries(
@@ -162,12 +165,16 @@ const Reports = ({ risks, loading }: ReportsProps) => {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <FileDown className="w-4 h-4 mr-2" />
-            Exportar Dados
-          </Button>
-        </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowHelp(true)}>
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Ajuda
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <FileDown className="w-4 h-4 mr-2" />
+              Exportar Dados
+            </Button>
+          </div>
       </div>
 
       {/* Filtros */}
@@ -344,11 +351,11 @@ const Reports = ({ risks, loading }: ReportsProps) => {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={risksByCategory}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                    <XAxis dataKey="name" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <Tooltip wrapperClassName="recharts-tooltip-wrapper no-export" />
+                    <Bar dataKey="value" fill={palette.primary} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -364,11 +371,11 @@ const Reports = ({ risks, loading }: ReportsProps) => {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={risksByStatus}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                    <XAxis dataKey="name" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--risk-excellent))" />
+                    <Bar dataKey="value" fill={palette.excellent} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -435,20 +442,44 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </div>
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                    <XAxis dataKey="month" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" name="Total" strokeWidth={2} />
-                    <Line type="monotone" dataKey="alto" stroke="hsl(var(--ring))" name="Crítico + Alto" />
-                    <Line type="monotone" dataKey="medio" stroke="hsl(var(--secondary))" name="Médio" />
-                    <Line type="monotone" dataKey="baixo" stroke="hsl(var(--muted-foreground))" name="Baixo" />
-                    <Line type="monotone" dataKey="ma3" stroke="hsl(var(--foreground))" name="Média móvel (3m)" strokeDasharray="4 4" />
-                    <Line type="monotone" dataKey="cumulativo" stroke="hsl(var(--card-foreground))" name="Cumulativo" />
+                    <Line type="monotone" dataKey="total" stroke={palette.primary} name="Total" strokeWidth={2} />
+                    <Line type="monotone" dataKey="alto" stroke={palette.warning} name="Crítico + Alto" strokeWidth={2} />
+                    <Line type="monotone" dataKey="medio" stroke={palette.good} name="Médio" strokeWidth={2} />
+                    <Line type="monotone" dataKey="baixo" stroke={palette.excellent} name="Baixo" strokeWidth={2} />
+                    <Line type="monotone" dataKey="ma3" stroke={palette.foreground} name="Média móvel (3m)" strokeDasharray="4 4" strokeWidth={2} />
+                    <Line type="monotone" dataKey="cumulativo" stroke={palette.muted} name="Cumulativo" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
                 <p className="text-sm text-muted-foreground mt-3">A linha de média móvel (3 meses) suaviza variações e evidencia a tendência geral.</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Distribuição Mensal por Nível
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={360}>
+                  <BarChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                    <XAxis dataKey="month" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="alto" stackId="a" name="Crítico + Alto" fill={palette.warning} />
+                    <Bar dataKey="medio" stackId="a" name="Médio" fill={palette.good} />
+                    <Bar dataKey="baixo" stackId="a" name="Baixo" fill={palette.excellent} />
+                  </BarChart>
+                </ResponsiveContainer>
+                <p className="text-sm text-muted-foreground mt-3">Barras empilhadas mostram a composição por nível de severidade mês a mês.</p>
               </CardContent>
             </Card>
           </div>
@@ -501,6 +532,8 @@ const Reports = ({ risks, loading }: ReportsProps) => {
         appliedFilters={getAppliedFilters()}
         reportRef={reportRef}
       />
+
+      <ReportsHelpModal open={showHelp} onOpenChange={setShowHelp} />
     </div>
   );
 };

@@ -28,6 +28,13 @@ export async function exportVisualPNG(
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: '#ffffff',
+      filter: (node) => {
+        if (!(node instanceof Element)) return true;
+        const el = node as Element;
+        // Excluir tooltips, menus flutuantes e elementos marcados
+        const classes = el.classList || { contains: () => false } as any;
+        return !classes.contains('recharts-tooltip-wrapper') && !classes.contains('no-export');
+      },
     });
     downloadDataUrl(dataUrl, ensureExt(filename, 'png'));
     toast.success('Imagem exportada com sucesso!');
@@ -49,6 +56,12 @@ export async function exportVisualPDF(
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: '#ffffff',
+      filter: (node) => {
+        if (!(node instanceof Element)) return true;
+        const el = node as Element;
+        const classes = el.classList || { contains: () => false } as any;
+        return !classes.contains('recharts-tooltip-wrapper') && !classes.contains('no-export');
+      },
     });
 
     // Criar PDF A4 e encaixar a imagem na página mantendo proporção
@@ -100,6 +113,12 @@ export async function exportVisualHTML(
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: '#ffffff',
+      filter: (node) => {
+        if (!(node instanceof Element)) return true;
+        const el = node as Element;
+        const classes = el.classList || { contains: () => false } as any;
+        return !classes.contains('recharts-tooltip-wrapper') && !classes.contains('no-export');
+      },
     });
 
     const safeFilename = ensureExt(filename, 'html');
