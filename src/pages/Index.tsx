@@ -11,9 +11,12 @@ import { SmartBreadcrumbs } from '@/components/layout/SmartBreadcrumbs';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users } from 'lucide-react';
+import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users, Search as SearchIcon } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { GlobalFilterProvider } from '@/context/GlobalFilterContext';
+import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 const Index = () => {
   const {
     risks,
@@ -43,8 +46,8 @@ const Index = () => {
   return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-3 sm:p-6">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-2 sm:p-3 bg-blue-600 rounded-lg hover-glow">
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
@@ -61,23 +64,38 @@ const Index = () => {
               <div className="hidden sm:block">
                 <GlobalSearch risks={risks} onResultClick={handleSearchResult} placeholder="Buscar riscos..." />
               </div>
-              
+              {/* Mobile Search */}
+              <Drawer>
+                <DrawerTrigger asChild>
+                  <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Abrir busca">
+                    <SearchIcon className="w-5 h-5" />
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>Buscar</DrawerTitle>
+                  </DrawerHeader>
+                  <div className="p-4">
+                    <GlobalSearch risks={risks} onResultClick={handleSearchResult} placeholder="Buscar riscos..." />
+                  </div>
+                </DrawerContent>
+              </Drawer>
               {profile && <div className="text-right hidden lg:block">
                   <p className="text-sm text-gray-600">Bem-vindo,</p>
                   <p className="font-medium">{profile.nome}</p>
                 </div>}
+              <ThemeToggle />
               <UserMenu />
             </div>
           </div>
-          
-          {/* Breadcrumbs */}
-          <SmartBreadcrumbs risks={risks} currentTab={activeTab} />
-          
-        </div>
+        </header>
+        
+        {/* Breadcrumbs */}
+        <SmartBreadcrumbs risks={risks} currentTab={activeTab} />
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white shadow-lg rounded-lg p-1 h-auto">
+          <TabsList className="flex sm:grid w-full sm:grid-cols-6 overflow-x-auto bg-white shadow-lg rounded-lg p-1 h-auto gap-1">
             <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
               <TrendingUp className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Dashboard</span>

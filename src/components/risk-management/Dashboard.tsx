@@ -10,6 +10,7 @@ import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
+import { getChartPalette } from '@/utils/theme';
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
   projeto?: { nome: string } | null;
@@ -106,12 +107,12 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   }));
 
   const riskByLevel = [
-    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: 'hsl(var(--risk-critical))' },
-    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: 'hsl(25 95% 53%)' },
-    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: 'hsl(45 93% 47%)' },
-    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: 'hsl(var(--risk-excellent))' }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: getChartPalette().critical },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: getChartPalette().warning },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: getChartPalette().good },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: getChartPalette().excellent }
   ];
-
+ 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
@@ -296,9 +297,9 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={categoryData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                  <CartesianGrid stroke={getChartPalette().border} strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fill: getChartPalette().muted }} axisLine={{ stroke: getChartPalette().border }} tickLine={{ stroke: getChartPalette().border }} />
+                  <YAxis tick={{ fill: getChartPalette().muted }} axisLine={{ stroke: getChartPalette().border }} tickLine={{ stroke: getChartPalette().border }} />
                   <Tooltip />
                   <Bar dataKey="value" fill="hsl(var(--primary))" />
                 </BarChart>
@@ -320,7 +321,6 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   labelLine={false}
                   label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={80}
-                  fill="#8884d8"
                   dataKey="value"
                 >
                   {riskByLevel.map((entry, index) => (

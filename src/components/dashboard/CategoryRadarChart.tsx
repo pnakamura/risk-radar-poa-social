@@ -2,6 +2,7 @@ import React from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoryHealthScore } from '@/utils/riskHealthCalculations';
+import { getChartPalette } from '@/utils/theme';
 
 interface CategoryRadarChartProps {
   categoryScores: CategoryHealthScore[];
@@ -26,36 +27,34 @@ export const CategoryRadarChart = ({ categoryScores }: CategoryRadarChartProps) 
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={data}>
-              <PolarGrid className="stroke-muted" />
+              <PolarGrid stroke={getChartPalette().border} />
               <PolarAngleAxis 
                 dataKey="category" 
-                className="text-xs fill-foreground"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: getChartPalette().muted }}
               />
               <PolarRadiusAxis 
                 angle={90} 
                 domain={[0, 85]} 
-                className="text-xs fill-muted-foreground"
-                tick={{ fontSize: 8 }}
+                tick={{ fontSize: 8, fill: getChartPalette().muted }}
                 tickFormatter={(v) => `${v}`}
               />
-              <Radar
+            <Radar
                 name="Score Atual"
                 dataKey="score"
-                stroke={"hsl(var(--risk-excellent))"}
-                fill={"hsl(var(--risk-excellent))"}
+                stroke={getChartPalette().excellent}
+                fill={getChartPalette().excellent}
                 fillOpacity={0.6}
                 strokeWidth={3}
-                dot={{ fill: 'hsl(var(--risk-excellent))', strokeWidth: 2, r: 4 }}
+                dot={{ fill: getChartPalette().excellent, strokeWidth: 2, r: 4 }}
               />
               <Radar
                 name="Meta"
                 dataKey="benchmark"
-                stroke={"hsl(var(--risk-warning))"}
+                stroke={getChartPalette().warning}
                 fill="transparent"
                 strokeWidth={2}
                 strokeDasharray="8 4"
-                dot={{ fill: 'hsl(var(--risk-warning))', strokeWidth: 2, r: 3 }}
+                dot={{ fill: getChartPalette().warning, strokeWidth: 2, r: 3 }}
               />
             </RadarChart>
           </ResponsiveContainer>

@@ -21,6 +21,7 @@ export const FieldHelpButton = ({ field, content, className }: FieldHelpButtonPr
         className={`h-6 w-6 p-0 text-muted-foreground hover:text-primary ${className}`}
         onClick={() => setIsModalOpen(true)}
         title={`Ajuda para ${content.title}`}
+        aria-label={`Abrir ajuda: ${content.title}`}
       >
         <HelpCircle className="h-4 w-4" />
       </Button>

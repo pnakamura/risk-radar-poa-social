@@ -127,7 +127,7 @@ export const GlobalSearch = ({ risks, onResultClick, placeholder = "Buscar risco
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0">
+            <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0" aria-label="Abrir filtros rápidos da busca" title="Filtros da busca">
               <Filter className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
