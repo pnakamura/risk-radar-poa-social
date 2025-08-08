@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
@@ -7,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { FileDown, Calendar, Filter, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExportModal } from './ExportModal';
+import { EmptyState } from '@/components/ui/empty-state';
 import { DateRange } from 'react-day-picker';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
@@ -24,8 +26,9 @@ interface ReportsProps {
 }
 
 const Reports = ({ risks, loading }: ReportsProps) => {
-  const { filters, setFilter } = useGlobalFilters();
+  const { filters, setFilter, clearFilters } = useGlobalFilters();
   const [selectedPeriod, setSelectedPeriod] = useState<DateRange | undefined>();
+  const [quickPeriod, setQuickPeriod] = useState<'all' | '3m' | '6m' | '12m' | 'ytd' | 'custom'>('all');
   const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
   const [showExportModal, setShowExportModal] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -49,8 +52,21 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     .filter(risk => {
       const selectedProject = filters.project || 'all';
       const selectedCategory = filters.category || 'all';
+      const levelFilter = filters.level || 'all';
+      const statusFilter = filters.status || 'all';
+
       const matchesProject = selectedProject === 'all' || risk.projeto?.nome === selectedProject;
       const matchesCategory = selectedCategory === 'all' || risk.categoria === selectedCategory;
+      const matchesStatus = statusFilter === 'all' || risk.status === statusFilter;
+
+      const levelValues = levelFilter === 'all'
+        ? []
+        : levelFilter === 'critical-high'
+          ? ['Crítico', 'Alto']
+          : levelFilter.includes(',')
+            ? levelFilter.split(',')
+            : [levelFilter];
+      const matchesLevel = levelFilter === 'all' || levelValues.includes(risk.nivel_risco);
       
       let matchesPeriod = true;
       if (selectedPeriod?.from && selectedPeriod?.to) {
@@ -58,7 +74,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
         matchesPeriod = riskDate >= selectedPeriod.from && riskDate <= selectedPeriod.to;
       }
       
-      return matchesProject && matchesCategory && matchesPeriod;
+      return matchesProject && matchesCategory && matchesStatus && matchesLevel && matchesPeriod;
     });
 
   // Preparar dados para gráficos
@@ -83,31 +99,56 @@ const Reports = ({ risks, loading }: ReportsProps) => {
     }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
 
-  // Dados para tendências (últimos 6 meses)
-  const trendData = Array.from({ length: 6 }, (_, i) => {
+  // Dados para tendências (últimos 12 meses + médias)
+  const trendData = Array.from({ length: 12 }, (_, i) => {
     const date = new Date();
-    date.setMonth(date.getMonth() - (5 - i));
+    date.setMonth(date.getMonth() - (11 - i));
     const monthName = date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-    
-    const risksInMonth = filteredRisks.filter(risk => {
-      const riskDate = new Date(risk.data_identificacao);
-      return riskDate.getMonth() === date.getMonth() && riskDate.getFullYear() === date.getFullYear();
-    }).length;
-    
-    return { month: monthName, risks: risksInMonth };
+
+    const monthRisks = filteredRisks.filter(risk => {
+      const dt = new Date(risk.data_identificacao);
+      return dt.getMonth() === date.getMonth() && dt.getFullYear() === date.getFullYear();
+    });
+
+    const alto = monthRisks.filter(r => r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto').length;
+    const medio = monthRisks.filter(r => r.nivel_risco === 'Médio').length;
+    const baixo = monthRisks.filter(r => r.nivel_risco === 'Baixo').length;
+    const total = monthRisks.length;
+
+    return { month: monthName, total, alto, medio, baixo };
   });
+
+  // Média móvel de 3 meses e acumulado
+  let cumulativo = 0;
+  for (let i = 0; i < trendData.length; i++) {
+    cumulativo += trendData[i].total;
+    const window = trendData.slice(Math.max(0, i - 2), i + 1);
+    const ma3 = Math.round(window.reduce((s, p) => s + p.total, 0) / window.length);
+    (trendData[i] as any).ma3 = ma3;
+    (trendData[i] as any).cumulativo = cumulativo;
+  }
+
+  const lastPoint = trendData[trendData.length - 1];
+  const prevPoint = trendData[trendData.length - 2] || { total: 0 } as any;
+  const firstPoint = trendData[0] || { total: 0 } as any;
+  const momChange = prevPoint.total > 0 ? Math.round(((lastPoint.total - prevPoint.total) / prevPoint.total) * 100) : 0;
+  const yoyChange = firstPoint.total > 0 ? Math.round(((lastPoint.total - firstPoint.total) / firstPoint.total) * 100) : 0;
 
   const projects = [...new Set(risks.map(r => r.projeto?.nome).filter(Boolean))];
   const categories = [...new Set(risks.map(r => r.categoria).filter(Boolean))];
+  const statuses = [...new Set(risks.map(r => r.status).filter(Boolean))];
+  const selectLevelValue = (filters.level && filters.level.includes('Crítico,Alto')) ? 'critical-high' : (filters.level || 'all');
 
   const handleExport = () => {
     setShowExportModal(true);
   };
 
   const getAppliedFilters = () => ({
-    'Período': selectedPeriod,
+    'Período': selectedPeriod ? `${selectedPeriod.from?.toLocaleDateString('pt-BR')} - ${selectedPeriod.to?.toLocaleDateString('pt-BR')}` : 'Sem filtro',
     'Projeto': filters.project || 'Todos',
     'Categoria': filters.category || 'Todas',
+    'Nível': selectLevelValue === 'critical-high' ? 'Crítico + Alto' : (filters.level || 'Todos'),
+    'Status': filters.status || 'Todos',
     'Tipo de Relatório': reportType
   });
   return (
@@ -115,8 +156,8 @@ const Reports = ({ risks, loading }: ReportsProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h3 className="text-2xl font-bold">Relatórios de Riscos</h3>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold">Relatórios de Riscos</h1>
+          <p className="text-muted-foreground">
             Análise baseada em {filteredRisks.length} de {risks.length} riscos
           </p>
         </div>
@@ -145,6 +186,39 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 date={selectedPeriod}
                 setDate={setSelectedPeriod}
               />
+              <div className="mt-2">
+                <Select value={quickPeriod} onValueChange={(v: any) => {
+                  setQuickPeriod(v);
+                  const now = new Date();
+                  if (v === 'all') {
+                    setSelectedPeriod(undefined);
+                    return;
+                  }
+                  if (v === 'ytd') {
+                    setSelectedPeriod({ from: new Date(now.getFullYear(), 0, 1), to: now });
+                    return;
+                  }
+                  if (v === 'custom') return;
+                  const months = v === '3m' ? 3 : v === '6m' ? 6 : 12;
+                  const from = new Date(now);
+                  from.setMonth(from.getMonth() - (months - 1));
+                  from.setDate(1);
+                  const to = new Date();
+                  setSelectedPeriod({ from, to });
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Sem filtro</SelectItem>
+                    <SelectItem value="3m">Últimos 3 meses</SelectItem>
+                    <SelectItem value="6m">Últimos 6 meses</SelectItem>
+                    <SelectItem value="12m">Últimos 12 meses</SelectItem>
+                    <SelectItem value="ytd">Ano corrente (YTD)</SelectItem>
+                    <SelectItem value="custom">Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             <div>
@@ -172,6 +246,38 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   <SelectItem value="all">Todas as Categorias</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Nível</label>
+              <Select value={selectLevelValue} onValueChange={(v) => setFilter('level', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o nível" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Níveis</SelectItem>
+                  <SelectItem value="critical-high">Crítico + Alto</SelectItem>
+                  <SelectItem value="Crítico">Crítico</SelectItem>
+                  <SelectItem value="Alto">Alto</SelectItem>
+                  <SelectItem value="Médio">Médio</SelectItem>
+                  <SelectItem value="Baixo">Baixo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Status</label>
+              <Select value={filters.status || 'all'} onValueChange={(v) => setFilter('status', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  {statuses.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -274,22 +380,31 @@ const Reports = ({ risks, loading }: ReportsProps) => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{filteredRisks.length}</div>
-                      <div className="text-sm text-gray-600">Total de Riscos</div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold text-foreground">{filteredRisks.length}</div>
+                      <div className="text-sm text-muted-foreground">Total de Riscos</div>
                     </div>
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">
-                        {filteredRisks.filter(r => r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto').length}
-                      </div>
-                      <div className="text-sm text-gray-600">Riscos Críticos/Altos</div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold text-foreground">{filteredRisks.filter(r => r.nivel_risco === 'Crítico' || r.nivel_risco === 'Alto').length}</div>
+                      <div className="text-sm text-muted-foreground">Crítico + Alto</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold text-foreground">{filteredRisks.filter(r => r.nivel_risco === 'Médio').length}</div>
+                      <div className="text-sm text-muted-foreground">Médio</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold text-foreground">{filteredRisks.filter(r => r.nivel_risco === 'Baixo').length}</div>
+                      <div className="text-sm text-muted-foreground">Baixo</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold text-foreground">{filteredRisks.filter(r => r.status === 'Mitigado').length}</div>
+                      <div className="text-sm text-muted-foreground">Mitigados</div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     <p>
-                      Este relatório apresenta uma visão geral dos riscos identificados, 
-                      com foco na distribuição por nível de criticidade e categoria.
+                      Esta visão apresenta a distribuição de riscos por nível, categoria e status para apoiar decisões. Utilize os filtros acima para focar em projetos, períodos e estágios específicos.
                     </p>
                   </div>
                 </div>
@@ -308,6 +423,16 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <div className="text-sm text-muted-foreground">Variação MoM</div>
+                    <div className="text-lg font-semibold text-foreground">{momChange}%</div>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <div className="text-sm text-muted-foreground">Variação YoY</div>
+                    <div className="text-lg font-semibold text-foreground">{yoyChange}%</div>
+                  </div>
+                </div>
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -315,9 +440,15 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="risks" stroke="#8884d8" name="Novos Riscos" />
+                    <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" name="Total" strokeWidth={2} />
+                    <Line type="monotone" dataKey="alto" stroke="hsl(var(--ring))" name="Crítico + Alto" />
+                    <Line type="monotone" dataKey="medio" stroke="hsl(var(--secondary))" name="Médio" />
+                    <Line type="monotone" dataKey="baixo" stroke="hsl(var(--muted-foreground))" name="Baixo" />
+                    <Line type="monotone" dataKey="ma3" stroke="hsl(var(--foreground))" name="Média móvel (3m)" strokeDasharray="4 4" />
+                    <Line type="monotone" dataKey="cumulativo" stroke="hsl(var(--card-foreground))" name="Cumulativo" />
                   </LineChart>
                 </ResponsiveContainer>
+                <p className="text-sm text-muted-foreground mt-3">A linha de média móvel (3 meses) suaviza variações e evidencia a tendência geral.</p>
               </CardContent>
             </Card>
           </div>
@@ -330,24 +461,33 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 <CardTitle>Relatório Detalhado</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {filteredRisks.map((risk, index) => (
-                    <div key={risk.id} className="border-l-4 border-blue-500 pl-4 py-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">{risk.codigo} - {risk.descricao_risco}</h4>
-                          <p className="text-sm text-gray-600">Categoria: {risk.categoria}</p>
-                          <p className="text-sm text-gray-600">Nível: {risk.nivel_risco}</p>
-                          <p className="text-sm text-gray-600">Status: {risk.status}</p>
-                        </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>Criado em: {new Date(risk.data_identificacao).toLocaleDateString('pt-BR')}</p>
-                          <p>Responsável: {risk.responsavel?.nome || 'Não atribuído'}</p>
+                <p className="text-sm text-muted-foreground mb-4">Lista de riscos filtrada conforme os critérios selecionados. Ordene e exporte conforme necessário.</p>
+                {filteredRisks.length === 0 ? (
+                  <EmptyState
+                    icon="general"
+                    title="Nenhum risco encontrado"
+                    description="Ajuste os filtros ou o período para visualizar resultados."
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    {filteredRisks.map((risk) => (
+                      <div key={risk.id} className="border-l-4 border-border pl-4 py-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium text-foreground">{risk.codigo} - {risk.descricao_risco}</h4>
+                            <p className="text-sm text-muted-foreground">Categoria: {risk.categoria}</p>
+                            <p className="text-sm text-muted-foreground">Nível: {risk.nivel_risco}</p>
+                            <p className="text-sm text-muted-foreground">Status: {risk.status}</p>
+                          </div>
+                          <div className="text-right text-sm text-muted-foreground">
+                            <p>Criado em: {new Date(risk.data_identificacao).toLocaleDateString('pt-BR')}</p>
+                            <p>Responsável: {risk.responsavel?.nome || 'Não atribuído'}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
