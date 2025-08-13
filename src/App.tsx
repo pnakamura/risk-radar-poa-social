@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import RiskDetail from "./pages/RiskDetail";
 import UserManagement from "./pages/UserManagement";
+import Help from "./pages/Help";
 import { Loader2 } from "lucide-react";
 import { GlobalFilterProvider } from "@/context/GlobalFilterContext";
 
@@ -37,6 +38,7 @@ const AppContent = () => {
       <Route path="/" element={<Index />} />
       <Route path="/risco/:id" element={<RiskDetail />} />
       <Route path="/usuarios" element={<UserManagement />} />
+      <Route path="/ajuda" element={<Help />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

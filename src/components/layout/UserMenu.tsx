@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User, Settings, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProfileModal } from './ProfileModal';
 import { SettingsModal } from './SettingsModal';
@@ -82,6 +83,13 @@ export const UserMenu = () => {
         <DropdownMenuItem onClick={() => setSettingsModalOpen(true)}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Configurações</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/ajuda">
+            <BookOpen className="mr-2 h-4 w-4" />
+            <span>Central de Ajuda</span>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
