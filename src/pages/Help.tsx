@@ -53,6 +53,7 @@ const Help = () => {
             activeSection={activeSection}
             sections={helpSections}
             searchQuery={searchQuery}
+            onSectionChange={setActiveSection}
           />
         </main>
       </div>

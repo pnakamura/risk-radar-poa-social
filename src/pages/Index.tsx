@@ -11,7 +11,7 @@ import { SmartBreadcrumbs } from '@/components/layout/SmartBreadcrumbs';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users, Search as SearchIcon } from 'lucide-react';
+import { AlertTriangle, Shield, TrendingUp, FileBarChart, Database, Users, Search as SearchIcon, HelpCircle } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { GlobalFilterProvider } from '@/context/GlobalFilterContext';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -84,6 +84,14 @@ const Index = () => {
                   <p className="text-sm text-gray-600">Bem-vindo,</p>
                   <p className="font-medium">{profile.nome}</p>
                 </div>}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/ajuda')}
+                aria-label="Central de Ajuda"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </Button>
               <ThemeToggle />
               <UserMenu />
             </div>

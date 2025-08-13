@@ -4,15 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { HelpSection } from './helpData';
 
 interface HelpContentProps {
   activeSection: string;
   sections: HelpSection[];
   searchQuery: string;
+  onSectionChange: (sectionId: string) => void;
 }
 
-export const HelpContent = ({ activeSection, sections, searchQuery }: HelpContentProps) => {
+export const HelpContent = ({ activeSection, sections, searchQuery, onSectionChange }: HelpContentProps) => {
+  const navigate = useNavigate();
   const findContent = () => {
     for (const section of sections) {
       if (activeSection === section.id) {
@@ -53,13 +56,17 @@ export const HelpContent = ({ activeSection, sections, searchQuery }: HelpConten
       {section.subsections && (
         <div className="grid gap-4 md:grid-cols-2">
           {section.subsections.map((subsection) => (
-            <Card key={subsection.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={subsection.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => onSectionChange(subsection.id)}
+            >
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{subsection.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  {subsection.content.toString().substring(0, 120)}...
+                  {subsection.content.toString().replace(/\*\*/g, '').replace(/\*/g, '').substring(0, 120)}...
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
                   <span>Ler mais</span>
@@ -104,13 +111,9 @@ export const HelpContent = ({ activeSection, sections, searchQuery }: HelpConten
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate('/')}>
               <ExternalLink className="w-4 h-4 mr-2" />
               Ir para o Sistema
-            </Button>
-            <Button variant="outline" size="sm">
-              Próximo Tópico
-              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </CardContent>
