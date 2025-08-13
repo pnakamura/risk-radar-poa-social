@@ -7,6 +7,18 @@ import { ExternalLink, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HelpSection } from './helpData';
 
+// Função para remover tags HTML e entidades
+const stripHtmlTags = (text: string): string => {
+  return text
+    .replace(/<[^>]*>/g, '') // Remove tags HTML
+    .replace(/&[^;]+;/g, '') // Remove entidades HTML
+    .replace(/\*\*/g, '') // Remove markdown bold
+    .replace(/\*/g, '') // Remove markdown italic
+    .replace(/\n+/g, ' ') // Substitui quebras de linha por espaços
+    .replace(/\s+/g, ' ') // Remove espaços extras
+    .trim();
+};
+
 interface HelpContentProps {
   activeSection: string;
   sections: HelpSection[];
@@ -54,7 +66,7 @@ export const HelpContent = ({ activeSection, sections, searchQuery, onSectionCha
       </div>
       
       {section.subsections && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
           {section.subsections.map((subsection) => (
             <Card 
               key={subsection.id} 
@@ -66,7 +78,7 @@ export const HelpContent = ({ activeSection, sections, searchQuery, onSectionCha
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  {subsection.content.toString().replace(/\*\*/g, '').replace(/\*/g, '').substring(0, 120)}...
+                  {stripHtmlTags(subsection.content.toString()).substring(0, 120)}...
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
                   <span>Ler mais</span>
@@ -123,7 +135,7 @@ export const HelpContent = ({ activeSection, sections, searchQuery, onSectionCha
 
   return (
     <ScrollArea className="flex-1">
-      <div className="container max-w-4xl py-8 px-6">
+      <div className="container max-w-4xl py-4 px-4 md:py-8 md:px-6">
         {contentData.type === 'section' 
           ? renderSectionOverview(contentData.content as HelpSection)
           : renderSubsectionContent(contentData.content, contentData.parent!)

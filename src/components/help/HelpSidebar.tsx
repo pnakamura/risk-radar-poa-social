@@ -46,7 +46,7 @@ export const HelpSidebar = ({
   };
 
   return (
-    <aside className="w-80 border-r bg-muted/10">
+    <aside className="w-80 border-r bg-muted/10 flex-shrink-0">
       <div className="p-4">
         <h2 className="text-lg font-semibold text-foreground mb-4">
           Navegação

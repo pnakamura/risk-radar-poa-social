@@ -10,13 +10,13 @@ interface HelpSearchProps {
 
 export const HelpSearch = ({ query, onQueryChange }: HelpSearchProps) => {
   return (
-    <div className="relative w-64">
+    <div className="relative w-full max-w-64">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
       <Input
         placeholder="Buscar ajuda..."
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
-        className="pl-9 pr-9"
+        className="pl-9 pr-9 w-full"
       />
       {query && (
         <Button
