@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit, Trash2, FolderOpen } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MoreHorizontal, Edit, Trash2, FolderOpen, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -36,6 +37,10 @@ const ProjectList = ({ onEditProject, refreshTrigger }: ProjectListProps) => {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [linkedRisks, setLinkedRisks] = useState<any[]>([]);
+  const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [reassignProjectId, setReassignProjectId] = useState<string>('');
+  const [showReassignOption, setShowReassignOption] = useState(false);
   const { canManageProjects } = usePermissions();
 
   useEffect(() => {
@@ -67,10 +72,43 @@ const ProjectList = ({ onEditProject, refreshTrigger }: ProjectListProps) => {
     }
   };
 
+  const checkLinkedRisks = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('riscos')
+        .select('id, codigo, descricao_risco')
+        .eq('projeto_id', projectId);
+
+      if (error) {
+        console.error('Erro ao verificar riscos vinculados:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      return [];
+    }
+  };
+
   const handleDeleteProject = async () => {
     if (!projectToDelete || !canManageProjects) return;
 
     try {
+      // Se há riscos vinculados e foi escolhido reatribuir
+      if (linkedRisks.length > 0 && showReassignOption && reassignProjectId) {
+        const { error: reassignError } = await supabase
+          .from('riscos')
+          .update({ projeto_id: reassignProjectId === 'none' ? null : reassignProjectId })
+          .eq('projeto_id', projectToDelete.id);
+
+        if (reassignError) {
+          console.error('Erro ao reatribuir riscos:', reassignError);
+          toast.error('Erro ao reatribuir riscos');
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('projetos')
         .delete()
@@ -78,13 +116,19 @@ const ProjectList = ({ onEditProject, refreshTrigger }: ProjectListProps) => {
 
       if (error) {
         console.error('Erro ao deletar projeto:', error);
-        toast.error('Erro ao deletar projeto');
+        toast.error('Erro ao deletar projeto: ' + error.message);
         return;
       }
 
-      toast.success('Projeto deletado com sucesso!');
+      toast.success(linkedRisks.length > 0 
+        ? 'Projeto deletado e riscos reatribuídos com sucesso!' 
+        : 'Projeto deletado com sucesso!');
+      
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
+      setLinkedRisks([]);
+      setShowReassignOption(false);
+      setReassignProjectId('');
       fetchProjects();
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -92,8 +136,21 @@ const ProjectList = ({ onEditProject, refreshTrigger }: ProjectListProps) => {
     }
   };
 
-  const openDeleteDialog = (project: Project) => {
+  const openDeleteDialog = async (project: Project) => {
     setProjectToDelete(project);
+    
+    // Verificar riscos vinculados
+    const risks = await checkLinkedRisks(project.id);
+    setLinkedRisks(risks);
+    
+    // Se há riscos, buscar projetos disponíveis para reatribuição
+    if (risks.length > 0) {
+      const otherProjects = projects.filter(p => p.id !== project.id);
+      setAvailableProjects(otherProjects);
+      setShowReassignOption(false);
+      setReassignProjectId('');
+    }
+    
     setDeleteDialogOpen(true);
   };
 
@@ -220,18 +277,100 @@ const ProjectList = ({ onEditProject, refreshTrigger }: ProjectListProps) => {
       </CardContent>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-[500px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {linkedRisks.length > 0 && <AlertTriangle className="w-5 h-5 text-amber-500" />}
+              Confirmar Exclusão
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja deletar o projeto "{projectToDelete?.nome}"? 
-              Esta ação não pode ser desfeita e pode afetar riscos associados.
+              {linkedRisks.length > 0 ? (
+                <div className="space-y-3">
+                  <p>
+                    O projeto "{projectToDelete?.nome}" possui <strong>{linkedRisks.length} risco(s)</strong> vinculado(s):
+                  </p>
+                  <div className="bg-muted p-3 rounded-md max-h-32 overflow-y-auto">
+                    {linkedRisks.map((risk) => (
+                      <div key={risk.id} className="text-sm">
+                        • {risk.codigo} - {risk.descricao_risco}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Para continuar, você pode reatribuir os riscos para outro projeto ou removê-los do projeto.
+                  </p>
+                  
+                  {!showReassignOption ? (
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowReassignOption(true)}
+                      >
+                        Reatribuir Riscos
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setReassignProjectId('none');
+                          setShowReassignOption(true);
+                        }}
+                      >
+                        Remover dos Riscos
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {reassignProjectId === 'none' ? 'Confirme a remoção dos riscos:' : 'Selecione o novo projeto:'}
+                      </label>
+                      {reassignProjectId !== 'none' && (
+                        <Select value={reassignProjectId} onValueChange={setReassignProjectId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um projeto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableProjects.map((project) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowReassignOption(false);
+                          setReassignProjectId('');
+                        }}
+                      >
+                        Voltar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p>
+                  Tem certeza que deseja deletar o projeto "{projectToDelete?.nome}"? 
+                  Esta ação não pode ser desfeita.
+                </p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive text-destructive-foreground">
-              Deletar
+            <AlertDialogAction 
+              onClick={handleDeleteProject} 
+              disabled={linkedRisks.length > 0 && !showReassignOption}
+              className="bg-destructive text-destructive-foreground"
+            >
+              {linkedRisks.length > 0 && showReassignOption
+                ? (reassignProjectId === 'none' ? 'Remover e Deletar' : 'Reatribuir e Deletar')
+                : 'Deletar'
+              }
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
