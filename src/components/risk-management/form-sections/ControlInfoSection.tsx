@@ -49,6 +49,7 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
               <SelectValue placeholder="Selecione um responsável" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="none">Nenhum</SelectItem>
               {profiles.length === 0 ? (
                 <SelectItem value="no-profiles" disabled>
                   Nenhum perfil disponível
@@ -74,6 +75,7 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
               <SelectValue placeholder="Selecione um projeto" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="none">Nenhum</SelectItem>
               {projects.length === 0 ? (
                 <SelectItem value="no-projects" disabled>
                   Nenhum projeto disponível

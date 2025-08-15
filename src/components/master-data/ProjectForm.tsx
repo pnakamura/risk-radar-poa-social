@@ -170,6 +170,7 @@ const ProjectForm = ({ onSuccess }: { onSuccess: () => void }) => {
                   <SelectValue placeholder="Selecione um gestor" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {profiles.length === 0 ? (
                     <SelectItem value="no-profiles" disabled>
                       Nenhum perfil disponível
