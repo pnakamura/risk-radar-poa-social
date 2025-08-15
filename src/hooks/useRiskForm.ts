@@ -5,6 +5,7 @@ import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { useAuth } from '@/hooks/useAuth';
 import { Database } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
+import { generateRiskCode } from '@/utils/riskCodeGenerator';
 
 export interface RiskFormData {
   codigo: string;
@@ -25,7 +26,7 @@ export interface RiskFormData {
 }
 
 export const useRiskForm = (onSuccess: () => void) => {
-  const { createRisk } = useSupabaseRiskData();
+  const { createRisk, projects } = useSupabaseRiskData();
   const { user, profile } = useAuth();
   
   const [formData, setFormData] = useState<RiskFormData>({
@@ -48,7 +49,7 @@ export const useRiskForm = (onSuccess: () => void) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = async (field: string, value: string) => {
     // Não aceitar valores vazios para campos obrigatórios do select
     if ((field === 'categoria' || field === 'probabilidade' || field === 'impacto' || field === 'estrategia') && value === '') {
       return;
@@ -58,6 +59,25 @@ export const useRiskForm = (onSuccess: () => void) => {
       ...prev,
       [field]: value
     }));
+
+    // Auto-generate risk code when project is selected
+    if (field === 'projeto_id' && value) {
+      const selectedProject = projects.find(p => p.id === value);
+      if (selectedProject) {
+        try {
+          const newCode = await generateRiskCode(value, selectedProject.nome);
+          if (newCode) {
+            setFormData(prev => ({
+              ...prev,
+              codigo: newCode
+            }));
+          }
+        } catch (error) {
+          console.error('Error generating risk code:', error);
+          toast.error('Erro ao gerar código do risco automaticamente');
+        }
+      }
+    }
   };
 
   const resetForm = () => {
@@ -163,11 +183,36 @@ export const useRiskForm = (onSuccess: () => void) => {
     }
   };
 
+  const generateCode = async () => {
+    if (!formData.projeto_id) {
+      toast.error('Selecione um projeto primeiro para gerar o código');
+      return;
+    }
+
+    const selectedProject = projects.find(p => p.id === formData.projeto_id);
+    if (selectedProject) {
+      try {
+        const newCode = await generateRiskCode(formData.projeto_id, selectedProject.nome);
+        if (newCode) {
+          setFormData(prev => ({
+            ...prev,
+            codigo: newCode
+          }));
+          toast.success('Código gerado automaticamente');
+        }
+      } catch (error) {
+        console.error('Error generating risk code:', error);
+        toast.error('Erro ao gerar código do risco');
+      }
+    }
+  };
+
   return {
     formData,
     isSubmitting,
     handleChange,
     handleSubmit,
-    resetForm
+    resetForm,
+    generateCode
   };
 };

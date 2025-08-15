@@ -4,16 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { RiskFormData } from '@/hooks/useRiskForm';
 import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
 import { helpContent } from '@/components/risk-management/help/helpContent';
+import { RefreshCw } from 'lucide-react';
 
 interface BasicInfoSectionProps {
   formData: RiskFormData;
   onChange: (field: string, value: string) => void;
+  onGenerateCode?: () => void;
+  projects?: Array<{ id: string; nome: string; }>;
 }
 
-export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) => {
+export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects }: BasicInfoSectionProps) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
@@ -24,13 +28,34 @@ export const BasicInfoSection = ({ formData, onChange }: BasicInfoSectionProps) 
             <Label htmlFor="codigo">Código do Risco *</Label>
             <FieldHelpButton field="codigo" content={helpContent.codigo} />
           </div>
-          <Input
-            id="codigo"
-            value={formData.codigo}
-            onChange={(e) => onChange('codigo', e.target.value)}
-            placeholder="Ex: RSK-001"
-            required
-          />
+          <div className="flex gap-2">
+            <Input
+              id="codigo"
+              value={formData.codigo}
+              onChange={(e) => onChange('codigo', e.target.value)}
+              placeholder="Ex: BID-R-001 (gerado automaticamente)"
+              required
+              className="flex-1"
+            />
+            {onGenerateCode && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onGenerateCode}
+                disabled={!formData.projeto_id}
+                className="px-3"
+                title="Gerar código automaticamente"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+          {formData.projeto_id && (
+            <p className="text-xs text-muted-foreground mt-1">
+              💡 Código gerado automaticamente quando o projeto é selecionado
+            </p>
+          )}
         </div>
         
         <div>

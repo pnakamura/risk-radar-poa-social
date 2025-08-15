@@ -17,7 +17,7 @@ interface RiskFormProps {
 
 const RiskForm = ({ onSuccess }: RiskFormProps) => {
   const { profiles, projects } = useSupabaseRiskData();
-  const { formData, isSubmitting, handleChange, handleSubmit, resetForm } = useRiskForm(onSuccess);
+  const { formData, isSubmitting, handleChange, handleSubmit, resetForm, generateCode } = useRiskForm(onSuccess);
 
   return (
     <div className="space-y-6">
@@ -30,7 +30,12 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <BasicInfoSection formData={formData} onChange={handleChange} />
+            <BasicInfoSection 
+              formData={formData} 
+              onChange={handleChange} 
+              onGenerateCode={generateCode}
+              projects={projects}
+            />
             
             <RiskAssessmentSection formData={formData} onChange={handleChange} />
             
