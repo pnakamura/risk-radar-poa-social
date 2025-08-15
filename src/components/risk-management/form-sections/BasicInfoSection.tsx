@@ -28,15 +28,16 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
             <Label htmlFor="codigo">Código do Risco *</Label>
             <FieldHelpButton field="codigo" content={helpContent.codigo} />
           </div>
-          <div className="flex gap-2">
-            <Input
-              id="codigo"
-              value={formData.codigo}
-              onChange={(e) => onChange('codigo', e.target.value)}
-              placeholder="Ex: BID-R-001 (gerado automaticamente)"
-              required
-              className="flex-1"
-            />
+           <div className="flex gap-2">
+             <Input
+               id="codigo"
+               value={formData.codigo}
+               onChange={(e) => onChange('codigo', e.target.value)}
+               placeholder="Ex: BID-R-001 (gerado automaticamente)"
+               required
+               className="flex-1"
+               readOnly={!!formData.codigo && formData.codigo.includes('-R-')}
+             />
             {onGenerateCode && (
               <Button
                 type="button"
@@ -51,11 +52,11 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
               </Button>
             )}
           </div>
-          {formData.projeto_id && (
-            <p className="text-xs text-muted-foreground mt-1">
-              💡 Código gerado automaticamente quando o projeto é selecionado
-            </p>
-          )}
+           {formData.codigo && formData.codigo.includes('-R-') && (
+             <p className="text-xs text-muted-foreground mt-1">
+               💡 Código gerado automaticamente
+             </p>
+           )}
         </div>
         
         <div>

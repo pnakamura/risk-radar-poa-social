@@ -1,38 +1,55 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Users, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 
-interface ProfileFormData {
+interface Profile {
+  id: string;
   nome: string;
   email: string;
-  cargo: string;
-  departamento: string;
-  telefone: string;
+  cargo?: string;
+  departamento?: string;
+  telefone?: string;
   role: 'admin' | 'gestor' | 'analista' | 'visualizador';
 }
 
-const ProfileForm = ({ onSuccess }: { onSuccess: () => void }) => {
-  const { user } = useAuth();
-  const { isAdmin } = usePermissions();
+interface ProfileEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  profile: Profile | null;
+}
+
+const ProfileEditModal = ({ isOpen, onClose, onSuccess, profile }: ProfileEditModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<ProfileFormData>({
+  const [formData, setFormData] = useState({
     nome: '',
     email: '',
     cargo: '',
     departamento: '',
     telefone: '',
-    role: 'visualizador'
+    role: 'visualizador' as 'admin' | 'gestor' | 'analista' | 'visualizador'
   });
+  const { canManageProfiles } = usePermissions();
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        nome: profile.nome,
+        email: profile.email,
+        cargo: profile.cargo || '',
+        departamento: profile.departamento || '',
+        telefone: profile.telefone || '',
+        role: profile.role
+      });
+    }
+  }, [profile]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -44,10 +61,7 @@ const ProfileForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast.error('Você precisa estar logado');
-      return;
-    }
+    if (!profile || !canManageProfiles) return;
 
     if (!formData.nome || !formData.email) {
       toast.error('Nome e email são obrigatórios');
@@ -59,49 +73,43 @@ const ProfileForm = ({ onSuccess }: { onSuccess: () => void }) => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .insert({
-          id: crypto.randomUUID(),
+        .update({
           nome: formData.nome,
           email: formData.email,
           cargo: formData.cargo || null,
           departamento: formData.departamento || null,
           telefone: formData.telefone || null,
           role: formData.role
-        });
+        })
+        .eq('id', profile.id);
 
       if (error) {
-        console.error('Erro ao salvar perfil:', error);
-        toast.error('Erro ao salvar perfil: ' + error.message);
+        console.error('Erro ao atualizar perfil:', error);
+        toast.error('Erro ao atualizar perfil: ' + error.message);
         return;
       }
 
-      toast.success('Perfil criado com sucesso!');
-      setFormData({
-        nome: '',
-        email: '',
-        cargo: '',
-        departamento: '',
-        telefone: '',
-        role: 'visualizador'
-      });
+      toast.success('Perfil atualizado com sucesso!');
       onSuccess();
+      onClose();
     } catch (error) {
       console.error('Erro inesperado:', error);
-      toast.error('Erro inesperado ao salvar perfil');
+      toast.error('Erro inesperado ao atualizar perfil');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (!canManageProfiles) {
+    return null;
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Cadastro de Pessoa
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Editar Perfil</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -168,28 +176,28 @@ const ProfileForm = ({ onSuccess }: { onSuccess: () => void }) => {
                   <SelectValue placeholder="Selecione o papel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {isAdmin && <SelectItem value="admin">Administrador</SelectItem>}
-                  {isAdmin && <SelectItem value="gestor">Gestor</SelectItem>}
-                  {isAdmin && <SelectItem value="analista">Analista</SelectItem>}
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="analista">Analista</SelectItem>
                   <SelectItem value="visualizador">Visualizador</SelectItem>
                 </SelectContent>
               </Select>
-              {!isAdmin && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Novos usuários são cadastrados como Visualizador
-                </p>
-              )}
             </div>
           </div>
           
-          <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            {isSubmitting ? 'Salvando...' : 'Salvar Pessoa'}
-          </Button>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default ProfileForm;
+export default ProfileEditModal;
