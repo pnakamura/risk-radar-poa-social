@@ -14,7 +14,7 @@ import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
 import { getChartPalette } from '@/utils/theme';
 import { ReportsHelpModal } from './help/ReportsHelpModal';
-import { CommonCausesAnalysis } from './analysis/CommonCausesAnalysis';
+import { InteractiveCommonCausesAnalysis } from './analysis/InteractiveCommonCausesAnalysis';
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -497,7 +497,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 <p className="text-sm text-muted-foreground mb-4">
                   Análise detalhada das causas mais frequentes e de maior impacto nos riscos identificados.
                 </p>
-                <CommonCausesAnalysis />
+                <InteractiveCommonCausesAnalysis />
               </CardContent>
             </Card>
           </div>
