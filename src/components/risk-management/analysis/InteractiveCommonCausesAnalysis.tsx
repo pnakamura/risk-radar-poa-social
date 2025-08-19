@@ -6,12 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, AlertTriangle, Target, BarChart3, Search, Filter, Download, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, AlertTriangle, Target, BarChart3, Search, Filter, Download, Eye, ChevronDown, ChevronUp, HelpCircle, Info } from 'lucide-react';
 import { useCausesData } from '@/hooks/useCausesData';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', '#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
+// Paleta de cores mais amigável e acessível
+const FRIENDLY_COLORS = [
+  'hsl(210, 70%, 60%)', // Azul suave
+  'hsl(150, 60%, 55%)', // Verde suave
+  'hsl(280, 60%, 65%)', // Roxo suave
+  'hsl(30, 80%, 65%)',  // Laranja suave
+  'hsl(340, 60%, 65%)', // Rosa suave
+  'hsl(200, 55%, 60%)', // Azul acinzentado
+  'hsl(45, 75%, 60%)',  // Amarelo suave
+  'hsl(180, 50%, 60%)'  // Turquesa suave
+];
 
 interface CauseDetail {
   causa_descricao: string;
@@ -162,7 +173,8 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider>
+      <div className="space-y-6">
       {/* Interactive Controls */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -216,50 +228,90 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300">
+        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300 border-blue-200 bg-blue-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Causas Filtradas</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium">Causas Filtradas</CardTitle>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Número total de causas que correspondem aos filtros aplicados</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <BarChart3 className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{stats.total}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
             <p className="text-xs text-muted-foreground">de {commonCauses.length} total</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300">
+        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-orange-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Impacto Médio</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium">Impacto Médio</CardTitle>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Score médio de impacto das causas filtradas.<br/>Calculado com base na severidade dos riscos associados.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">
+            <div className="text-2xl font-bold text-orange-600">
               {stats.avgImpact.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground">score médio</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300">
+        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300 border-green-200 bg-green-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Ocorrências</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium">Total Ocorrências</CardTitle>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Soma total de todas as ocorrências das causas filtradas.<br/>Indica o volume geral de problemas identificados.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-green-600">
               {stats.totalFreq}
             </div>
             <p className="text-xs text-muted-foreground">frequência total</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300">
+        <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300 border-purple-200 bg-purple-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categorias Ativas</CardTitle>
-            <Target className="h-4 w-4 text-accent" />
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium">Categorias Ativas</CardTitle>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Número de categorias diferentes representadas<br/>nas causas filtradas.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Target className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">
+            <div className="text-2xl font-bold text-purple-600">
               {stats.categories}
             </div>
             <p className="text-xs text-muted-foreground">diferentes categorias</p>
@@ -274,9 +326,19 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="hover:shadow-lg transition-shadow duration-300">
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-blue-200">
             <CardHeader>
-              <CardTitle>Causas Mais Frequentes</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Causas Mais Frequentes</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Gráfico de barras mostrando as causas que mais se repetem.<br/>Ajuda a identificar padrões recorrentes que precisam de atenção.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <CardDescription>
                 Top {Math.min(10, filteredAndSortedCauses.length)} causas filtradas
               </CardDescription>
@@ -294,7 +356,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                     fontSize={10}
                   />
                   <YAxis />
-                  <Tooltip 
+                  <RechartsTooltip 
                     formatter={(value, name) => [value, 'Frequência']}
                     labelStyle={{ fontSize: '12px' }}
                     contentStyle={{ 
@@ -305,7 +367,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                   />
                   <Bar 
                     dataKey="frequencia" 
-                    fill="hsl(var(--primary))"
+                    fill="hsl(210, 70%, 60%)"
                     radius={[4, 4, 0, 0]}
                     cursor="pointer"
                   />
@@ -320,9 +382,19 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="hover:shadow-lg transition-shadow duration-300">
+          <Card className="hover:shadow-lg transition-shadow duration-300 border-green-200">
             <CardHeader>
-              <CardTitle>Distribuição por Categoria</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Distribuição por Categoria</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Gráfico de pizza mostrando como as causas se distribuem<br/>por categoria. Útil para entender áreas de concentração.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <CardDescription>
                 Análise das causas filtradas por categoria
               </CardDescription>
@@ -341,10 +413,10 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                     dataKey="value"
                   >
                     {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={FRIENDLY_COLORS[index % FRIENDLY_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -364,9 +436,19 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card>
+        <Card className="border-slate-200">
           <CardHeader>
-            <CardTitle>Ranking Interativo de Causas</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>Ranking Interativo de Causas</CardTitle>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Lista interativa ordenada por impacto ou frequência.<br/>Clique nas causas para ver detalhes ou expanda para mais informações.<br/>Use os controles acima para filtrar e ordenar.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <CardDescription>
               Clique nas causas para ver detalhes ou expanda para mais informações
             </CardDescription>
@@ -387,10 +469,10 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                          <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
                             {cause.causa_descricao}
                           </span>
-                          <Badge variant="secondary" className="group-hover:bg-primary/10">
+                          <Badge variant="secondary" className="group-hover:bg-blue-100 bg-blue-50 text-blue-700 border-blue-200">
                             {cause.frequencia} ocorrências
                           </Badge>
                           <Button
@@ -412,7 +494,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                         
                         <div className="flex gap-2 mb-2">
                           {cause.categorias.map((categoria, catIndex) => (
-                            <Badge key={catIndex} variant="outline" className="text-xs">
+                            <Badge key={catIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
                               {categoria}
                             </Badge>
                           ))}
@@ -427,15 +509,15 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                               className="grid grid-cols-3 gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t"
                             >
                               <div className="text-center">
-                                <div className="font-medium text-destructive">{cause.riscos_alto_impacto}</div>
+                                <div className="font-medium text-red-600">{cause.riscos_alto_impacto}</div>
                                 <div>Alto Impacto</div>
                               </div>
                               <div className="text-center">
-                                <div className="font-medium text-orange-500">{cause.riscos_medio_impacto}</div>
+                                <div className="font-medium text-orange-600">{cause.riscos_medio_impacto}</div>
                                 <div>Médio Impacto</div>
                               </div>
                               <div className="text-center">
-                                <div className="font-medium text-green-500">{cause.riscos_baixo_impacto}</div>
+                                <div className="font-medium text-green-600">{cause.riscos_baixo_impacto}</div>
                                 <div>Baixo Impacto</div>
                               </div>
                             </motion.div>
@@ -444,7 +526,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                       </div>
                       
                       <div className="text-right min-w-20 ml-4">
-                        <div className="text-lg font-bold group-hover:text-primary transition-colors">
+                        <div className="text-lg font-bold group-hover:text-blue-600 transition-colors">
                           {cause.impacto_score.toFixed(1)}
                         </div>
                         <div className="text-xs text-muted-foreground">score</div>
@@ -514,17 +596,17 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
               <div>
                 <h4 className="font-medium mb-2">Distribuição de Impacto</h4>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-destructive/10 rounded-lg">
-                    <div className="text-lg font-bold text-destructive">{selectedCause.riscos_alto_impacto}</div>
-                    <div className="text-xs">Alto Impacto</div>
+                  <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="text-lg font-bold text-red-600">{selectedCause.riscos_alto_impacto}</div>
+                    <div className="text-xs text-red-700">Alto Impacto</div>
                   </div>
-                  <div className="text-center p-3 bg-orange-500/10 rounded-lg">
+                  <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="text-lg font-bold text-orange-600">{selectedCause.riscos_medio_impacto}</div>
-                    <div className="text-xs">Médio Impacto</div>
+                    <div className="text-xs text-orange-700">Médio Impacto</div>
                   </div>
-                  <div className="text-center p-3 bg-green-500/10 rounded-lg">
+                  <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="text-lg font-bold text-green-600">{selectedCause.riscos_baixo_impacto}</div>
-                    <div className="text-xs">Baixo Impacto</div>
+                    <div className="text-xs text-green-700">Baixo Impacto</div>
                   </div>
                 </div>
               </div>
@@ -532,6 +614,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 };
