@@ -2,16 +2,24 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
+import { useCausesData } from '@/hooks/useCausesData';
 import { useAuth } from '@/hooks/useAuth';
 import { Database } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
 import { generateRiskCode } from '@/utils/riskCodeGenerator';
+
+interface Cause {
+  id?: string;
+  descricao: string;
+  categoria: string | null;
+}
 
 export interface RiskFormData {
   codigo: string;
   categoria: Database['public']['Enums']['risk_category'] | '';
   descricao_risco: string;
   causas: string;
+  causas_estruturadas?: Cause[];
   consequencias: string;
   probabilidade: Database['public']['Enums']['risk_probability'] | '';
   impacto: Database['public']['Enums']['risk_impact'] | '';
@@ -27,6 +35,7 @@ export interface RiskFormData {
 
 export const useRiskForm = (onSuccess: () => void) => {
   const { createRisk, projects } = useSupabaseRiskData();
+  const { createCause } = useCausesData();
   const { user, profile } = useAuth();
   
   const [formData, setFormData] = useState<RiskFormData>({
@@ -34,6 +43,7 @@ export const useRiskForm = (onSuccess: () => void) => {
     categoria: '',
     descricao_risco: '',
     causas: '',
+    causas_estruturadas: [],
     consequencias: '',
     probabilidade: '',
     impacto: '',
@@ -49,7 +59,7 @@ export const useRiskForm = (onSuccess: () => void) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = async (field: string, value: string) => {
+  const handleChange = async (field: string, value: string | Cause[]) => {
     // Não aceitar valores vazios para campos obrigatórios do select
     if ((field === 'categoria' || field === 'probabilidade' || field === 'impacto' || field === 'estrategia') && value === '') {
       return;
@@ -61,7 +71,7 @@ export const useRiskForm = (onSuccess: () => void) => {
     }));
 
     // Auto-generate risk code when project is selected
-    if (field === 'projeto_id' && value) {
+    if (field === 'projeto_id' && typeof value === 'string' && value) {
       const selectedProject = projects.find(p => p.id === value);
       if (selectedProject) {
         try {
@@ -86,6 +96,7 @@ export const useRiskForm = (onSuccess: () => void) => {
       categoria: '',
       descricao_risco: '',
       causas: '',
+      causas_estruturadas: [],
       consequencias: '',
       probabilidade: '',
       impacto: '',
@@ -137,11 +148,16 @@ export const useRiskForm = (onSuccess: () => void) => {
       // Calcular nível de risco usando a função utilitária
       const nivel_risco = calculateRiskLevel(formData.probabilidade, formData.impacto);
       
+      // Create legacy causas string for backward compatibility
+      const causasString = formData.causas_estruturadas && formData.causas_estruturadas.length > 0
+        ? formData.causas_estruturadas.map(c => c.descricao).join('; ')
+        : formData.causas || null;
+      
       const riskData = {
         codigo: formData.codigo,
         categoria: formData.categoria as Database['public']['Enums']['risk_category'],
         descricao_risco: formData.descricao_risco,
-        causas: formData.causas || null,
+        causas: causasString,
         consequencias: formData.consequencias || null,
         probabilidade: formData.probabilidade as Database['public']['Enums']['risk_probability'],
         impacto: formData.impacto as Database['public']['Enums']['risk_impact'],
@@ -162,7 +178,20 @@ export const useRiskForm = (onSuccess: () => void) => {
       
       const result = await createRisk(riskData);
       
-      if (!result.error) {
+      if (!result.error && result.data) {
+        // Save individual causes if any
+        if (formData.causas_estruturadas && formData.causas_estruturadas.length > 0) {
+          for (const causa of formData.causas_estruturadas) {
+            if (causa.descricao.trim()) {
+              await createCause({
+                risco_id: result.data.id,
+                descricao: causa.descricao,
+                categoria: causa.categoria,
+              });
+            }
+          }
+        }
+        
         resetForm();
         onSuccess();
       }

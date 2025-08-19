@@ -9,10 +9,17 @@ import { RiskFormData } from '@/hooks/useRiskForm';
 import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
 import { helpContent } from '@/components/risk-management/help/helpContent';
 import { RefreshCw } from 'lucide-react';
+import { MultipleCausesSection } from './MultipleCausesSection';
+
+interface Cause {
+  id?: string;
+  descricao: string;
+  categoria: string | null;
+}
 
 interface BasicInfoSectionProps {
-  formData: RiskFormData;
-  onChange: (field: string, value: string) => void;
+  formData: RiskFormData & { causas_estruturadas?: Cause[] };
+  onChange: (field: string, value: string | Cause[]) => void;
   onGenerateCode?: () => void;
   projects?: Array<{ id: string; nome: string; }>;
 }
@@ -96,34 +103,25 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
         />
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Label htmlFor="causas">Causas</Label>
-            <FieldHelpButton field="causas" content={helpContent.causas} />
-          </div>
-          <Textarea
-            id="causas"
-            value={formData.causas}
-            onChange={(e) => onChange('causas', e.target.value)}
-            placeholder="Descreva as possíveis causas do risco..."
-            rows={2}
-          />
+      <div className="mt-4">
+        <MultipleCausesSection 
+          causes={formData.causas_estruturadas || []}
+          onChange={(causes) => onChange('causas_estruturadas', causes)}
+        />
+      </div>
+      
+      <div className="mt-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Label htmlFor="consequencias">Consequências</Label>
+          <FieldHelpButton field="consequencias" content={helpContent.consequencias} />
         </div>
-        
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Label htmlFor="consequencias">Consequências</Label>
-            <FieldHelpButton field="consequencias" content={helpContent.consequencias} />
-          </div>
-          <Textarea
-            id="consequencias"
-            value={formData.consequencias}
-            onChange={(e) => onChange('consequencias', e.target.value)}
-            placeholder="Descreva as possíveis consequências..."
-            rows={2}
-          />
-        </div>
+        <Textarea
+          id="consequencias"
+          value={formData.consequencias}
+          onChange={(e) => onChange('consequencias', e.target.value)}
+          placeholder="Descreva as possíveis consequências..."
+          rows={2}
+        />
       </div>
     </div>
   );

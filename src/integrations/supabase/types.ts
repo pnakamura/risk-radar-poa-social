@@ -188,6 +188,41 @@ export type Database = {
           },
         ]
       }
+      riscos_causas: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          descricao: string
+          id: string
+          risco_id: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          risco_id: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          risco_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riscos_causas_risco_id_fkey"
+            columns: ["risco_id"]
+            isOneToOne: false
+            referencedRelation: "riscos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riscos_historico: {
         Row: {
           acao: string
@@ -288,6 +323,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_common_causes: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          categorias: string[]
+          causa_descricao: string
+          frequencia: number
+          impacto_score: number
+          riscos_alto_impacto: number
+          riscos_baixo_impacto: number
+          riscos_medio_impacto: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
