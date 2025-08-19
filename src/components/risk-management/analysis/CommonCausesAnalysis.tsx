@@ -27,6 +27,22 @@ export const CommonCausesAnalysis: React.FC = () => {
     );
   }
 
+  if (!commonCauses || commonCauses.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            Nenhuma causa encontrada
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Ainda não há causas registradas nos riscos para análise. Adicione causas aos seus riscos para visualizar esta análise.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const topCauses = commonCauses.slice(0, 10);
   const categoryData = commonCauses.reduce((acc, cause) => {
     cause.categorias.forEach(categoria => {

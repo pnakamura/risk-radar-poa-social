@@ -14,6 +14,7 @@ import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
 import { getChartPalette } from '@/utils/theme';
 import { ReportsHelpModal } from './help/ReportsHelpModal';
+import { CommonCausesAnalysis } from './analysis/CommonCausesAnalysis';
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -30,7 +31,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const { filters, setFilter, clearFilters } = useGlobalFilters();
   const [selectedPeriod, setSelectedPeriod] = useState<DateRange | undefined>();
   const [quickPeriod, setQuickPeriod] = useState<'all' | '3m' | '6m' | '12m' | 'ytd' | 'custom'>('all');
-  const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed'>('overview');
+  const [reportType, setReportType] = useState<'overview' | 'trends' | 'detailed' | 'causes'>('overview');
   const [showExportModal, setShowExportModal] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -292,7 +293,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
             
             <div>
               <label className="block text-sm font-medium mb-2">Tipo de Relatório</label>
-              <Select value={reportType} onValueChange={(value: 'overview' | 'trends' | 'detailed') => setReportType(value)}>
+              <Select value={reportType} onValueChange={(value: 'overview' | 'trends' | 'detailed' | 'causes') => setReportType(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -300,6 +301,7 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   <SelectItem value="overview">Visão Geral</SelectItem>
                   <SelectItem value="trends">Tendências</SelectItem>
                   <SelectItem value="detailed">Detalhado</SelectItem>
+                  <SelectItem value="causes">Análise de Causas</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -480,6 +482,22 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                   </BarChart>
                 </ResponsiveContainer>
                 <p className="text-sm text-muted-foreground mt-3">Barras empilhadas mostram a composição por nível de severidade mês a mês.</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {reportType === 'causes' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Análise de Causas Comuns</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Análise detalhada das causas mais frequentes e de maior impacto nos riscos identificados.
+                </p>
+                <CommonCausesAnalysis />
               </CardContent>
             </Card>
           </div>
