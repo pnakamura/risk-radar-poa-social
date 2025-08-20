@@ -12,6 +12,7 @@ import UserManagement from "./pages/UserManagement";
 import Help from "./pages/Help";
 import { Loader2 } from "lucide-react";
 import { GlobalFilterProvider } from "@/context/GlobalFilterContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -45,19 +46,21 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
-        <AuthProvider>
-          <GlobalFilterProvider>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </GlobalFilterProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <TooltipProvider>
+          <AuthProvider>
+            <GlobalFilterProvider>
+              <Toaster />
+              <Sonner />
+              <AppContent />
+            </GlobalFilterProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

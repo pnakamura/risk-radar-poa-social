@@ -2,9 +2,19 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+// Fallback types for profiles
+type Profile = {
+  id: string;
+  nome: string;
+  email: string;
+  departamento: string | null;
+  cargo: string | null;
+  telefone: string | null;
+  role: 'admin' | 'gestor' | 'analista' | 'visualizador';
+  created_at: string;
+  updated_at: string;
+};
 
 interface AuthContextType {
   user: User | null;

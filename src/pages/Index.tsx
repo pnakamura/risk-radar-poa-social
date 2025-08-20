@@ -38,7 +38,7 @@ const Index = () => {
       tab: value
     });
   };
-  console.log('Index - Raw risks data:', risks);
+  
   const handleSearchResult = (risk: any) => {
     // Navegar para a página de detalhes do risco ou abrir modal
     navigate(`/risco/${risk.id}`);
