@@ -369,6 +369,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      user_can_access_risk: {
+        Args: { _risco_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       risk_category:
