@@ -340,6 +340,24 @@ export type Database = {
           tendencia_score: number
         }[]
       }
+      analyze_common_causes_enhanced: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          categorias: string[]
+          causa_descricao: string
+          complexidade_score: number
+          confiabilidade_score: number
+          criticidade_score: number
+          frequencia: number
+          impacto_score: number
+          riscos_afetados: string[]
+          riscos_alto_impacto: number
+          riscos_baixo_impacto: number
+          riscos_medio_impacto: number
+          score_final: number
+          tendencia_score: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
