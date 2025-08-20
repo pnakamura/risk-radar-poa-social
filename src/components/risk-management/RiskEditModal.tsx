@@ -37,15 +37,30 @@ interface RiskEditModalProps {
 export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModalProps) => {
   const { editRisk, isLoading } = useRiskActions();
   const { profiles, projects } = useSupabaseRiskData();
-  const { getCausesForRisk } = useCausesData();
+  const { getCausesForRisk, loading: causesLoading } = useCausesData();
   const [formData, setFormData] = useState<Partial<Risk>>({});
   const [causes, setCauses] = useState<Cause[]>([]);
+  const [causesLoaded, setCausesLoaded] = useState(false);
 
-  console.log('RiskEditModal render - isOpen:', isOpen, 'risk:', risk);
+  // Aguardar carregamento das causas antes de carregar as do risco específico
+  useEffect(() => {
+    if (risk && isOpen && !causesLoading) {
+      console.log('🔄 [RiskEditModal] Loading causes for risk:', risk.id);
+      const existingCauses = getCausesForRisk(risk.id);
+      const formattedCauses = existingCauses.map(cause => ({
+        id: cause.id,
+        descricao: cause.descricao,
+        categoria: cause.categoria
+      }));
+      
+      setCauses(formattedCauses);
+      setCausesLoaded(true);
+      console.log(`✅ [RiskEditModal] Loaded ${formattedCauses.length} causes for risk ${risk.id}`);
+    }
+  }, [risk, isOpen, causesLoading, getCausesForRisk]);
 
   useEffect(() => {
     if (risk && isOpen) {
-      console.log('Setting form data for risk:', risk);
       setFormData({
         codigo: risk.codigo || '',
         categoria: risk.categoria,
@@ -63,26 +78,17 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
         status: risk.status,
         observacoes: risk.observacoes || ''
       });
-      
-      // Load existing causes for this risk
-      const existingCauses = getCausesForRisk(risk.id);
-      setCauses(existingCauses.map(cause => ({
-        id: cause.id,
-        descricao: cause.descricao,
-        categoria: cause.categoria
-      })));
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({});
       setCauses([]);
+      setCausesLoaded(false);
     }
-  }, [risk, isOpen, getCausesForRisk]);
+  }, [risk, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!risk) return;
-
-    console.log('Submitting form with data:', formData);
 
     // Calcular novo nível de risco se probabilidade ou impacto mudaram
     const nivel_risco = calculateRiskLevel(
@@ -98,23 +104,18 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
       prazo: formData.prazo || null
     };
 
-    console.log('Final updates to send:', updates);
-
     const success = await editRisk(risk.id, updates);
     if (success) {
-      console.log('Edit successful, calling onSuccess');
       onSuccess();
       onClose();
     }
   };
 
   const handleChange = (field: string, value: string | null) => {
-    console.log(`Changing ${field} to:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleOpenChange = (open: boolean) => {
-    console.log('Dialog open change:', open);
     if (!open) {
       onClose();
     }
@@ -122,11 +123,8 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
 
   // Don't render if no risk provided
   if (!risk) {
-    console.log('No risk provided, not rendering modal');
     return null;
   }
-
-  console.log('Rendering modal with profiles:', profiles.length, 'projects:', projects.length);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -179,11 +177,18 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           {/* Enhanced Causes Section */}
-              <IntelligentCauseEditor 
-                riskId={risk.id}
-                causes={causes}
-                onChange={setCauses}
-              />
+          {causesLoading ? (
+            <div className="space-y-2">
+              <Label>Causas do Risco</Label>
+              <div className="animate-pulse bg-muted h-24 rounded"></div>
+            </div>
+          ) : (
+            <IntelligentCauseEditor 
+              riskId={risk.id}
+              causes={causes}
+              onChange={setCauses}
+            />
+          )}
 
           <div>
             <Label htmlFor="consequencias">Consequências</Label>

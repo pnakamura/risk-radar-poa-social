@@ -21,6 +21,9 @@ import {
   Target
 } from 'lucide-react';
 import { useCausesData } from '@/hooks/useCausesData';
+import { CauseValidationAlert } from './CauseValidationAlert';
+import { CauseInsightDashboard } from './CauseInsightDashboard';
+import { useCauseConsistency } from '@/hooks/useCauseConsistency';
 import { findSimilarCauses, isDuplicateCause, suggestCategory, SimilarCause } from '@/utils/causesSimilarity';
 import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/use-debounce';

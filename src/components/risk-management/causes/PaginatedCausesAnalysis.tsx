@@ -366,23 +366,44 @@ export const PaginatedCausesAnalysis: React.FC<PaginatedCausesAnalysisProps> = (
                     ))}
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-muted-foreground">
-                    <div>
-                      <span className="font-medium">Alto:</span> {cause.riscos_alto_impacto}
-                    </div>
-                    <div>
-                      <span className="font-medium">Médio:</span> {cause.riscos_medio_impacto}
-                    </div>
-                    <div>
-                      <span className="font-medium">Baixo:</span> {cause.riscos_baixo_impacto}
-                    </div>
-                    <div>
-                      <span className="font-medium">Confiabilidade:</span> {Math.round(cause.confiabilidade_score * 100)}%
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-right min-w-24 ml-4">
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-muted-foreground">
+                     <div>
+                       <span className="font-medium">Alto:</span> {cause.riscos_alto_impacto}
+                     </div>
+                     <div>
+                       <span className="font-medium">Médio:</span> {cause.riscos_medio_impacto}
+                     </div>
+                     <div>
+                       <span className="font-medium">Baixo:</span> {cause.riscos_baixo_impacto}
+                     </div>
+                     <div>
+                       <span className="font-medium">Confiabilidade:</span> {Math.round(cause.confiabilidade_score * 100)}%
+                     </div>
+                   </div>
+
+                   {/* Mostrar riscos afetados se disponível */}
+                   {cause.riscos_afetados && cause.riscos_afetados.length > 0 && (
+                     <div className="mt-3 pt-3 border-t">
+                       <div className="text-xs text-muted-foreground mb-1">
+                         <span className="font-medium">Riscos Afetados:</span>
+                       </div>
+                       <div className="flex flex-wrap gap-1">
+                         {cause.riscos_afetados.slice(0, 5).map((risco, riscoIndex) => (
+                           <Badge key={riscoIndex} variant="outline" className="text-xs bg-primary/5">
+                             {risco}
+                           </Badge>
+                         ))}
+                         {cause.riscos_afetados.length > 5 && (
+                           <Badge variant="outline" className="text-xs">
+                             +{cause.riscos_afetados.length - 5} mais
+                           </Badge>
+                         )}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+                 
+                 <div className="text-right min-w-24 ml-4">
                   <div className="flex items-center gap-1 mb-1">
                     <span className="text-lg font-bold">
                       {cause.score_final.toFixed(1)}
