@@ -328,11 +328,16 @@ export type Database = {
         Returns: {
           categorias: string[]
           causa_descricao: string
+          complexidade_score: number
+          confiabilidade_score: number
+          criticidade_score: number
           frequencia: number
           impacto_score: number
           riscos_alto_impacto: number
           riscos_baixo_impacto: number
           riscos_medio_impacto: number
+          score_final: number
+          tendencia_score: number
         }[]
       }
       has_role: {
