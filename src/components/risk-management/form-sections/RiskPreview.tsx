@@ -28,7 +28,7 @@ export const RiskPreview = ({ formData }: RiskPreviewProps) => {
         <div className="space-y-2">
           <p><strong>Código:</strong> {formData.codigo}</p>
           <p><strong>Categoria:</strong> {formData.categoria}</p>
-          <p><strong>Descrição:</strong> {formData.descricao_risco}</p>
+          <p><strong>Nome:</strong> {formData.descricao_risco}</p>
           <p><strong>Nível de Risco:</strong> 
             <span className={`ml-2 px-2 py-1 rounded text-sm font-semibold ${getRiskLevelColor(nivelRisco)}`}>
               {nivelRisco}

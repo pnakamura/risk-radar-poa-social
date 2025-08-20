@@ -90,17 +90,22 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
       
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-2">
-          <Label htmlFor="descricao_risco">Descrição do Risco *</Label>
+          <Label htmlFor="descricao_risco">Nome do Risco *</Label>
           <FieldHelpButton field="descricao_risco" content={helpContent.descricao_risco} />
         </div>
         <Textarea
           id="descricao_risco"
           value={formData.descricao_risco}
           onChange={(e) => onChange('descricao_risco', e.target.value)}
-          placeholder="Descreva detalhadamente o risco identificado..."
+          placeholder="Digite um nome claro e objetivo para o risco (ex: Interrupção do sistema ERP principal)"
           rows={3}
           required
+          maxLength={150}
+          className="resize-none"
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          💡 Use um nome conciso que identifique claramente o risco. Máximo 150 caracteres.
+        </p>
       </div>
       
       <div className="mt-4">

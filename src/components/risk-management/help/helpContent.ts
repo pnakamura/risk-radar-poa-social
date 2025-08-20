@@ -30,7 +30,7 @@ O código deve seguir uma taxonomia organizacional consistente que permita agrup
       'Deve ser facilmente identificável',
       'Máximo de 20 caracteres'
     ],
-    relatedFields: ['Categoria', 'Projeto']
+    relatedFields: ['Nome do Risco', 'Projeto']
   },
 
   categoria: {
@@ -64,13 +64,13 @@ As categorias devem refletir a natureza do negócio e objetivos estratégicos da
       'Ser mutuamente exclusiva com outras categorias',
       'Permitir relatórios por categoria'
     ],
-    relatedFields: ['Descrição do Risco', 'Estratégia de Resposta']
+    relatedFields: ['Nome do Risco', 'Estratégia de Resposta']
   },
 
   descricao_risco: {
     field: 'descricao_risco',
-    title: 'Descrição do Risco',
-    definition: 'Declaração clara e objetiva do evento incerto que, caso ocorra, pode ter efeito positivo ou negativo nos objetivos organizacionais.',
+    title: 'Nome do Risco',
+    definition: 'Identificação clara e concisa do evento incerto que, caso ocorra, pode ter efeito positivo ou negativo nos objetivos organizacionais.',
     iso31000Guidelines: `Segundo a ISO 31000, a descrição do risco deve:
 • Expressar claramente o evento incerto
 • Conectar-se diretamente aos objetivos organizacionais
@@ -79,25 +79,25 @@ As categorias devem refletir a natureza do negócio e objetivos estratégicos da
 • Facilitar a identificação de causas e consequências
 
 A descrição é fundamental para todo o processo de gestão de riscos subsequente.`,
-    howToFill: `1. Use estrutura: "Risco de [evento] devido a [causa] resultando em [consequência]"
-2. Seja específico e objetivo
-3. Evite linguagem técnica excessiva
-4. Foque no evento, não na causa ou consequência
-5. Use verbos no infinitivo ou substantivos
-6. Mantenha entre 50-200 caracteres`,
+    howToFill: `1. Use um nome claro e direto (ex: "Interrupção do sistema ERP")
+2. Seja específico mas conciso
+3. Evite descrições muito longas ou técnicas demais
+4. Foque no evento principal, não nas causas
+5. Use linguagem compreensível para todos os stakeholders
+6. Mantenha entre 20-150 caracteres para facilitar identificação`,
     examples: [
-      'Risco de interrupção da produção devido a falha no sistema ERP',
-      'Risco de perda de dados críticos por ataque cibernético',
-      'Risco de atraso no projeto devido a indisponibilidade de fornecedor',
-      'Risco de não conformidade regulatória por mudança na legislação',
-      'Risco de perda de participação de mercado por entrada de concorrente'
+      'Interrupção do sistema ERP principal',
+      'Ataque cibernético aos dados críticos',
+      'Indisponibilidade de fornecedor chave',
+      'Mudança na legislação setorial',
+      'Entrada de novo concorrente no mercado'
     ],
     criteria: [
-      'Descrição clara e objetiva do evento',
+      'Nome claro e identificável do evento',
       'Conexão com objetivos organizacionais',
       'Linguagem compreensível para stakeholders',
-      'Foco no evento, não nas causas',
-      'Extensão adequada (não muito longa ou curta)'
+      'Foco no evento principal, não nas causas',
+      'Extensão concisa (máximo 150 caracteres)'
     ],
     relatedFields: ['Causas', 'Consequências', 'Categoria']
   },
@@ -134,7 +134,7 @@ As causas bem identificadas facilitam ações preventivas direcionadas.`,
       'Linguagem clara e específica',
       'Relevância para desenvolvimento de ações'
     ],
-    relatedFields: ['Descrição do Risco', 'Ações de Mitigação']
+    relatedFields: ['Nome do Risco', 'Ações de Mitigação']
   },
 
   consequencias: {

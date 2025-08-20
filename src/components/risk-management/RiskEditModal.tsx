@@ -147,13 +147,15 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           <div>
-            <Label htmlFor="descricao_risco">Descrição do Risco</Label>
+            <Label htmlFor="descricao_risco">Nome do Risco</Label>
             <Textarea
               id="descricao_risco"
               value={formData.descricao_risco || ''}
               onChange={(e) => handleChange('descricao_risco', e.target.value)}
               rows={3}
               required
+              maxLength={150}
+              placeholder="Digite um nome claro e objetivo para o risco"
             />
           </div>
 

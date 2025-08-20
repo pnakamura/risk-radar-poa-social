@@ -46,7 +46,7 @@ export const RiskTable = ({
               Código {sortBy === 'code' && (sortOrder === 'asc' ? '↑' : '↓')}
             </TableHead>
             <TableHead className="w-32">Categoria</TableHead>
-            <TableHead>Descrição</TableHead>
+            <TableHead>Nome do Risco</TableHead>
             <TableHead className="w-24 cursor-pointer" onClick={() => onSort('level')}>
               Nível {sortBy === 'level' && (sortOrder === 'asc' ? '↑' : '↓')}
             </TableHead>

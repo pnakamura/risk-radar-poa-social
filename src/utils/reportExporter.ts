@@ -186,7 +186,7 @@ export async function exportToExcel(
     const availableFields: Record<string, string> = {
       codigo: 'Código',
       categoria: 'Categoria',
-      descricao_risco: 'Descrição do Risco',
+      descricao_risco: 'Nome do Risco',
       causas: 'Causas',
       consequencias: 'Consequências',
       nivel_risco: 'Nível do Risco',
