@@ -119,7 +119,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold mb-2 font-display tracking-tight">Dashboard de Riscos</h3>
+          <h3 className="text-2xl font-bold mb-2 font-heading tracking-tight">Dashboard de Riscos</h3>
           <p className="text-muted-foreground">
             {selectedProject 
               ? `${totalRisks} riscos no projeto "${selectedProject}"`

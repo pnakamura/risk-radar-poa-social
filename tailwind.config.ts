@@ -113,7 +113,30 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out'
 			},
 			fontFamily: {
-				display: ['"Playfair Display"', 'serif']
+				sans: [
+					'"Segoe UI"',
+					'Inter',
+					'system-ui',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'sans-serif'
+				],
+				heading: [
+					'"Segoe UI"',
+					'Inter',
+					'system-ui',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'sans-serif'
+				],
+				display: [
+					'"Segoe UI"',
+					'Inter',
+					'system-ui',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'sans-serif'
+				]
 			}
 		}
 	},

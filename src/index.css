@@ -158,12 +158,12 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1, h2, h3 {
-    @apply font-display tracking-tight;
+    @apply font-heading tracking-tight font-semibold;
   }
 }
 
