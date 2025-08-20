@@ -1,5 +1,5 @@
 import React from 'react';
-import { CommonCausesAnalysis } from '@/components/risk-management/analysis/CommonCausesAnalysis';
+import { InteractiveCommonCausesAnalysis } from '@/components/risk-management/analysis/InteractiveCommonCausesAnalysis';
 
 const CausesAnalysis: React.FC = () => {
   return (
@@ -11,7 +11,7 @@ const CausesAnalysis: React.FC = () => {
         </p>
       </div>
       
-      <CommonCausesAnalysis />
+      <InteractiveCommonCausesAnalysis />
     </div>
   );
 };

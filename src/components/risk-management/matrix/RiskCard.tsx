@@ -5,8 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, User, Building2, Calendar, ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { AlertTriangle, User, Building2, Calendar, ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Target } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { useCausesData } from '@/hooks/useCausesData';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -34,6 +35,10 @@ export const RiskCard = ({
   getStatusColor
 }: RiskCardProps) => {
   const navigate = useNavigate();
+  const { getCausesForRisk } = useCausesData();
+  
+  // Get structured causes for this risk
+  const structuredCauses = getCausesForRisk(risk.id);
   return (
     <Card 
       className={`transition-all duration-300 hover-lift cursor-pointer group ${
@@ -163,11 +168,33 @@ export const RiskCard = ({
                 <br />
                 <span className="text-gray-600">{risk.estrategia}</span>
               </div>
-              {risk.causas && (
+              {(structuredCauses.length > 0 || risk.causas) && (
                 <div>
-                  <span className="font-medium">Causas:</span>
-                  <br />
-                  <span className="text-gray-600">{risk.causas}</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">Causas:</span>
+                    <Target className="w-3 h-3 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs">
+                      {structuredCauses.length} estruturada{structuredCauses.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  {structuredCauses.length > 0 ? (
+                    <div className="space-y-1">
+                      {structuredCauses.map((causa, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-gray-600 text-sm">• {causa.descricao}</span>
+                          {causa.categoria && (
+                            <Badge variant="secondary" className="text-xs">
+                              {causa.categoria}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-600 text-sm italic">
+                      {risk.causas || 'Nenhuma causa registrada'}
+                    </span>
+                  )}
                 </div>
               )}
               {risk.consequencias && (

@@ -11,7 +11,7 @@ import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { Constants } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
 import { Database } from '@/integrations/supabase/types';
-import { MultipleCausesSection } from './form-sections/MultipleCausesSection';
+import { IntelligentCauseEditor } from './causes/IntelligentCauseEditor';
 import { useCausesData } from '@/hooks/useCausesData';
 
 // Usando o tipo correto do Supabase
@@ -179,11 +179,11 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
           </div>
 
           {/* Enhanced Causes Section */}
-          <MultipleCausesSection
-            riskId={risk.id}
-            causes={causes}
-            onChange={setCauses}
-          />
+              <IntelligentCauseEditor 
+                riskId={risk.id}
+                causes={causes}
+                onChange={setCauses}
+              />
 
           <div>
             <Label htmlFor="consequencias">Consequências</Label>

@@ -9,7 +9,7 @@ import { RiskFormData } from '@/hooks/useRiskForm';
 import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
 import { helpContent } from '@/components/risk-management/help/helpContent';
 import { RefreshCw } from 'lucide-react';
-import { MultipleCausesSection } from './MultipleCausesSection';
+import { IntelligentCauseEditor } from '../causes/IntelligentCauseEditor';
 
 interface Cause {
   id?: string;
@@ -109,7 +109,7 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
       </div>
       
       <div className="mt-4">
-        <MultipleCausesSection 
+        <IntelligentCauseEditor 
           causes={formData.causas_estruturadas || []}
           onChange={(causes) => onChange('causas_estruturadas', causes)}
         />
