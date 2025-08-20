@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, Lightbulb } from 'lucide-react';
+import { Trash2, Plus, Lightbulb, Save, Loader2 } from 'lucide-react';
 import { useCausesData } from '@/hooks/useCausesData';
 import { FieldHelpButton } from '../help/FieldHelpButton';
 import { helpContent } from '../help/helpContent';
@@ -12,11 +12,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 interface Cause {
   id?: string;
+  risco_id?: string;
   descricao: string;
   categoria: string | null;
 }
 
-interface MultipleCausesSectionProps {
+interface EnhancedMultipleCausesSectionProps {
   riskId?: string;
   causes: Cause[];
   onChange: (causes: Cause[]) => void;
@@ -34,21 +35,22 @@ const CAUSA_CATEGORIES = [
   'Outros'
 ];
 
-export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
+export const EnhancedMultipleCausesSection: React.FC<EnhancedMultipleCausesSectionProps> = ({
   riskId,
   causes,
   onChange
 }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [deletingCause, setDeletingCause] = useState<{ index: number; cause: Cause } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { commonCauses, createCause, updateCause, deleteCause: deleteCauseFromDB, getCausesForRisk } = useCausesData();
+  const [savingStates, setSavingStates] = useState<Set<number>>(new Set());
+  const { commonCauses, createCause, updateCause, deleteCause: deleteCauseFromDB } = useCausesData();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Generate suggestions based on common causes
+    // Generate suggestions based on common causes with enhanced scoring
     const topSuggestions = commonCauses
-      .slice(0, 5)
+      .filter(cause => cause.score_final >= 3.0) // Only high-scoring causes
+      .slice(0, 8)
       .map(cause => cause.causa_descricao);
     setSuggestions(topSuggestions);
   }, [commonCauses]);
@@ -56,9 +58,22 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
   const addCause = () => {
     const newCause: Cause = {
       descricao: '',
-      categoria: null
+      categoria: null,
+      ...(riskId && { risco_id: riskId })
     };
     onChange([...causes, newCause]);
+  };
+
+  const setSavingState = (index: number, saving: boolean) => {
+    setSavingStates(prev => {
+      const newSet = new Set(prev);
+      if (saving) {
+        newSet.add(index);
+      } else {
+        newSet.delete(index);
+      }
+      return newSet;
+    });
   };
 
   const updateCauseLocal = async (index: number, field: keyof Cause, value: string) => {
@@ -74,7 +89,7 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
     // If riskId exists and cause has id, update in database
     if (riskId && cause.id && value.trim()) {
       try {
-        setLoading(true);
+        setSavingState(index, true);
         const result = await updateCause(cause.id, { [field]: value });
         if (result.error) {
           toast({
@@ -83,18 +98,69 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
             variant: "destructive",
           });
           console.error('Error updating cause:', result.error);
-        } else {
-          toast({
-            title: "Sucesso",
-            description: "Causa atualizada com sucesso",
-            variant: "default",
-          });
         }
       } catch (error) {
         console.error('Error updating cause:', error);
       } finally {
-        setLoading(false);
+        setSavingState(index, false);
       }
+    }
+  };
+
+  const saveCause = async (index: number) => {
+    const cause = causes[index];
+    
+    if (!riskId || !cause.descricao.trim()) {
+      toast({
+        title: "Aviso",
+        description: "Preencha a descrição da causa antes de salvar",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (cause.id) {
+      // Already saved, just update
+      return;
+    }
+
+    try {
+      setSavingState(index, true);
+      const result = await createCause({
+        risco_id: riskId,
+        descricao: cause.descricao,
+        categoria: cause.categoria
+      });
+      
+      if (result.error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível salvar a causa",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state with the created cause ID
+      const updatedCauses = causes.map((c, i) => 
+        i === index ? { ...c, id: result.data.id } : c
+      );
+      onChange(updatedCauses);
+      
+      toast({
+        title: "Sucesso",
+        description: "Causa salva com sucesso",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error creating cause:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao salvar causa",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingState(index, false);
     }
   };
 
@@ -115,8 +181,6 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
     if (!deletingCause) return;
 
     try {
-      setLoading(true);
-      
       // Delete from database if ID exists
       if (deletingCause.cause.id) {
         const result = await deleteCauseFromDB(deletingCause.cause.id);
@@ -147,7 +211,6 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
       setDeletingCause(null);
     }
   };
@@ -156,48 +219,20 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
     const emptyCauseIndex = causes.findIndex(cause => !cause.descricao);
     if (emptyCauseIndex >= 0) {
       await updateCauseLocal(emptyCauseIndex, 'descricao', suggestion);
+      if (riskId) {
+        await saveCause(emptyCauseIndex);
+      }
     } else {
       const newCause: Cause = {
         descricao: suggestion,
         categoria: null,
         ...(riskId && { risco_id: riskId })
       };
-
-      // Create in database if riskId exists
+      onChange([...causes, newCause]);
+      
+      // Auto-save if riskId exists
       if (riskId) {
-        try {
-          setLoading(true);
-          const result = await createCause({
-            risco_id: riskId,
-            descricao: suggestion,
-            categoria: null
-          });
-          
-          if (result.error) {
-            toast({
-              title: "Erro",
-              description: "Não foi possível criar a causa",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          // Add the created cause with its ID to local state
-          onChange([...causes, { ...newCause, id: result.data.id }]);
-          
-          toast({
-            title: "Sucesso",
-            description: "Causa adicionada com sucesso",
-            variant: "default",
-          });
-        } catch (error) {
-          console.error('Error creating cause:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // Just add locally if no riskId
-        onChange([...causes, newCause]);
+        setTimeout(() => saveCause(causes.length), 100);
       }
     }
   };
@@ -213,7 +248,7 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
         <div className="bg-muted/50 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Causas Comuns Identificadas</span>
+            <span className="text-sm font-medium">Causas Recomendadas (Score Alto)</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion, index) => (
@@ -222,7 +257,7 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => applySuggestion(suggestion)}
-                className="text-xs"
+                className="text-xs hover:bg-primary hover:text-primary-foreground"
               >
                 {suggestion}
               </Button>
@@ -233,15 +268,21 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
 
       <div className="space-y-4">
         {causes.map((cause, index) => (
-          <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+          <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg relative">
+            {savingStates.has(index) && (
+              <div className="absolute top-2 right-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor={`causa-${index}`}>Descrição da Causa</Label>
               <Input
                 id={`causa-${index}`}
                 value={cause.descricao}
                 onChange={(e) => updateCauseLocal(index, 'descricao', e.target.value)}
-                disabled={loading}
                 placeholder="Descreva a causa do risco..."
+                disabled={savingStates.has(index)}
               />
             </div>
             
@@ -251,7 +292,7 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
                 <Select
                   value={cause.categoria || ""}
                   onValueChange={(value) => updateCauseLocal(index, 'categoria', value)}
-                  disabled={loading}
+                  disabled={savingStates.has(index)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
@@ -265,16 +306,30 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
                   </SelectContent>
                 </Select>
                 
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => removeCause(index)}
-                  className="flex-shrink-0"
-                  disabled={loading}
-                  title={cause.id ? "Deletar causa (confirmação necessária)" : "Remover causa"}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  {riskId && !cause.id && cause.descricao.trim() && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => saveCause(index)}
+                      disabled={savingStates.has(index)}
+                      title="Salvar causa"
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => removeCause(index)}
+                    className="flex-shrink-0"
+                    disabled={savingStates.has(index)}
+                    title={cause.id ? "Deletar causa (confirmação necessária)" : "Remover causa"}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -286,10 +341,10 @@ export const MultipleCausesSection: React.FC<MultipleCausesSectionProps> = ({
         variant="outline"
         onClick={addCause}
         className="w-full"
-        disabled={loading}
+        disabled={savingStates.size > 0}
       >
         <Plus className="h-4 w-4 mr-2" />
-        {loading ? 'Processando...' : 'Adicionar Causa'}
+        {savingStates.size > 0 ? 'Processando...' : 'Adicionar Causa'}
       </Button>
 
       {/* Delete Confirmation Dialog */}

@@ -11,6 +11,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { TrendingUp, AlertTriangle, Target, BarChart3, Search, Filter, Download, Eye, ChevronDown, ChevronUp, HelpCircle, Info } from 'lucide-react';
 import { useCausesData } from '@/hooks/useCausesData';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ScoreExplanationTooltip } from './ScoreExplanationTooltip';
 
 // Paleta de cores mais amigável e acessível
 const FRIENDLY_COLORS = [
@@ -32,13 +33,18 @@ interface CauseDetail {
   riscos_medio_impacto: number;
   riscos_baixo_impacto: number;
   impacto_score: number;
+  criticidade_score: number;
+  tendencia_score: number;
+  complexidade_score: number;
+  score_final: number;
+  confiabilidade_score: number;
 }
 
 export const InteractiveCommonCausesAnalysis: React.FC = () => {
   const { commonCauses, loading } = useCausesData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('impacto');
+  const [sortBy, setSortBy] = useState('score_final');
   const [selectedCause, setSelectedCause] = useState<CauseDetail | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
@@ -58,10 +64,16 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           return b.frequencia - a.frequencia;
         case 'impacto':
           return b.impacto_score - a.impacto_score;
+        case 'score_final':
+          return b.score_final - a.score_final;
+        case 'criticidade':
+          return b.criticidade_score - a.criticidade_score;
+        case 'confiabilidade':
+          return b.confiabilidade_score - a.confiabilidade_score;
         case 'alfabetico':
           return a.causa_descricao.localeCompare(b.causa_descricao);
         default:
-          return b.impacto_score - a.impacto_score;
+          return b.score_final - a.score_final;
       }
     });
 
@@ -78,16 +90,27 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
   }, [commonCauses]);
 
   const stats = useMemo(() => {
-    if (!filteredAndSortedCauses.length) return { total: 0, avgImpact: 0, totalFreq: 0, categories: 0 };
+    if (!filteredAndSortedCauses.length) return { 
+      total: 0, 
+      avgImpact: 0, 
+      avgScore: 0,
+      avgConfiabilidade: 0,
+      totalFreq: 0, 
+      categories: 0 
+    };
     
     const totalFreq = filteredAndSortedCauses.reduce((sum, cause) => sum + cause.frequencia, 0);
     const avgImpact = filteredAndSortedCauses.reduce((sum, cause) => sum + cause.impacto_score, 0) / filteredAndSortedCauses.length;
+    const avgScore = filteredAndSortedCauses.reduce((sum, cause) => sum + cause.score_final, 0) / filteredAndSortedCauses.length;
+    const avgConfiabilidade = filteredAndSortedCauses.reduce((sum, cause) => sum + cause.confiabilidade_score, 0) / filteredAndSortedCauses.length;
     const uniqueCategories = new Set();
     filteredAndSortedCauses.forEach(cause => cause.categorias.forEach(cat => uniqueCategories.add(cat)));
     
     return {
       total: filteredAndSortedCauses.length,
       avgImpact,
+      avgScore,
+      avgConfiabilidade,
       totalFreq,
       categories: uniqueCategories.size
     };
@@ -209,8 +232,11 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
             <SelectValue placeholder="Ordenar por" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="score_final">Score Final</SelectItem>
             <SelectItem value="impacto">Impacto</SelectItem>
+            <SelectItem value="criticidade">Criticidade</SelectItem>
             <SelectItem value="frequencia">Frequência</SelectItem>
+            <SelectItem value="confiabilidade">Confiabilidade</SelectItem>
             <SelectItem value="alfabetico">A-Z</SelectItem>
           </SelectContent>
         </Select>
@@ -252,13 +278,13 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
         <Card className="hover-scale cursor-pointer hover:shadow-lg transition-all duration-300 border-orange-200 bg-orange-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium">Impacto Médio</CardTitle>
+              <CardTitle className="text-sm font-medium">Score Final Médio</CardTitle>
               <Tooltip>
                 <TooltipTrigger>
                   <HelpCircle className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Score médio de impacto das causas filtradas.<br/>Calculado com base na severidade dos riscos associados.</p>
+                  <p>Score final composto médio das causas filtradas.<br/>Combina impacto, criticidade, frequência, tendência e complexidade.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -266,9 +292,9 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {stats.avgImpact.toFixed(1)}
+              {stats.avgScore.toFixed(1)}
             </div>
-            <p className="text-xs text-muted-foreground">score médio</p>
+            <p className="text-xs text-muted-foreground">de 10.0</p>
           </CardContent>
         </Card>
 
@@ -526,14 +552,25 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                       </div>
                       
                       <div className="text-right min-w-20 ml-4">
-                        <div className="text-lg font-bold group-hover:text-blue-600 transition-colors">
-                          {cause.impacto_score.toFixed(1)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">score</div>
+                        <ScoreExplanationTooltip cause={cause}>
+                          <div className="text-lg font-bold group-hover:text-blue-600 transition-colors cursor-help">
+                            {cause.score_final.toFixed(1)}
+                          </div>
+                        </ScoreExplanationTooltip>
+                        <div className="text-xs text-muted-foreground">score final</div>
                         <Progress 
-                          value={(cause.impacto_score / 3) * 100} 
+                          value={(cause.score_final / 10) * 100} 
                           className="w-16 h-2 mt-1"
                         />
+                        <div className="flex items-center gap-1 mt-1">
+                          <div className={`w-2 h-2 rounded-full ${
+                            cause.confiabilidade_score >= 0.8 ? 'bg-green-500' : 
+                            cause.confiabilidade_score >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}></div>
+                          <span className="text-xs text-muted-foreground">
+                            {(cause.confiabilidade_score * 100).toFixed(0)}%
+                          </span>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -578,9 +615,29 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                   <p className="text-xs text-muted-foreground">ocorrências registradas</p>
                 </div>
                 <div>
+                  <h4 className="font-medium mb-2">Score Final</h4>
+                  <ScoreExplanationTooltip cause={selectedCause}>
+                    <div className="text-2xl font-bold text-destructive cursor-help">
+                      {selectedCause.score_final.toFixed(2)}
+                    </div>
+                  </ScoreExplanationTooltip>
+                  <Progress value={(selectedCause.score_final / 10) * 100} className="mt-1" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Confiabilidade: {(selectedCause.confiabilidade_score * 100).toFixed(0)}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <h4 className="font-medium mb-2">Score de Impacto</h4>
-                  <div className="text-2xl font-bold text-destructive">{selectedCause.impacto_score.toFixed(1)}</div>
-                  <Progress value={(selectedCause.impacto_score / 3) * 100} className="mt-1" />
+                  <div className="text-xl font-bold text-orange-600">{selectedCause.impacto_score.toFixed(1)}</div>
+                  <Progress value={(selectedCause.impacto_score / 5) * 100} className="mt-1" />
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Score de Criticidade</h4>
+                  <div className="text-xl font-bold text-red-600">{selectedCause.criticidade_score.toFixed(1)}</div>
+                  <Progress value={(selectedCause.criticidade_score / 25) * 100} className="mt-1" />
                 </div>
               </div>
 

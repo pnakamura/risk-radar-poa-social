@@ -11,6 +11,8 @@ import { useSupabaseRiskData } from '@/hooks/useSupabaseRiskData';
 import { Constants } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
 import { Database } from '@/integrations/supabase/types';
+import { MultipleCausesSection } from './form-sections/MultipleCausesSection';
+import { useCausesData } from '@/hooks/useCausesData';
 
 // Usando o tipo correto do Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
@@ -18,6 +20,12 @@ type Risk = Database['public']['Tables']['riscos']['Row'] & {
   projeto?: { nome: string } | null;
   criador?: { nome: string } | null;
 };
+
+interface Cause {
+  id?: string;
+  descricao: string;
+  categoria: string | null;
+}
 
 interface RiskEditModalProps {
   risk: Risk | null;
@@ -29,7 +37,9 @@ interface RiskEditModalProps {
 export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModalProps) => {
   const { editRisk, isLoading } = useRiskActions();
   const { profiles, projects } = useSupabaseRiskData();
+  const { getCausesForRisk } = useCausesData();
   const [formData, setFormData] = useState<Partial<Risk>>({});
+  const [causes, setCauses] = useState<Cause[]>([]);
 
   console.log('RiskEditModal render - isOpen:', isOpen, 'risk:', risk);
 
@@ -53,11 +63,20 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
         status: risk.status,
         observacoes: risk.observacoes || ''
       });
+      
+      // Load existing causes for this risk
+      const existingCauses = getCausesForRisk(risk.id);
+      setCauses(existingCauses.map(cause => ({
+        id: cause.id,
+        descricao: cause.descricao,
+        categoria: cause.categoria
+      })));
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({});
+      setCauses([]);
     }
-  }, [risk, isOpen]);
+  }, [risk, isOpen, getCausesForRisk]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,26 +178,22 @@ export const RiskEditModal = ({ risk, isOpen, onClose, onSuccess }: RiskEditModa
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="causas">Causas</Label>
-              <Textarea
-                id="causas"
-                value={formData.causas || ''}
-                onChange={(e) => handleChange('causas', e.target.value)}
-                rows={2}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="consequencias">Consequências</Label>
-              <Textarea
-                id="consequencias"
-                value={formData.consequencias || ''}
-                onChange={(e) => handleChange('consequencias', e.target.value)}
-                rows={2}
-              />
-            </div>
+          {/* Enhanced Causes Section */}
+          <MultipleCausesSection
+            riskId={risk.id}
+            causes={causes}
+            onChange={setCauses}
+          />
+
+          <div>
+            <Label htmlFor="consequencias">Consequências</Label>
+            <Textarea
+              id="consequencias"
+              value={formData.consequencias || ''}
+              onChange={(e) => handleChange('consequencias', e.target.value)}
+              rows={2}
+              placeholder="Descreva as possíveis consequências do risco"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

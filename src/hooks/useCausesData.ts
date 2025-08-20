@@ -19,6 +19,11 @@ interface CommonCauseAnalysis {
   riscos_medio_impacto: number;
   riscos_baixo_impacto: number;
   impacto_score: number;
+  criticidade_score: number;
+  tendencia_score: number;
+  complexidade_score: number;
+  score_final: number;
+  confiabilidade_score: number;
 }
 
 export const useCausesData = () => {
