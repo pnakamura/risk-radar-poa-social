@@ -457,12 +457,12 @@ const EditingCauseForm: React.FC<EditingCauseFormProps> = ({
         className="resize-none"
       />
       <div className="flex items-center gap-2">
-        <Select value={category} onValueChange={setCategory}>
+        <Select value={category || "none"} onValueChange={(value) => setCategory(value === "none" ? "" : value)}>
           <SelectTrigger className="flex-1">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sem categoria</SelectItem>
+            <SelectItem value="none">Sem categoria</SelectItem>
             {CATEGORIES.map(cat => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}

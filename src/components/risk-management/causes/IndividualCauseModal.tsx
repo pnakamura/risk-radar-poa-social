@@ -168,14 +168,14 @@ export const IndividualCauseModal: React.FC<IndividualCauseModalProps> = ({
             <div>
               <label className="text-sm font-medium">Categoria</label>
               <Select 
-                value={formData.categoria} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, categoria: value }))}
+                value={formData.categoria || "none"} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, categoria: value === "none" ? null : value }))}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sem categoria</SelectItem>
+                  <SelectItem value="none">Sem categoria</SelectItem>
                   {CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
