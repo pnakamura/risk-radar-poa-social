@@ -610,32 +610,120 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium mb-2">Frequência</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium">Frequência</h4>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-sm">
+                          <strong>Frequência de Ocorrência</strong><br/>
+                          Número de riscos identificados que possuem esta causa específica.<br/>
+                          Indica a prevalência e importância sistêmica da causa na organização.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <div className="text-2xl font-bold text-primary">{selectedCause.frequencia}</div>
                   <p className="text-xs text-muted-foreground">ocorrências registradas</p>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2">Score Final</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium">Score Final</h4>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p className="text-sm">
+                          <strong>Score Final Composto</strong><br/>
+                          Métrica calculada combinando:<br/>
+                          • Impacto médio nos riscos (0-5)<br/>
+                          • Criticidade sistêmica (0-25)<br/>
+                          • Frequência de ocorrência<br/>
+                          • Tendência temporal<br/>
+                          • Complexidade de tratamento<br/><br/>
+                          <em>Escala: 0-10 pontos</em>
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <ScoreExplanationTooltip cause={selectedCause}>
                     <div className="text-2xl font-bold text-destructive cursor-help">
                       {selectedCause.score_final.toFixed(2)}
                     </div>
                   </ScoreExplanationTooltip>
                   <Progress value={(selectedCause.score_final / 10) * 100} className="mt-1" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Confiabilidade: {(selectedCause.confiabilidade_score * 100).toFixed(0)}%
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      Confiabilidade: {(selectedCause.confiabilidade_score * 100).toFixed(0)}%
+                    </p>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-2 w-2 text-muted-foreground hover:text-primary cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-sm">
+                          <strong>Confiabilidade do Score</strong><br/>
+                          Indica a qualidade dos dados usados no cálculo:<br/>
+                          • &gt;80%: Alta confiabilidade<br/>
+                          • 60-80%: Média confiabilidade<br/>
+                          • &lt;60%: Baixa confiabilidade<br/><br/>
+                          Baseada na completude dos dados e consistência temporal.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium mb-2">Score de Impacto</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium">Score de Impacto</h4>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-sm">
+                          <strong>Score de Impacto Médio</strong><br/>
+                          Impacto médio ponderado desta causa nos riscos onde aparece.<br/><br/>
+                          <strong>Escala:</strong><br/>
+                          • 1-2: Baixo impacto<br/>
+                          • 2-3: Médio impacto<br/>
+                          • 3-4: Alto impacto<br/>
+                          • 4-5: Impacto crítico<br/><br/>
+                          Calculado pela média dos impactos de todos os riscos associados.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <div className="text-xl font-bold text-orange-600">{selectedCause.impacto_score.toFixed(1)}</div>
                   <Progress value={(selectedCause.impacto_score / 5) * 100} className="mt-1" />
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2">Score de Criticidade</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium">Score de Criticidade</h4>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-sm">
+                          <strong>Score de Criticidade Sistêmica</strong><br/>
+                          Medida da importância crítica desta causa para a organização.<br/><br/>
+                          <strong>Calculado por:</strong><br/>
+                          • Frequência × Impacto médio<br/>
+                          • Número de riscos críticos afetados<br/>
+                          • Interdependências sistêmicas<br/><br/>
+                          <strong>Escala:</strong> 0-25 pontos<br/>
+                          Valores altos indicam causas que requerem atenção prioritária.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <div className="text-xl font-bold text-red-600">{selectedCause.criticidade_score.toFixed(1)}</div>
                   <Progress value={(selectedCause.criticidade_score / 25) * 100} className="mt-1" />
                 </div>
@@ -651,19 +739,36 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-medium mb-2">Distribuição de Impacto</h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="font-medium">Distribuição de Impacto</h4>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p className="text-sm">
+                        <strong>Distribuição por Nível de Impacto</strong><br/>
+                        Mostra quantos riscos com esta causa estão em cada categoria:<br/><br/>
+                        <strong>Alto Impacto (4-5):</strong> Riscos que podem causar grandes perdas<br/>
+                        <strong>Médio Impacto (3):</strong> Riscos com impacto significativo<br/>
+                        <strong>Baixo Impacto (1-2):</strong> Riscos com efeito limitado<br/><br/>
+                        <em>Use para priorizar ações: foque primeiro no alto impacto.</em>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="text-lg font-bold text-red-600">{selectedCause.riscos_alto_impacto}</div>
-                    <div className="text-xs text-red-700">Alto Impacto</div>
+                  <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-950/20 dark:border-red-800">
+                    <div className="text-lg font-bold text-red-600 dark:text-red-400">{selectedCause.riscos_alto_impacto}</div>
+                    <div className="text-xs text-red-700 dark:text-red-300">Alto Impacto</div>
                   </div>
-                  <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <div className="text-lg font-bold text-orange-600">{selectedCause.riscos_medio_impacto}</div>
-                    <div className="text-xs text-orange-700">Médio Impacto</div>
+                  <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg dark:bg-orange-950/20 dark:border-orange-800">
+                    <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{selectedCause.riscos_medio_impacto}</div>
+                    <div className="text-xs text-orange-700 dark:text-orange-300">Médio Impacto</div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-lg font-bold text-green-600">{selectedCause.riscos_baixo_impacto}</div>
-                    <div className="text-xs text-green-700">Baixo Impacto</div>
+                  <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/20 dark:border-green-800">
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">{selectedCause.riscos_baixo_impacto}</div>
+                    <div className="text-xs text-green-700 dark:text-green-300">Baixo Impacto</div>
                   </div>
                 </div>
               </div>
