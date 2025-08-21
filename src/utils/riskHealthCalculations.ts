@@ -310,10 +310,15 @@ export const calculateCategoryHealthScores = (risks: Risk[]): CategoryHealthScor
                     healthScore.finalScore < benchmark.good ? 'high' :
                     healthScore.finalScore < benchmark.target ? 'medium' : 'low';
     
-    // Análise de tendência (simulada - em produção seria baseada em histórico)
+    // Análise de tendência baseada na eficiência de mitigação e distribuição de riscos
     const criticalRatio = categoryRisks.filter(r => r.nivel_risco === 'Crítico').length / categoryRisks.length;
-    const trend: CategoryHealthScore['trend'] = criticalRatio > 0.3 ? 'declining' : 
-                 mitigationMetrics.mitigationEfficiency > 60 ? 'improving' : 'stable';
+    const highRiskRatio = categoryRisks.filter(r => ['Crítico', 'Alto'].includes(r.nivel_risco)).length / categoryRisks.length;
+    
+    // Lógica corrigida: alta eficiência de mitigação = melhora, alta concentração de riscos críticos = deterioração
+    const trend: CategoryHealthScore['trend'] = 
+      criticalRatio > 0.4 || highRiskRatio > 0.6 ? 'declining' :  // Muitos riscos críticos/altos = deterioração
+      mitigationMetrics.mitigationEfficiency > 70 && criticalRatio < 0.2 ? 'improving' :  // Alta eficiência + poucos críticos = melhora
+      'stable';
     
     return {
       category,

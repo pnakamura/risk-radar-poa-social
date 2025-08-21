@@ -557,19 +557,33 @@ const RiskDetail = () => {
                             }
                           }
 
-                          // Verificar tendência de deterioração
+                          // Verificar tendências de risco
                           if (variablesHistory.length >= 3) {
-                            const recent3 = variablesHistory.slice(0, 3);
+                            const recent3 = variablesHistory.slice(0, 3).reverse(); // Ordem cronológica: [mais antigo, ..., mais recente]
+                            
+                            // Verificar tendência de deterioração (risco aumentando)
                             const isWorsening = recent3.every((entry, index) => {
                               if (index === 0) return true;
                               return getRiskLevelValue(entry.nivel_risco) >= getRiskLevelValue(recent3[index - 1].nivel_risco);
                             });
                             
-                            if (isWorsening) {
+                            // Verificar tendência de melhora (risco diminuindo)
+                            const isImproving = recent3.every((entry, index) => {
+                              if (index === 0) return true;
+                              return getRiskLevelValue(entry.nivel_risco) <= getRiskLevelValue(recent3[index - 1].nivel_risco);
+                            });
+                            
+                            if (isWorsening && getRiskLevelValue(recent3[0].nivel_risco) < getRiskLevelValue(recent3[recent3.length - 1].nivel_risco)) {
                               insights.push({
                                 type: 'danger',
                                 title: 'Tendência de deterioração',
                                 description: 'O risco apresenta tendência de piora nas últimas avaliações. Ações urgentes podem ser necessárias.'
+                              });
+                            } else if (isImproving && getRiskLevelValue(recent3[0].nivel_risco) > getRiskLevelValue(recent3[recent3.length - 1].nivel_risco)) {
+                              insights.push({
+                                type: 'success',
+                                title: 'Tendência de melhora',
+                                description: 'O risco está sendo reduzido efetivamente nas últimas avaliações. Continue com as ações implementadas.'
                               });
                             }
                           }
