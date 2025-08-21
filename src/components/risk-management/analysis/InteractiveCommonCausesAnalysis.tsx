@@ -198,53 +198,71 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-      {/* Interactive Controls */}
+      {/* Mobile-Optimized Interactive Controls */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg backdrop-blur-sm"
+        className="space-y-4 p-4 bg-muted/50 rounded-lg backdrop-blur-sm"
       >
-        <div className="flex-1 relative">
+        {/* Search - Full width on mobile */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Buscar causas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-12"
           />
         </div>
         
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full sm:w-48">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as categorias</SelectItem>
-            {allCategories.map(category => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Filters Grid - Responsive layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="h-12">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {allCategories.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Ordenar por" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="score_final">Score Final</SelectItem>
-            <SelectItem value="impacto">Impacto</SelectItem>
-            <SelectItem value="criticidade">Criticidade</SelectItem>
-            <SelectItem value="frequencia">Frequência</SelectItem>
-            <SelectItem value="confiabilidade">Confiabilidade</SelectItem>
-            <SelectItem value="alfabetico">A-Z</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="h-12">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="score_final">Score Final</SelectItem>
+              <SelectItem value="impacto">Impacto</SelectItem>
+              <SelectItem value="criticidade">Criticidade</SelectItem>
+              <SelectItem value="frequencia">Frequência</SelectItem>
+              <SelectItem value="confiabilidade">Confiabilidade</SelectItem>
+              <SelectItem value="alfabetico">A-Z</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Button onClick={exportData} variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar
-        </Button>
+          <Button onClick={exportData} variant="outline" className="h-12 sm:col-span-2 lg:col-span-1">
+            <Download className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Exportar</span>
+            <span className="sm:hidden">CSV</span>
+          </Button>
+
+          {/* Clear filters button for mobile */}
+          <Button 
+            onClick={() => {
+              setSearchTerm('');
+              setSelectedCategory('all');
+              setSortBy('score_final');
+            }}
+            variant="ghost" 
+            className="h-12 sm:col-span-2 lg:col-span-1"
+          >
+            Limpar Filtros
+          </Button>
+        </div>
       </motion.div>
 
       {/* Enhanced Stats Cards */}
@@ -345,8 +363,9 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Enhanced Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Mobile-Optimized Charts */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Bar Chart - Full width on mobile */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -355,7 +374,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           <Card className="hover:shadow-lg transition-shadow duration-300 border-blue-200">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CardTitle>Causas Mais Frequentes</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Causas Mais Frequentes</CardTitle>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="h-4 w-4 text-muted-foreground" />
@@ -365,30 +384,35 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <CardDescription>
-                Top {Math.min(10, filteredAndSortedCauses.length)} causas filtradas
+              <CardDescription className="text-sm">
+                Top {Math.min(8, filteredAndSortedCauses.length)} causas filtradas
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={filteredAndSortedCauses.slice(0, 10)}>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart 
+                  data={filteredAndSortedCauses.slice(0, 8)}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis 
                     dataKey="causa_descricao" 
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={100}
                     interval={0}
                     fontSize={10}
+                    width={60}
                   />
-                  <YAxis />
+                  <YAxis fontSize={12} />
                   <RechartsTooltip 
                     formatter={(value, name) => [value, 'Frequência']}
                     labelStyle={{ fontSize: '12px' }}
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '8px',
+                      maxWidth: '250px'
                     }}
                   />
                   <Bar 
@@ -403,15 +427,17 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
           </Card>
         </motion.div>
 
+        {/* Pie Chart - Full width on mobile */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
+          className="lg:hidden"
         >
           <Card className="hover:shadow-lg transition-shadow duration-300 border-green-200">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CardTitle>Distribuição por Categoria</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Distribuição por Categoria</CardTitle>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="h-4 w-4 text-muted-foreground" />
@@ -421,20 +447,25 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Análise das causas filtradas por categoria
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={categoryData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ name, percent }) => 
+                      categoryData.length <= 6 
+                        ? `${name} (${(percent * 100).toFixed(0)}%)` 
+                        : percent > 0.1 ? name : ''
+                    }
                     outerRadius={80}
+                    innerRadius={20}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -446,7 +477,8 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '8px',
+                      maxWidth: '200px'
                     }}
                   />
                 </PieChart>
@@ -454,6 +486,61 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Desktop version - side by side */}
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-green-200">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <CardTitle>Distribuição por Categoria</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Gráfico de pizza mostrando como as causas se distribuem<br/>por categoria. Útil para entender áreas de concentração.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <CardDescription>
+                  Análise das causas filtradas por categoria
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={FRIENDLY_COLORS[index % FRIENDLY_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
 
       {/* Interactive Causes List */}
@@ -483,108 +570,121 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
             <div className="space-y-4">
               <AnimatePresence>
                 {filteredAndSortedCauses.slice(0, 15).map((cause, index) => (
-                  <motion.div
-                    key={`${cause.causa_descricao}-${index}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="group border rounded-lg p-4 hover:shadow-md transition-all duration-300 cursor-pointer hover:bg-muted/20"
-                    onClick={() => handleCauseClick(cause)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
-                            {cause.causa_descricao}
-                          </span>
-                          <Badge variant="secondary" className="group-hover:bg-blue-100 bg-blue-50 text-blue-700 border-blue-200">
-                            {cause.frequencia} ocorrências
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleCardExpansion(index);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            {expandedCards.has(index) ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        
-                        <div className="flex gap-2 mb-2">
-                          {cause.categorias.map((categoria, catIndex) => (
-                            <Badge key={catIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
-                              {categoria}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <AnimatePresence>
-                          {expandedCards.has(index) && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="grid grid-cols-3 gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t"
-                            >
-                              <div className="text-center">
-                                <div className="font-medium text-red-600">{cause.riscos_alto_impacto}</div>
-                                <div>Alto Impacto</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="font-medium text-orange-600">{cause.riscos_medio_impacto}</div>
-                                <div>Médio Impacto</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="font-medium text-green-600">{cause.riscos_baixo_impacto}</div>
-                                <div>Baixo Impacto</div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      
-                      <div className="text-right min-w-20 ml-4">
-                        <ScoreExplanationTooltip cause={cause}>
-                          <div className="text-lg font-bold group-hover:text-blue-600 transition-colors cursor-help">
-                            {cause.score_final.toFixed(1)}
-                          </div>
-                        </ScoreExplanationTooltip>
-                        <div className="text-xs text-muted-foreground">score final</div>
-                        <Progress 
-                          value={(cause.score_final / 10) * 100} 
-                          className="w-16 h-2 mt-1"
-                        />
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className={`w-2 h-2 rounded-full ${
-                            cause.confiabilidade_score >= 0.8 ? 'bg-green-500' : 
-                            cause.confiabilidade_score >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}></div>
-                          <span className="text-xs text-muted-foreground">
-                            {(cause.confiabilidade_score * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCauseClick(cause);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity mt-1"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
+                   <motion.div
+                     key={`${cause.causa_descricao}-${index}`}
+                     initial={{ opacity: 0, x: -20 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     exit={{ opacity: 0, x: 20 }}
+                     transition={{ delay: index * 0.05 }}
+                     className="group border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all duration-300 cursor-pointer hover:bg-muted/20 touch-manipulation"
+                     onClick={() => handleCauseClick(cause)}
+                   >
+                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                       <div className="flex-1 min-w-0">
+                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                           <span className="text-sm font-medium group-hover:text-blue-600 transition-colors truncate sm:flex-1">
+                             {cause.causa_descricao}
+                           </span>
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                             <Badge variant="secondary" className="group-hover:bg-blue-100 bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                               {cause.frequencia} ocorrência{cause.frequencia !== 1 ? 's' : ''}
+                             </Badge>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 toggleCardExpansion(index);
+                               }}
+                               className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                             >
+                               {expandedCards.has(index) ? (
+                                 <ChevronUp className="h-4 w-4" />
+                               ) : (
+                                 <ChevronDown className="h-4 w-4" />
+                               )}
+                             </Button>
+                           </div>
+                         </div>
+                         
+                         <div className="flex flex-wrap gap-1 mb-2">
+                           {cause.categorias.slice(0, 3).map((categoria, catIndex) => (
+                             <Badge key={catIndex} variant="outline" className="text-xs border-purple-200 text-purple-700">
+                               {categoria}
+                             </Badge>
+                           ))}
+                           {cause.categorias.length > 3 && (
+                             <Badge variant="outline" className="text-xs">
+                               +{cause.categorias.length - 3}
+                             </Badge>
+                           )}
+                         </div>
+                         
+                         <AnimatePresence>
+                           {expandedCards.has(index) && (
+                             <motion.div
+                               initial={{ opacity: 0, height: 0 }}
+                               animate={{ opacity: 1, height: 'auto' }}
+                               exit={{ opacity: 0, height: 0 }}
+                               className="grid grid-cols-3 gap-2 sm:gap-4 text-xs text-muted-foreground mt-3 pt-3 border-t"
+                             >
+                               <div className="text-center p-2 rounded bg-red-50 dark:bg-red-950/20">
+                                 <div className="font-medium text-red-600 text-sm">{cause.riscos_alto_impacto}</div>
+                                 <div className="text-xs">Alto</div>
+                               </div>
+                               <div className="text-center p-2 rounded bg-orange-50 dark:bg-orange-950/20">
+                                 <div className="font-medium text-orange-600 text-sm">{cause.riscos_medio_impacto}</div>
+                                 <div className="text-xs">Médio</div>
+                               </div>
+                               <div className="text-center p-2 rounded bg-green-50 dark:bg-green-950/20">
+                                 <div className="font-medium text-green-600 text-sm">{cause.riscos_baixo_impacto}</div>
+                                 <div className="text-xs">Baixo</div>
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
+                       </div>
+                       
+                       <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1 sm:min-w-20 sm:ml-4">
+                         <div className="flex items-center gap-2 sm:flex-col sm:gap-1">
+                           <ScoreExplanationTooltip cause={cause}>
+                             <div className="text-lg sm:text-xl font-bold group-hover:text-blue-600 transition-colors cursor-help">
+                               {cause.score_final.toFixed(1)}
+                             </div>
+                           </ScoreExplanationTooltip>
+                           <div className="text-xs text-muted-foreground">score final</div>
+                         </div>
+                         
+                         <div className="flex items-center gap-2 sm:flex-col sm:gap-1">
+                           <Progress 
+                             value={(cause.score_final / 10) * 100} 
+                             className="w-16 h-2"
+                           />
+                           <div className="flex items-center gap-1">
+                             <div className={`w-2 h-2 rounded-full ${
+                               cause.confiabilidade_score >= 0.8 ? 'bg-green-500' : 
+                               cause.confiabilidade_score >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'
+                             }`}></div>
+                             <span className="text-xs text-muted-foreground">
+                               {(cause.confiabilidade_score * 100).toFixed(0)}%
+                             </span>
+                           </div>
+                         </div>
+                         
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleCauseClick(cause);
+                           }}
+                           className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                         >
+                           <Eye className="h-3 w-3" />
+                         </Button>
+                       </div>
+                     </div>
+                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
@@ -592,12 +692,12 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Detail Modal */}
+      {/* Mobile-Optimized Detail Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes da Causa</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Detalhes da Causa</DialogTitle>
+            <DialogDescription className="text-sm">
               Análise detalhada da causa selecionada
             </DialogDescription>
           </DialogHeader>
@@ -608,10 +708,10 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                 <p className="text-sm text-muted-foreground">{selectedCause.causa_descricao}</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">Frequência</h4>
+                    <h4 className="font-medium text-sm">Frequência</h4>
                     <Tooltip>
                       <TooltipTrigger>
                         <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
@@ -625,12 +725,12 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <div className="text-2xl font-bold text-primary">{selectedCause.frequencia}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-primary">{selectedCause.frequencia}</div>
                   <p className="text-xs text-muted-foreground">ocorrências registradas</p>
                 </div>
-                <div>
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">Score Final</h4>
+                    <h4 className="font-medium text-sm">Score Final</h4>
                     <Tooltip>
                       <TooltipTrigger>
                         <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
@@ -650,7 +750,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                     </Tooltip>
                   </div>
                   <ScoreExplanationTooltip cause={selectedCause}>
-                    <div className="text-2xl font-bold text-destructive cursor-help">
+                    <div className="text-xl sm:text-2xl font-bold text-destructive cursor-help">
                       {selectedCause.score_final.toFixed(2)}
                     </div>
                   </ScoreExplanationTooltip>
@@ -678,10 +778,10 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">Score de Impacto</h4>
+                    <h4 className="font-medium text-sm">Score de Impacto</h4>
                     <Tooltip>
                       <TooltipTrigger>
                         <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
@@ -700,12 +800,12 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <div className="text-xl font-bold text-orange-600">{selectedCause.impacto_score.toFixed(1)}</div>
+                  <div className="text-lg sm:text-xl font-bold text-orange-600">{selectedCause.impacto_score.toFixed(1)}</div>
                   <Progress value={(selectedCause.impacto_score / 5) * 100} className="mt-1" />
                 </div>
-                <div>
+                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">Score de Criticidade</h4>
+                    <h4 className="font-medium text-sm">Score de Criticidade</h4>
                     <Tooltip>
                       <TooltipTrigger>
                         <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-primary cursor-help" />
@@ -724,7 +824,7 @@ export const InteractiveCommonCausesAnalysis: React.FC = () => {
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <div className="text-xl font-bold text-red-600">{selectedCause.criticidade_score.toFixed(1)}</div>
+                  <div className="text-lg sm:text-xl font-bold text-purple-600">{selectedCause.criticidade_score.toFixed(1)}</div>
                   <Progress value={(selectedCause.criticidade_score / 25) * 100} className="mt-1" />
                 </div>
               </div>

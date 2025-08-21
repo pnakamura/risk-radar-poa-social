@@ -103,37 +103,39 @@ const Index = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
-          <TabsList className="flex sm:grid w-full sm:grid-cols-6 overflow-x-auto bg-white shadow-lg rounded-lg p-1 h-auto gap-1">
-            <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
-              <TrendingUp className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Dashboard</span>
-              <span className="sm:hidden text-xs">Dash</span>
-            </TabsTrigger>
-            <TabsTrigger value="matrix" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Matriz de Riscos</span>
-              <span className="sm:hidden text-xs">Matriz</span>
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
-              <FileBarChart className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Relatórios</span>
-              <span className="sm:hidden text-xs">Relat.</span>
-            </TabsTrigger>
-            <TabsTrigger value="form" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
-              <Shield className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Gerenciar Riscos</span>
-              <span className="sm:hidden text-xs">Ger.</span>
-            </TabsTrigger>
-            <TabsTrigger value="master-data" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm">
-              <Database className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Dados Mestres</span>
-              <span className="sm:hidden text-xs">Dados</span>
-            </TabsTrigger>
-            {(profile?.role === 'admin' || profile?.role === 'gestor') && <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm" onClick={() => navigate('/usuarios')}>
-                <Users className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Usuários</span>
-                <span className="sm:hidden text-xs">Users</span>
-              </TabsTrigger>}
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 overflow-hidden bg-white shadow-lg rounded-lg p-1 h-auto gap-1">
+              <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]">
+                <TrendingUp className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Dashboard</span>
+                <span className="sm:hidden text-[10px]">Dash</span>
+              </TabsTrigger>
+              <TabsTrigger value="matrix" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Matriz de Riscos</span>
+                <span className="sm:hidden text-[10px]">Matriz</span>
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]">
+                <FileBarChart className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Relatórios</span>
+                <span className="sm:hidden text-[10px]">Relat.</span>
+              </TabsTrigger>
+              <TabsTrigger value="form" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]">
+                <Shield className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Gerenciar Riscos</span>
+                <span className="sm:hidden text-[10px]">Ger.</span>
+              </TabsTrigger>
+              <TabsTrigger value="master-data" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]">
+                <Database className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Dados Mestres</span>
+                <span className="sm:hidden text-[10px]">Dados</span>
+              </TabsTrigger>
+              {(profile?.role === 'admin' || profile?.role === 'gestor') && 
+                <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto]" onClick={() => navigate('/usuarios')}>
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Usuários</span>
+                  <span className="sm:hidden text-[10px]">Users</span>
+                </TabsTrigger>
+              }
           </TabsList>
 
           <TabsContent value="dashboard">
