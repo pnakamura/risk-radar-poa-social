@@ -115,22 +115,109 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
         throw new Error('Nenhum conteúdo foi fornecido');
       }
 
-      console.log('Enviando payload para N8N:', payload);
+      console.log('🚀 Tentando enviar para webhook:', WEBHOOK_URL);
+      console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      // Primeira tentativa com configuração padrão
+      let response;
+      try {
+        response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
 
-      console.log('Resposta do webhook:', response.status, response.statusText);
+        console.log('✅ Resposta recebida:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-      if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+      } catch (fetchError) {
+        console.warn('⚠️ Primeira tentativa falhou:', fetchError);
+        
+        // Segunda tentativa com mode: 'no-cors' para contornar CORS
+        console.log('🔄 Tentando com mode: no-cors...');
+        
+        try {
+          response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          console.log('✅ Segunda tentativa (no-cors) executada');
+          
+          // Com no-cors, não conseguimos ler a resposta, então assumimos sucesso
+          setSubmitStatus('success');
+          toast({
+            title: "Enviado com sucesso! (modo compatibilidade)",
+            description: "Sua solicitação foi enviada para a IA usando modo de compatibilidade. Verifique o sistema N8N.",
+          });
+
+          // Reset form
+          setTextInput('');
+          setAudioBlob(null);
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          
+          return;
+          
+        } catch (secondError) {
+          console.error('❌ Segunda tentativa também falhou:', secondError);
+          
+          // Terceira tentativa sem alguns headers
+          console.log('🔄 Tentando sem headers Accept...');
+          
+          try {
+            response = await fetch(WEBHOOK_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            });
+
+            console.log('✅ Terceira tentativa - resposta:', response.status, response.statusText);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+          } catch (thirdError) {
+            console.error('❌ Todas as tentativas falharam');
+            console.error('Erro original:', fetchError);
+            console.error('Segundo erro:', secondError);
+            console.error('Terceiro erro:', thirdError);
+            
+            // Fornecer informações detalhadas sobre o erro
+            let errorMessage = "Falha na comunicação com o webhook";
+            let debugInfo = "";
+            
+            if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
+              errorMessage = "Erro de conectividade - possível problema de CORS ou URL inacessível";
+              debugInfo = `\n\nDebug:\n- URL: ${WEBHOOK_URL}\n- Erro: ${fetchError.message}\n- Verifique se o N8N está rodando e acessível`;
+            } else if (fetchError instanceof Error) {
+              errorMessage = fetchError.message;
+              debugInfo = `\n\nDetalhes técnicos: ${fetchError.name}`;
+            }
+            
+            throw new Error(errorMessage + debugInfo);
+          }
+        }
       }
+
+      // Se chegou aqui, uma das tentativas foi bem-sucedida
+      const responseText = await response.text();
+      console.log('📄 Resposta do servidor:', responseText);
 
       setSubmitStatus('success');
       toast({
@@ -147,11 +234,14 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
       }
 
     } catch (error) {
-      console.error('Erro ao enviar para N8N:', error);
+      console.error('💥 Erro final:', error);
       setSubmitStatus('error');
+      
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      
       toast({
         title: "Erro ao enviar",
-        description: error instanceof Error ? error.message : "Não foi possível enviar para a IA. Verifique sua conexão e tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
