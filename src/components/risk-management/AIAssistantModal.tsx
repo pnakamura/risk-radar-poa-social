@@ -25,7 +25,7 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const WEBHOOK_URL = 'https://postgres-n8n.wuzmwk.easypanel.host/webhook/d695f3b9-1889-4277-a4e2-289851d9564f';
+  const WEBHOOK_URL = 'https://postgres-n8n.wuzmwk.easypanel.host/webhook-test/d695f3b9-1889-4277-a4e2-289851d9564f';
 
   const startRecording = async () => {
     try {
@@ -114,14 +114,22 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
         throw new Error('Nenhum conteúdo foi fornecido');
       }
 
+      console.log('Enviando payload para N8N:', payload);
+
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        mode: 'no-cors',
         body: JSON.stringify(payload),
       });
+
+      console.log('Resposta do webhook:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+      }
 
       setSubmitStatus('success');
       toast({
@@ -138,10 +146,11 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
       }
 
     } catch (error) {
+      console.error('Erro ao enviar para N8N:', error);
       setSubmitStatus('error');
       toast({
         title: "Erro ao enviar",
-        description: "Não foi possível enviar para a IA. Verifique sua conexão e tente novamente.",
+        description: error instanceof Error ? error.message : "Não foi possível enviar para a IA. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
     } finally {
