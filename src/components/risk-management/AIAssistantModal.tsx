@@ -26,7 +26,7 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const WEBHOOK_URL = 'https://postgres-n8n.wuzmwk.easypanel.host/webhook-test/d695f3b9-1889-4277-a4e2-289851d9564f';
+  const WEBHOOK_URL = 'https://postgres-n8n.wuzmwk.easypanel.host/webhook/d695f3b9-1889-4277-a4e2-289851d9564f';
 
   const startRecording = async () => {
     try {
