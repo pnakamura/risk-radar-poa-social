@@ -13,6 +13,7 @@ interface AIAssistantModalProps {
 }
 
 const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
+  console.log('AIAssistantModal rendering - open:', open);
   const [activeTab, setActiveTab] = useState('text');
   const [textInput, setTextInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
