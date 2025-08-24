@@ -66,10 +66,19 @@ export const useRiskForm = (onSuccess: () => void) => {
       return;
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      
+      // Se não for um risco da IA, manter status como "Identificado"
+      if (prev.status !== 'IA') {
+        newData.status = 'Identificado';
+      }
+      
+      return newData;
+    });
 
     // Auto-generate risk code when project is selected
     if (field === 'projeto_id' && typeof value === 'string' && value) {
@@ -238,7 +247,7 @@ export const useRiskForm = (onSuccess: () => void) => {
   };
 
   const populateFromAI = (aiData: AIRiskResponse) => {
-    setFormData({
+    setFormData(prev => ({
       codigo: aiData.codigo || '',
       categoria: aiData.categoria as Database['public']['Enums']['risk_category'] || '',
       descricao_risco: aiData.descricao_risco || '',
@@ -251,11 +260,13 @@ export const useRiskForm = (onSuccess: () => void) => {
       acoes_mitigacao: aiData.acoes_mitigacao || '',
       acoes_contingencia: aiData.acoes_contingencia || '',
       observacoes: aiData.observacoes || '',
-      status: 'IA',
-      projeto_id: formData.projeto_id,
-      responsavel_id: formData.responsavel_id,
-      prazo: formData.prazo,
-    });
+      status: 'IA' as Database['public']['Enums']['risk_status'],
+      projeto_id: prev.projeto_id,
+      responsavel_id: prev.responsavel_id,
+      prazo: prev.prazo,
+    }));
+    
+    toast.success('Dados preenchidos pela IA automaticamente');
   };
 
   return {
