@@ -72,8 +72,8 @@ export const useRiskForm = (onSuccess: () => void) => {
         [field]: value
       };
       
-      // Se não for um risco da IA, manter status como "Identificado"
-      if (prev.status !== 'IA') {
+      // Se não for edição explícita do status e não for um risco da IA, manter status como "Identificado"
+      if (field !== 'status' && prev.status !== 'IA') {
         newData.status = 'Identificado';
       }
       
@@ -148,6 +148,14 @@ export const useRiskForm = (onSuccess: () => void) => {
     setIsSubmitting(true);
 
     try {
+      // Garantir que status não seja vazio - definir como "Identificado" se não for especificado
+      if (!formData.status || formData.status.trim() === '') {
+        setFormData(prev => ({ ...prev, status: 'Identificado' as Database['public']['Enums']['risk_status'] }));
+        toast.error('Status é obrigatório. Definido como "Identificado".');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Validação básica
       if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');

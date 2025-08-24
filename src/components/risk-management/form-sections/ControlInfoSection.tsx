@@ -114,16 +114,17 @@ export const ControlInfoSection = ({ formData, onChange, profiles, projects }: C
           <SelectTrigger>
             <SelectValue placeholder="Selecione o status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Identificado">Identificado</SelectItem>
-            <SelectItem value="Em Análise">Em Análise</SelectItem>
-            <SelectItem value="Em Monitoramento">Em Monitoramento</SelectItem>
-            <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-            <SelectItem value="Mitigado">Mitigado</SelectItem>
-            <SelectItem value="Aceito">Aceito</SelectItem>
-            <SelectItem value="Transferido">Transferido</SelectItem>
-            <SelectItem value="Eliminado">Eliminado</SelectItem>
-          </SelectContent>
+            <SelectContent>
+              <SelectItem value="IA">IA</SelectItem>
+              <SelectItem value="Identificado">Identificado</SelectItem>
+              <SelectItem value="Em Análise">Em Análise</SelectItem>
+              <SelectItem value="Em Monitoramento">Em Monitoramento</SelectItem>
+              <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+              <SelectItem value="Mitigado">Mitigado</SelectItem>
+              <SelectItem value="Aceito">Aceito</SelectItem>
+              <SelectItem value="Transferido">Transferido</SelectItem>
+              <SelectItem value="Eliminado">Eliminado</SelectItem>
+            </SelectContent>
         </Select>
       </div>
       
