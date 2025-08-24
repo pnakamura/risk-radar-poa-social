@@ -255,12 +255,34 @@ export const useRiskForm = (onSuccess: () => void) => {
   };
 
   const populateFromAI = (aiData: AIRiskResponse) => {
+    // Processar causas da string para causas estruturadas
+    let causasEstruturadas: Cause[] = [];
+    
+    if (aiData.causas && aiData.causas.trim()) {
+      console.log('Processando causas da IA:', aiData.causas);
+      
+      // Dividir a string de causas por separadores comuns
+      const causasTexto = aiData.causas
+        .split(/[;,\n]|\d+\.\s*/) // Separar por ponto e vírgula, vírgula, quebra de linha ou números seguidos de ponto
+        .map(causa => causa.trim())
+        .filter(causa => causa.length > 0);
+      
+      // Converter cada causa em um objeto Cause
+      causasEstruturadas = causasTexto.map((descricao, index) => ({
+        id: `ai-${Date.now()}-${index}`,
+        descricao: descricao,
+        categoria: null
+      }));
+      
+      console.log('Causas estruturadas processadas:', causasEstruturadas);
+    }
+
     setFormData(prev => ({
       codigo: aiData.codigo || '',
       categoria: aiData.categoria as Database['public']['Enums']['risk_category'] || '',
       descricao_risco: aiData.descricao_risco || '',
       causas: aiData.causas || '',
-      causas_estruturadas: [],
+      causas_estruturadas: causasEstruturadas,
       consequencias: aiData.consequencias || '',
       probabilidade: aiData.probabilidade as Database['public']['Enums']['risk_probability'] || '',
       impacto: aiData.impacto as Database['public']['Enums']['risk_impact'] || '',
@@ -274,7 +296,8 @@ export const useRiskForm = (onSuccess: () => void) => {
       prazo: prev.prazo,
     }));
     
-    toast.success('Dados preenchidos pela IA automaticamente');
+    const causasCount = causasEstruturadas.length;
+    toast.success(`Dados preenchidos pela IA automaticamente${causasCount > 0 ? ` (${causasCount} causas processadas)` : ''}`);
   };
 
   return {
