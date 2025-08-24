@@ -277,6 +277,15 @@ export const useRiskForm = (onSuccess: () => void) => {
       console.log('Causas estruturadas processadas:', causasEstruturadas);
     }
 
+    // Processar recomendações da IA para o campo observações
+    let observacoesCompletas = aiData.observacoes || '';
+    if (aiData.recommendations && aiData.recommendations.length > 0) {
+      const recomendacoes = aiData.recommendations.join('; ');
+      observacoesCompletas = observacoesCompletas 
+        ? `${observacoesCompletas}\n\nRecomendações: ${recomendacoes}`
+        : `Recomendações: ${recomendacoes}`;
+    }
+
     setFormData(prev => ({
       codigo: aiData.codigo || '',
       categoria: aiData.categoria as Database['public']['Enums']['risk_category'] || '',
@@ -289,7 +298,7 @@ export const useRiskForm = (onSuccess: () => void) => {
       estrategia: aiData.estrategia as Database['public']['Enums']['risk_strategy'] || '',
       acoes_mitigacao: aiData.acoes_mitigacao || '',
       acoes_contingencia: aiData.acoes_contingencia || '',
-      observacoes: aiData.observacoes || '',
+      observacoes: observacoesCompletas,
       status: 'IA' as Database['public']['Enums']['risk_status'],
       projeto_id: prev.projeto_id,
       responsavel_id: prev.responsavel_id,
