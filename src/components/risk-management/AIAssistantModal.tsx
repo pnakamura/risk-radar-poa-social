@@ -15,7 +15,7 @@ interface AIAssistantModalProps {
   onAIResponse?: (data: AIRiskResponse) => void;
 }
 
-const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
+const AIAssistantModal = ({ open, onOpenChange, onAIResponse }: AIAssistantModalProps) => {
   console.log('AIAssistantModal rendering - open:', open);
   const [activeTab, setActiveTab] = useState('text');
   const [textInput, setTextInput] = useState('');
@@ -172,6 +172,7 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
             fileInputRef.current.value = '';
           }
           
+          // Não fechar modal no modo no-cors pois não temos dados
           return;
           
         } catch (secondError) {
@@ -222,11 +223,42 @@ const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
       const responseText = await response.text();
       console.log('📄 Resposta do servidor:', responseText);
 
+      // Tentar processar a resposta JSON
+      let aiData = null;
+      try {
+        const jsonResponse = JSON.parse(responseText);
+        console.log('🔍 JSON parseado:', jsonResponse);
+        
+        // A resposta do N8N é um array, pegar o primeiro item
+        if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+          aiData = jsonResponse[0];
+          console.log('✅ Dados da IA extraídos:', aiData);
+        } else if (jsonResponse && typeof jsonResponse === 'object') {
+          aiData = jsonResponse;
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Erro ao fazer parse da resposta JSON:', parseError);
+      }
+
       setSubmitStatus('success');
-      toast({
-        title: "Enviado com sucesso!",
-        description: "Sua solicitação foi enviada para a IA. Verifique o sistema N8N para acompanhar o processamento.",
-      });
+      
+      if (aiData && onAIResponse) {
+        // Chamar callback com os dados da IA
+        onAIResponse(aiData);
+        
+        toast({
+          title: "IA processou com sucesso!",
+          description: "Os dados foram automaticamente preenchidos no formulário.",
+        });
+        
+        // Fechar modal após sucesso
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Enviado com sucesso!",
+          description: "Sua solicitação foi enviada para a IA.",
+        });
+      }
 
       // Reset form
       setTextInput('');

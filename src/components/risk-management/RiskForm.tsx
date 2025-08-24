@@ -18,7 +18,7 @@ interface RiskFormProps {
 
 const RiskForm = ({ onSuccess }: RiskFormProps) => {
   const { profiles, projects } = useSupabaseRiskData();
-  const { formData, isSubmitting, handleChange, handleSubmit, resetForm, generateCode } = useRiskForm(onSuccess);
+  const { formData, isSubmitting, handleChange, handleSubmit, resetForm, generateCode, populateFromAI } = useRiskForm(onSuccess);
   const [aiModalOpen, setAiModalOpen] = useState(false);
 
   return (
@@ -81,7 +81,8 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
       
       <AIAssistantModal 
         open={aiModalOpen} 
-        onOpenChange={setAiModalOpen} 
+        onOpenChange={setAiModalOpen}
+        onAIResponse={populateFromAI}
       />
     </div>
   );
