@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Database } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
 import { generateRiskCode } from '@/utils/riskCodeGenerator';
+import { AIRiskResponse } from '@/types/aiRiskResponse';
 
 interface Cause {
   id?: string;
@@ -236,12 +237,34 @@ export const useRiskForm = (onSuccess: () => void) => {
     }
   };
 
+  const populateFromAI = (aiData: AIRiskResponse) => {
+    setFormData({
+      codigo: aiData.codigo || '',
+      categoria: aiData.categoria as Database['public']['Enums']['risk_category'] || '',
+      descricao_risco: aiData.descricao_risco || '',
+      causas: aiData.causas || '',
+      causas_estruturadas: [],
+      consequencias: aiData.consequencias || '',
+      probabilidade: aiData.probabilidade as Database['public']['Enums']['risk_probability'] || '',
+      impacto: aiData.impacto as Database['public']['Enums']['risk_impact'] || '',
+      estrategia: aiData.estrategia as Database['public']['Enums']['risk_strategy'] || '',
+      acoes_mitigacao: aiData.acoes_mitigacao || '',
+      acoes_contingencia: aiData.acoes_contingencia || '',
+      observacoes: aiData.observacoes || '',
+      status: 'IA',
+      projeto_id: formData.projeto_id,
+      responsavel_id: formData.responsavel_id,
+      prazo: formData.prazo,
+    });
+  };
+
   return {
     formData,
     isSubmitting,
     handleChange,
     handleSubmit,
     resetForm,
-    generateCode
+    generateCode,
+    populateFromAI
   };
 };

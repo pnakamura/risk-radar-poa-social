@@ -10,6 +10,7 @@ import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButt
 import { helpContent } from '@/components/risk-management/help/helpContent';
 import { RefreshCw } from 'lucide-react';
 import { IntelligentCauseEditor } from '../causes/IntelligentCauseEditor';
+import { AIPopulatedBadge } from '@/components/ui/ai-populated-badge';
 
 interface Cause {
   id?: string;
@@ -22,9 +23,10 @@ interface BasicInfoSectionProps {
   onChange: (field: string, value: string | Cause[]) => void;
   onGenerateCode?: () => void;
   projects?: Array<{ id: string; nome: string; }>;
+  isAIPopulated?: boolean;
 }
 
-export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects }: BasicInfoSectionProps) => {
+export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects, isAIPopulated = false }: BasicInfoSectionProps) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
@@ -34,6 +36,7 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
           <div className="flex items-center gap-2 mb-2">
             <Label htmlFor="codigo">Código do Risco *</Label>
             <FieldHelpButton field="codigo" content={helpContent.codigo} />
+            <AIPopulatedBadge show={isAIPopulated && !!formData.codigo} />
           </div>
            <div className="flex gap-2">
              <Input
@@ -70,6 +73,7 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
           <div className="flex items-center gap-2 mb-2">
             <Label htmlFor="categoria">Categoria *</Label>
             <FieldHelpButton field="categoria" content={helpContent.categoria} />
+            <AIPopulatedBadge show={isAIPopulated && !!formData.categoria} />
           </div>
           <Select value={formData.categoria} onValueChange={(value) => onChange('categoria', value)}>
             <SelectTrigger>
@@ -92,6 +96,7 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
         <div className="flex items-center gap-2 mb-2">
           <Label htmlFor="descricao_risco">Nome do Risco *</Label>
           <FieldHelpButton field="descricao_risco" content={helpContent.descricao_risco} />
+          <AIPopulatedBadge show={isAIPopulated && !!formData.descricao_risco} />
         </div>
         <Textarea
           id="descricao_risco"
@@ -119,6 +124,7 @@ export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects 
         <div className="flex items-center gap-2 mb-2">
           <Label htmlFor="consequencias">Consequências</Label>
           <FieldHelpButton field="consequencias" content={helpContent.consequencias} />
+          <AIPopulatedBadge show={isAIPopulated && !!formData.consequencias} />
         </div>
         <Textarea
           id="consequencias"

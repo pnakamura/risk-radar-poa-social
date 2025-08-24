@@ -44,12 +44,13 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <BasicInfoSection 
-              formData={formData} 
-              onChange={handleChange} 
-              onGenerateCode={generateCode}
-              projects={projects}
-            />
+        <BasicInfoSection 
+          formData={formData} 
+          onChange={handleChange} 
+          onGenerateCode={generateCode}
+          projects={projects}
+          isAIPopulated={formData.status === 'IA'}
+        />
             
             <RiskAssessmentSection formData={formData} onChange={handleChange} />
             

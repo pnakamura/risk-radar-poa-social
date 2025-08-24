@@ -400,6 +400,7 @@ export type Database = {
         | "Aceito"
         | "Transferido"
         | "Eliminado"
+        | "IA"
       risk_strategy: "Mitigar" | "Aceitar" | "Transferir" | "Evitar"
       user_role: "admin" | "gestor" | "analista" | "visualizador"
     }
@@ -550,6 +551,7 @@ export const Constants = {
         "Aceito",
         "Transferido",
         "Eliminado",
+        "IA",
       ],
       risk_strategy: ["Mitigar", "Aceitar", "Transferir", "Evitar"],
       user_role: ["admin", "gestor", "analista", "visualizador"],

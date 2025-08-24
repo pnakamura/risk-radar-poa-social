@@ -7,9 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, Upload, FileText, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+import { AIRiskResponse, AIWebhookResponse } from '@/types/aiRiskResponse';
+
 interface AIAssistantModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAIResponse?: (data: AIRiskResponse) => void;
 }
 
 const AIAssistantModal = ({ open, onOpenChange }: AIAssistantModalProps) => {
