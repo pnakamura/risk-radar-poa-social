@@ -156,8 +156,24 @@ export const useRiskForm = (onSuccess: () => void) => {
         return;
       }
 
-      // Validação básica
-      if (!formData.codigo || !formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
+      // Gerar código automaticamente se não existir
+      let codigoFinal = formData.codigo;
+      if (!codigoFinal && formData.projeto_id) {
+        try {
+          const projeto = projects?.find(p => p.id === formData.projeto_id);
+          if (projeto) {
+            codigoFinal = await generateRiskCode(formData.projeto_id, projeto.nome);
+          }
+        } catch (error) {
+          console.error('Erro ao gerar código:', error);
+          toast.error('Erro ao gerar código do risco automaticamente');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Validação básica (sem código obrigatório pois é gerado automaticamente)
+      if (!formData.descricao_risco || !formData.probabilidade || !formData.impacto || !formData.categoria || !formData.estrategia) {
         toast.error('Por favor, preencha todos os campos obrigatórios');
         setIsSubmitting(false);
         return;
@@ -172,7 +188,7 @@ export const useRiskForm = (onSuccess: () => void) => {
         : formData.causas || null;
       
       const riskData = {
-        codigo: formData.codigo,
+        codigo: codigoFinal || formData.codigo,
         categoria: formData.categoria as Database['public']['Enums']['risk_category'],
         descricao_risco: formData.descricao_risco,
         causas: causasString,

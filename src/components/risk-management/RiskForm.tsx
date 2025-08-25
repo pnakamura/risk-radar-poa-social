@@ -50,6 +50,7 @@ const RiskForm = ({ onSuccess }: RiskFormProps) => {
           onGenerateCode={generateCode}
           projects={projects}
           isAIPopulated={formData.status === 'IA'}
+          isEditMode={false}
         />
             
             <RiskAssessmentSection formData={formData} onChange={handleChange} />

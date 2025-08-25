@@ -24,50 +24,57 @@ interface BasicInfoSectionProps {
   onGenerateCode?: () => void;
   projects?: Array<{ id: string; nome: string; }>;
   isAIPopulated?: boolean;
+  isEditMode?: boolean;
 }
 
-export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects, isAIPopulated = false }: BasicInfoSectionProps) => {
+export const BasicInfoSection = ({ formData, onChange, onGenerateCode, projects, isAIPopulated = false, isEditMode = false }: BasicInfoSectionProps) => {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4">Informações Básicas</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Label htmlFor="codigo">Código do Risco *</Label>
-            <FieldHelpButton field="codigo" content={helpContent.codigo} />
-            <AIPopulatedBadge show={isAIPopulated && !!formData.codigo} />
+        {isEditMode ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="codigo">Código do Risco *</Label>
+              <FieldHelpButton field="codigo" content={helpContent.codigo} />
+              <AIPopulatedBadge show={isAIPopulated && !!formData.codigo} />
+            </div>
+             <div className="flex gap-2">
+               <Input
+                 id="codigo"
+                 value={formData.codigo}
+                 onChange={(e) => onChange('codigo', e.target.value)}
+                 placeholder="Ex: BID-R-001"
+                 required
+                 className="flex-1"
+               />
+              {onGenerateCode && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onGenerateCode}
+                  disabled={!formData.projeto_id}
+                  className="px-3"
+                  title="Gerar código automaticamente"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
-           <div className="flex gap-2">
-             <Input
-               id="codigo"
-               value={formData.codigo}
-               onChange={(e) => onChange('codigo', e.target.value)}
-               placeholder="Ex: BID-R-001 (gerado automaticamente)"
-               required
-               className="flex-1"
-               readOnly={!!formData.codigo && formData.codigo.includes('-R-')}
-             />
-            {onGenerateCode && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onGenerateCode}
-                disabled={!formData.projeto_id}
-                className="px-3"
-                title="Gerar código automaticamente"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-            )}
+        ) : (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Label>Código do Risco</Label>
+              <FieldHelpButton field="codigo" content={helpContent.codigo} />
+            </div>
+            <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border border-dashed">
+              O código será gerado automaticamente ao salvar o risco
+            </div>
           </div>
-           {formData.codigo && formData.codigo.includes('-R-') && (
-             <p className="text-xs text-muted-foreground mt-1">
-               💡 Código gerado automaticamente
-             </p>
-           )}
-        </div>
+        )}
         
         <div>
           <div className="flex items-center gap-2 mb-2">
