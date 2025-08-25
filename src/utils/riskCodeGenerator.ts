@@ -96,3 +96,41 @@ export const validateRiskCodeUniqueness = async (codigo: string): Promise<boolea
     return false;
   }
 };
+
+/**
+ * Generates a unique risk code, trying multiple attempts if conflicts occur
+ */
+export const generateUniqueRiskCode = async (projectId: string, projectName: string, maxAttempts: number = 10): Promise<string> => {
+  if (!projectId || !projectName) {
+    return '';
+  }
+
+  try {
+    const acronym = generateProjectAcronym(projectName);
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Get next sequential considering current conflicts
+      const sequential = await getNextRiskSequential(projectId);
+      const paddedSequential = (sequential + attempt).toString().padStart(3, '0');
+      const candidateCode = `${acronym}-R-${paddedSequential}`;
+      
+      console.log(`Attempt ${attempt + 1}: Checking uniqueness of code ${candidateCode}`);
+      
+      const isUnique = await validateRiskCodeUniqueness(candidateCode);
+      if (isUnique) {
+        console.log(`Found unique code: ${candidateCode}`);
+        return candidateCode;
+      }
+    }
+    
+    // Fallback: use timestamp if all attempts failed
+    const timestamp = Date.now().toString().slice(-6);
+    const fallbackCode = `${acronym}-R-${timestamp}`;
+    console.warn(`Using timestamp fallback code: ${fallbackCode}`);
+    
+    return fallbackCode;
+  } catch (error) {
+    console.error('Error generating unique risk code:', error);
+    return '';
+  }
+};

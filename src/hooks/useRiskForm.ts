@@ -6,7 +6,7 @@ import { useCausesData } from '@/hooks/useCausesData';
 import { useAuth } from '@/hooks/useAuth';
 import { Database } from '@/integrations/supabase/types';
 import { calculateRiskLevel } from '@/utils/riskCalculations';
-import { generateRiskCode } from '@/utils/riskCodeGenerator';
+import { generateRiskCode, validateRiskCodeUniqueness, generateUniqueRiskCode } from '@/utils/riskCodeGenerator';
 import { AIRiskResponse } from '@/types/aiRiskResponse';
 
 interface Cause {
@@ -162,7 +162,26 @@ export const useRiskForm = (onSuccess: () => void) => {
         try {
           const projeto = projects?.find(p => p.id === formData.projeto_id);
           if (projeto) {
+            console.log('Generating risk code for project:', projeto.nome);
             codigoFinal = await generateRiskCode(formData.projeto_id, projeto.nome);
+            
+            // Validate uniqueness
+            if (codigoFinal) {
+              const isUnique = await validateRiskCodeUniqueness(codigoFinal);
+              if (!isUnique) {
+                console.warn('Generated code already exists, regenerating...', codigoFinal);
+                codigoFinal = await generateUniqueRiskCode(formData.projeto_id, projeto.nome);
+                if (codigoFinal) {
+                  console.log('Generated unique code:', codigoFinal);
+                } else {
+                  toast.error('Erro ao gerar código único do risco');
+                  setIsSubmitting(false);
+                  return;
+                }
+              } else {
+                console.log('Generated code is unique:', codigoFinal);
+              }
+            }
           }
         } catch (error) {
           console.error('Erro ao gerar código:', error);
@@ -303,7 +322,8 @@ export const useRiskForm = (onSuccess: () => void) => {
     }
 
     setFormData(prev => ({
-      codigo: aiData.codigo || '',
+      // Ignore AI-generated codigo to prevent conflicts - will be auto-generated on submit
+      codigo: '',
       categoria: aiData.categoria as Database['public']['Enums']['risk_category'] || '',
       descricao_risco: aiData.descricao_risco || '',
       causas: aiData.causas || '',
