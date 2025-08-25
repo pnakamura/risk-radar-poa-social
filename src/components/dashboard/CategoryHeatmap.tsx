@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { CategoryHealthScore } from '@/utils/riskHealthCalculations';
 
 interface CategoryHeatmapProps {
@@ -39,60 +40,122 @@ export const CategoryHeatmap = ({ categoryScores, onCellClick, isMobile = false 
         </CardTitle>
       </CardHeader>
       <CardContent className={isMobile ? 'px-2 py-3' : ''}>
-        <div className="overflow-x-auto">
-          <div className={isMobile ? 'min-w-[320px]' : 'min-w-[600px]'}>
-            {/* Header com níveis de risco */}
-            <div className="grid grid-cols-5 gap-1 mb-2">
-              <div className={`font-medium text-muted-foreground p-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                Categoria
-              </div>
-              {riskLevels.map(level => (
-                <div key={level} className={`font-medium text-center p-2 bg-muted rounded ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                  {isMobile ? level.substr(0, 4) : level}
+        {isMobile ? (
+          <ScrollArea className="w-full">
+            <div className="min-w-[400px] space-y-2">
+              {/* Header com níveis de risco */}
+              <div className="grid grid-cols-5 gap-1 mb-2 sticky top-0 bg-background pb-2">
+                <div className="font-medium text-muted-foreground text-xs p-1">
+                  Categoria
                 </div>
-              ))}
-            </div>
-
-            {/* Grid principal */}
-            <div className="space-y-1">
-              {categoryScores.map(categoryScore => (
-                <div key={categoryScore.category} className="grid grid-cols-5 gap-1">
-                  {/* Nome da categoria */}
-                  <div className={`font-medium bg-muted/50 rounded flex items-center justify-between ${isMobile ? 'text-xs p-1.5' : 'text-sm p-2'}`}>
-                    <span className="truncate">{isMobile ? categoryScore.category.substr(0, 8) : categoryScore.category}</span>
-                    <Badge variant="outline" className={`ml-1 ${isMobile ? 'text-xs px-1 py-0' : 'text-xs ml-2'}`}>
-                      {categoryScore.risks.length}
-                    </Badge>
+                {riskLevels.map(level => (
+                  <div key={level} className="font-medium text-center text-xs p-1 bg-muted rounded">
+                    {level.substr(0, 4)}
                   </div>
-                  
-                  {/* Células do heatmap */}
-                  {riskLevels.map(level => {
-                    const { count, total } = getCellData(categoryScore.category, level);
-                    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                ))}
+              </div>
+
+              {/* Grid principal */}
+              <div className="space-y-1">
+                {categoryScores.map(categoryScore => (
+                  <div key={categoryScore.category} className="grid grid-cols-5 gap-1">
+                    {/* Nome da categoria */}
+                    <div className="font-medium bg-muted/50 rounded flex flex-col justify-center text-xs p-1.5 min-h-[40px]">
+                      <span className="truncate leading-tight">
+                        {categoryScore.category.length > 10 
+                          ? categoryScore.category.substr(0, 10) + '...' 
+                          : categoryScore.category
+                        }
+                      </span>
+                      <Badge variant="outline" className="text-xs px-1 py-0 mt-1 self-start">
+                        {categoryScore.risks.length}
+                      </Badge>
+                    </div>
                     
-                    return (
-                      <div
-                        key={`${categoryScore.category}-${level}`}
-                        className={`
-                          rounded text-center cursor-pointer transition-colors
-                          ${getCellColor(count, total)}
-                          border border-transparent ${isMobile ? 'active:scale-95 p-1.5' : 'hover:border-primary/50 p-2'}
-                        `}
-                        onClick={() => onCellClick?.(categoryScore.category, level)}
-                        title={`${categoryScore.category} - ${level}: ${count}/${total} riscos (${percentage}%)`}
-                      >
-                        <div className={`font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{count}</div>
-                        {percentage > 0 && (
-                          <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>{percentage}%</div>
-                        )}
-                      </div>
-                    );
-                  })}
+                    {/* Células do heatmap */}
+                    {riskLevels.map(level => {
+                      const { count, total } = getCellData(categoryScore.category, level);
+                      const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                      
+                      return (
+                        <div
+                          key={`${categoryScore.category}-${level}`}
+                          className={`
+                            rounded text-center cursor-pointer transition-all duration-200
+                            ${getCellColor(count, total)}
+                            border border-transparent active:scale-95 p-1.5 min-h-[40px] flex flex-col justify-center
+                          `}
+                          onClick={() => onCellClick?.(categoryScore.category, level)}
+                          title={`${categoryScore.category} - ${level}: ${count}/${total} riscos (${percentage}%)`}
+                        >
+                          <div className="font-bold text-xs">{count}</div>
+                          {percentage > 0 && (
+                            <div className="text-muted-foreground text-xs">{percentage}%</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ScrollArea>
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px]">
+              {/* Header com níveis de risco */}
+              <div className="grid grid-cols-5 gap-1 mb-2">
+                <div className="font-medium text-muted-foreground p-2 text-sm">
+                  Categoria
                 </div>
-              ))}
+                {riskLevels.map(level => (
+                  <div key={level} className="font-medium text-center p-2 bg-muted rounded text-xs">
+                    {level}
+                  </div>
+                ))}
+              </div>
+
+              {/* Grid principal */}
+              <div className="space-y-1">
+                {categoryScores.map(categoryScore => (
+                  <div key={categoryScore.category} className="grid grid-cols-5 gap-1">
+                    {/* Nome da categoria */}
+                    <div className="font-medium bg-muted/50 rounded flex items-center justify-between text-sm p-2">
+                      <span className="truncate">{categoryScore.category}</span>
+                      <Badge variant="outline" className="text-xs ml-2">
+                        {categoryScore.risks.length}
+                      </Badge>
+                    </div>
+                    
+                    {/* Células do heatmap */}
+                    {riskLevels.map(level => {
+                      const { count, total } = getCellData(categoryScore.category, level);
+                      const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                      
+                      return (
+                        <div
+                          key={`${categoryScore.category}-${level}`}
+                          className={`
+                            rounded text-center cursor-pointer transition-colors
+                            ${getCellColor(count, total)}
+                            border border-transparent hover:border-primary/50 p-2
+                          `}
+                          onClick={() => onCellClick?.(categoryScore.category, level)}
+                          title={`${categoryScore.category} - ${level}: ${count}/${total} riscos (${percentage}%)`}
+                        >
+                          <div className="font-bold text-sm">{count}</div>
+                          {percentage > 0 && (
+                            <div className="text-muted-foreground text-xs">{percentage}%</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Legenda */}
         <div className={`p-3 bg-muted/30 rounded ${isMobile ? 'mt-3' : 'mt-4'}`}>

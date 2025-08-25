@@ -3,6 +3,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoryHealthScore } from '@/utils/riskHealthCalculations';
 import { getChartPalette } from '@/utils/theme';
+import { normalizeScore } from '@/utils/scoreNormalization';
 
 interface CategoryRadarChartProps {
   categoryScores: CategoryHealthScore[];
@@ -11,9 +12,9 @@ interface CategoryRadarChartProps {
 
 export const CategoryRadarChart = ({ categoryScores, isMobile = false }: CategoryRadarChartProps) => {
   const data = categoryScores.map(cat => ({
-    category: cat.category.substring(0, 8), // Truncar para melhor visualização
-    score: cat.healthScore.finalScore,
-    benchmark: cat.benchmarkScore,
+    category: isMobile ? cat.category.substring(0, 6) : cat.category.substring(0, 8),
+    score: normalizeScore(cat.healthScore.finalScore),
+    benchmark: normalizeScore(cat.benchmarkScore),
     fullName: cat.category
   }));
 
@@ -35,7 +36,7 @@ export const CategoryRadarChart = ({ categoryScores, isMobile = false }: Categor
               />
               <PolarRadiusAxis 
                 angle={90} 
-                domain={[0, 85]} 
+                domain={[0, 100]} 
                 tick={{ fontSize: isMobile ? 6 : 8, fill: getChartPalette().muted }}
                 tickFormatter={(v) => `${v}`}
               />

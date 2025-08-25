@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { TrendingUp, TrendingDown, Minus, Award, Target, AlertTriangle, CheckCircle2, Clock, Zap, BarChart3, Layers } from 'lucide-react';
 import { FieldHelpButton } from '@/components/risk-management/help/FieldHelpButton';
 import { helpContent } from '@/components/risk-management/help/helpContent';
@@ -18,6 +19,12 @@ import {
   calculateCategoryHealthScores,
   calculateWeightedOverallScore
 } from '@/utils/riskHealthCalculations';
+import { 
+  normalizeScore, 
+  getSemanticScoreColor, 
+  getScoreLabel, 
+  getScoreTrendIcon 
+} from '@/utils/scoreNormalization';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -48,24 +55,14 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
   const categoryScores = calculateCategoryHealthScores(filteredRisks);
   const weightedOverallScore = calculateWeightedOverallScore(categoryScores);
   
-  const healthScore = weightedOverallScore || healthScoreBreakdown.finalScore;
+  const rawHealthScore = weightedOverallScore || healthScoreBreakdown.finalScore;
+  const normalizedHealthScore = normalizeScore(rawHealthScore);
   
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-risk-excellent bg-risk-excellent-bg border-risk-excellent-border shadow-lg shadow-risk-excellent/20';
-    if (score >= 50) return 'text-risk-good bg-risk-good-bg border-risk-good-border shadow-lg shadow-risk-good/20';
-    return 'text-risk-critical bg-risk-critical-bg border-risk-critical-border shadow-lg shadow-risk-critical/20';
-  };
-
-  const getScoreIcon = (score: number) => {
-    if (score >= 70) return <TrendingUp className="w-5 h-5 text-risk-excellent animate-pulse" />;
-    if (score >= 50) return <Minus className="w-5 h-5 text-risk-good" />;
+  const getScoreIcon = (normalizedScore: number) => {
+    if (normalizedScore >= 81) return <TrendingUp className="w-5 h-5 text-risk-excellent animate-pulse" />;
+    if (normalizedScore >= 61) return <Minus className="w-5 h-5 text-risk-good" />;
+    if (normalizedScore >= 41) return <TrendingDown className="w-5 h-5 text-risk-warning" />;
     return <TrendingDown className="w-5 h-5 text-risk-critical animate-bounce" />;
-  };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 70) return 'Excelente';
-    if (score >= 50) return 'Boa';
-    return 'Requer Atenção Urgente';
   };
 
   const getBadges = () => {
@@ -130,7 +127,7 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
   };
 
   return (
-    <Card className={`border-2 transition-all duration-300 hover-lift ${getScoreColor(healthScore)}`}>
+    <Card className={`border-2 transition-all duration-300 hover-lift ${getSemanticScoreColor(normalizedHealthScore)}`}>
       <CardHeader className={`pb-3 ${isMobile ? 'px-4 py-3' : ''}`}>
         <CardTitle className={`flex items-center ${isMobile ? 'flex-col gap-3' : 'justify-between'}`}>
           <div className={`flex items-center gap-2 ${isMobile ? 'flex-col text-center' : ''}`}>
@@ -148,7 +145,7 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
             )}
           </div>
           <div className={`flex items-center gap-2 ${isMobile ? 'flex-col' : ''}`}>
-            {getScoreIcon(healthScore)}
+            {getScoreIcon(normalizedHealthScore)}
             {isMobile && (
               <FieldHelpButton 
                 field="risk_health_score" 
@@ -161,41 +158,59 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
       
       <CardContent className={isMobile ? 'px-4 py-3' : ''}>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 gap-1' : 'grid-cols-4'}`}>
-            <TabsTrigger value="overview" className={`${isMobile ? 'text-xs px-2 py-2' : 'text-xs'}`}>
-              <BarChart3 className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3 mr-1'}`} />
-              {!isMobile && 'Geral'}
-            </TabsTrigger>
-            <TabsTrigger value="categories" className={`${isMobile ? 'text-xs px-2 py-2' : 'text-xs'}`}>
-              <Layers className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3 mr-1'}`} />
-              {!isMobile && 'Categorias'}
-            </TabsTrigger>
-            <TabsTrigger value="radar" className={`${isMobile ? 'text-xs px-2 py-2' : 'text-xs'}`}>
-              <Target className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3 mr-1'}`} />
-              {!isMobile && 'Radar'}
-            </TabsTrigger>
-            <TabsTrigger value="heatmap" className={`${isMobile ? 'text-xs px-2 py-2' : 'text-xs'}`}>
-              <Zap className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3 mr-1'}`} />
-              {!isMobile && 'Mapa'}
-            </TabsTrigger>
-          </TabsList>
-          {isMobile && (
-            <div className="flex justify-center mt-2">
-              <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                <span>📊 Geral</span>
-                <span>📁 Categorias</span>
-                <span>🎯 Radar</span>
-                <span>⚡ Mapa</span>
-              </div>
-            </div>
+          {isMobile ? (
+            <ScrollArea className="w-full">
+              <TabsList className="inline-flex w-max min-w-full">
+                <TabsTrigger value="overview" className="text-xs px-3 py-2 flex-shrink-0">
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Geral
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="text-xs px-3 py-2 flex-shrink-0">
+                  <Layers className="w-4 h-4 mr-1" />
+                  Categorias
+                </TabsTrigger>
+                <TabsTrigger value="radar" className="text-xs px-3 py-2 flex-shrink-0">
+                  <Target className="w-4 h-4 mr-1" />
+                  Radar
+                </TabsTrigger>
+                <TabsTrigger value="heatmap" className="text-xs px-3 py-2 flex-shrink-0">
+                  <Zap className="w-4 h-4 mr-1" />
+                  Mapa
+                </TabsTrigger>
+              </TabsList>
+            </ScrollArea>
+          ) : (
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview" className="text-xs">
+                <BarChart3 className="w-3 h-3 mr-1" />
+                Geral
+              </TabsTrigger>
+              <TabsTrigger value="categories" className="text-xs">
+                <Layers className="w-3 h-3 mr-1" />
+                Categorias
+              </TabsTrigger>
+              <TabsTrigger value="radar" className="text-xs">
+                <Target className="w-3 h-3 mr-1" />
+                Radar
+              </TabsTrigger>
+              <TabsTrigger value="heatmap" className="text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                Mapa
+              </TabsTrigger>
+            </TabsList>
           )}
 
           <TabsContent value="overview" className={`space-y-4 ${isMobile ? 'mt-2' : 'mt-4'}`}>
             {/* Score principal */}
             <div className="text-center">
-              <div className={`font-bold mb-2 animate-fade-in ${isMobile ? 'text-3xl' : 'text-4xl'}`}>{healthScore}</div>
+              <div className={`font-bold mb-2 animate-fade-in ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
+                {normalizedHealthScore}
+                <span className={`text-lg ml-2 ${isMobile ? 'block text-base mt-1' : ''}`}>
+                  {getScoreTrendIcon(normalizedHealthScore)}
+                </span>
+              </div>
               <div className={`font-medium text-muted-foreground mb-3 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                {getScoreLabel(healthScore)}
+                {getScoreLabel(normalizedHealthScore)}
                 {categoryScores.length > 1 && (
                   <span className={`block text-muted-foreground ${isMobile ? 'text-xs mt-1' : 'text-xs'}`}>
                     Score Ponderado por {categoryScores.length} Categorias
@@ -206,8 +221,11 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
                     Filtrado para {filteredRisks.length} riscos
                   </span>
                 )}
+                <span className={`block text-xs text-muted-foreground/70 mt-1`}>
+                  Score Original: {rawHealthScore}/85 → Normalizado: {normalizedHealthScore}/100
+                </span>
               </div>
-              <Progress value={healthScore} className={`transition-all duration-500 ${isMobile ? 'h-2' : 'h-3'}`} />
+              <Progress value={normalizedHealthScore} className={`transition-all duration-500 ${isMobile ? 'h-2' : 'h-3'}`} />
             </div>
 
             {/* Dashboard de Progresso da Mitigação */}
@@ -275,7 +293,7 @@ export const RiskHealthScore = ({ risks, selectedProject, onCategoryFilter }: Ri
             )}
 
             {/* Dicas gerais quando score bom */}
-            {healthScore >= 70 && suggestions.length === 0 && (
+            {normalizedHealthScore >= 81 && suggestions.length === 0 && (
               <div className={`text-risk-excellent bg-risk-excellent-bg rounded border border-risk-excellent-border animate-pulse ${isMobile ? 'text-xs p-3 text-center' : 'text-xs p-2'}`}>
                 🎉 Excelente gestão de riscos! Continue monitorando e atualizando.
               </div>

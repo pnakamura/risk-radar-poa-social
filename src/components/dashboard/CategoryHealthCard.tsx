@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CategoryHealthScore } from '@/utils/riskHealthCalculations';
+import { normalizeScore, getSemanticScoreColor, getScoreLabel } from '@/utils/scoreNormalization';
 
 interface CategoryHealthCardProps {
   categoryScore: CategoryHealthScore;
@@ -23,11 +24,12 @@ interface CategoryHealthCardProps {
 export const CategoryHealthCard = ({ categoryScore, onCategoryClick }: CategoryHealthCardProps) => {
   const isMobile = useIsMobile();
   const { category, healthScore, mitigationMetrics, benchmarkScore, insights, trend, priority } = categoryScore;
+  const rawScore = healthScore.finalScore;
+  const normalizedScore = normalizeScore(rawScore);
+  const normalizedBenchmark = normalizeScore(benchmarkScore);
   
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return 'border-risk-excellent-border bg-risk-excellent-bg shadow-lg shadow-risk-excellent/10';
-    if (score >= 50) return 'border-risk-good-border bg-risk-good-bg shadow-lg shadow-risk-good/10';
-    return 'border-risk-critical-border bg-risk-critical-bg shadow-lg shadow-risk-critical/10';
+  const getScoreColor = (normalizedScore: number) => {
+    return getSemanticScoreColor(normalizedScore).replace('text-', 'border-').replace(' bg-', ' bg-').replace(' border-', ' border-') + ' shadow-lg';
   };
 
   const getTrendIcon = () => {
@@ -85,14 +87,16 @@ export const CategoryHealthCard = ({ categoryScore, onCategoryClick }: CategoryH
 
   return (
     <Card 
-      className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover-lift border-2 ${getScoreColor(healthScore.finalScore)} ${isMobile ? 'active:scale-95' : 'hover:scale-[1.02]'}`}
+      className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover-lift border-2 ${getScoreColor(normalizedScore)} ${isMobile ? 'active:scale-95' : 'hover:scale-[1.02]'}`}
       onClick={() => onCategoryClick?.(category)}
     >
       <CardHeader className={isMobile ? 'pb-2 px-3 py-3' : 'pb-3'}>
         <CardTitle className={`flex items-center ${isMobile ? 'flex-col gap-2 text-sm' : 'justify-between text-base'}`}>
           <div className={`flex items-center gap-2 ${isMobile ? 'flex-col text-center' : ''}`}>
             {getCategoryIcon()}
-            <span className="font-bold">{category}</span>
+            <span className={`font-bold ${isMobile ? 'text-sm break-words text-center max-w-[140px] leading-tight' : ''}`}>
+              {category}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             {getTrendIcon()}
@@ -104,11 +108,19 @@ export const CategoryHealthCard = ({ categoryScore, onCategoryClick }: CategoryH
       <CardContent className={`${isMobile ? 'space-y-3 px-3 py-2' : 'space-y-4'}`}>
         {/* Score principal */}
         <div className="text-center">
-          <div className={`font-bold mb-1 animate-fade-in ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{healthScore.finalScore}</div>
-          <div className={`text-muted-foreground mb-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
-            Meta: {benchmarkScore} | {categoryScore.risks.length} riscos
+          <div className={`font-bold mb-1 animate-fade-in ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+            {normalizedScore}
           </div>
-          <Progress value={healthScore.finalScore} className={`transition-all duration-500 ${isMobile ? 'h-1.5' : 'h-2'}`} />
+          <div className={`text-muted-foreground mb-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+            <div>{getScoreLabel(normalizedScore)}</div>
+            <div className="text-xs opacity-70 mt-1">
+              Meta: {normalizedBenchmark} | {categoryScore.risks.length} riscos
+            </div>
+            <div className="text-xs opacity-60 mt-1">
+              {rawScore}/85 → {normalizedScore}/100
+            </div>
+          </div>
+          <Progress value={normalizedScore} className={`transition-all duration-500 ${isMobile ? 'h-1.5' : 'h-2'}`} />
         </div>
 
         {/* Métricas compactas */}
@@ -131,7 +143,7 @@ export const CategoryHealthCard = ({ categoryScore, onCategoryClick }: CategoryH
         {insights.length > 0 && (
           <div className="space-y-1">
             {insights.slice(0, isMobile ? 1 : 2).map((insight, index) => (
-              <div key={index} className={`text-muted-foreground bg-muted/30 rounded transition-all duration-200 ${isMobile ? 'text-xs p-2 text-center hover:bg-muted/50' : 'text-xs p-2 hover:bg-muted/50'}`}>
+              <div key={index} className={`text-muted-foreground bg-muted/30 rounded transition-all duration-200 ${isMobile ? 'text-xs p-2 text-center hover:bg-muted/50 break-words leading-tight' : 'text-xs p-2 hover:bg-muted/50 break-words'}`}>
                 💡 {insight}
               </div>
             ))}
