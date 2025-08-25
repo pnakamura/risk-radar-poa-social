@@ -358,19 +358,20 @@ Foco na resposta rápida e eficaz quando o risco ocorre.`,
   risk_health_score: {
     field: 'risk_health_score',
     title: 'Risk Health Score',
-    definition: 'Métrica avançada de saúde organizacional que avalia a maturidade e eficácia da gestão de riscos através de um sistema de pontuação calibrado (0-85 pontos). Combina análise quantitativa de distribuição de riscos, qualidade das ações de mitigação, progresso de implementação e aderência às melhores práticas de governança. Utiliza algoritmo multi-dimensional que aplica penalidades proporcionais aos riscos críticos e recompensa apenas resultados concretos de mitigação, fornecendo uma visão realista e acionável do estado da gestão de riscos.',
-    iso31000Guidelines: `O Risk Health Score v2.0 alinha-se rigorosamente aos princípios da ISO 31000:
+    definition: 'Métrica avançada de saúde organizacional que avalia a maturidade e eficácia da gestão de riscos através de um sistema de pontuação normalizado (0-100 pontos). Combina análise quantitativa de distribuição de riscos, qualidade das ações de mitigação, progresso de implementação e aderência às melhores práticas de governança. O score é calculado internamente em escala 0-85 e normalizado para 0-100 para melhor interpretação e comparação com benchmarks de mercado.',
+    iso31000Guidelines: `O Risk Health Score v3.0 alinha-se rigorosamente aos princípios da ISO 31000:
 • Monitoramento contínuo baseado em métricas objetivas
-• Transparência na comunicação através de score interpretável
+• Transparência na comunicação através de score interpretável (0-100)
 • Melhoria contínua por identificação de gaps críticos
 • Decisão baseada em evidências quantificadas
 • Gestão proporcional ao nível de risco identificado
 
-Este indicador reflete a maturidade real da gestão e urgência de ações corretivas.`,
-    howToFill: `O score é calculado automaticamente pelo sistema v2.0 com metodologia recalibrada:
+Este indicador reflete a maturidade real da gestão e urgência de ações corretivas em escala padronizada.`,
+    howToFill: `O score é calculado automaticamente pelo sistema v3.0 com metodologia normalizada:
 
 🎯 FÓRMULA BASE CONSERVADORA:
-• Score inicial: 60 pontos (ao invés de 100)
+• Score interno: calculado em escala 0-85 pontos
+• Score apresentado: normalizado para escala 0-100 pontos
 • Score máximo possível: 85 pontos
 
 ⚠️ PENALIDADES SEVERAS POR RISCO:
@@ -395,9 +396,9 @@ Este indicador reflete a maturidade real da gestão e urgência de ações corre
 • Progresso de mitigação: apenas se eficiência >50%
 • Riscos efetivamente mitigados: proporcional ao total
 
-📊 FAIXAS DE INTERPRETAÇÃO DETALHADAS:
+📊 FAIXAS DE INTERPRETAÇÃO NORMALIZADAS (0-100):
 
-🟢 EXCELENTE (70-85 pontos):
+🟢 EXCELENTE (81-100 pontos):
 • Gestão de riscos exemplar e madura
 • Portfolio equilibrado com poucos riscos críticos (<20%)
 • Ações de mitigação robustas com responsáveis e prazos definidos
@@ -405,29 +406,43 @@ Este indicador reflete a maturidade real da gestão e urgência de ações corre
 • Processos bem estruturados e em conformidade com melhores práticas
 • Indicador de organização com governança sólida
 
-🟡 BOA (50-69 pontos):
-• Gestão adequada com oportunidades de melhoria identificadas
+🟡 BOM (61-80 pontos):
+• Gestão sólida com oportunidades de melhoria identificadas
 • Presença moderada de riscos críticos (20-40%)
 • Maioria das ações possui responsáveis, alguns prazos indefinidos
 • Eficiência de mitigação moderada (40-70%)
 • Processos estabelecidos mas com gaps pontuais
 • Necessita refinamentos para alcançar excelência
 
-🔴 REQUER ATENÇÃO URGENTE (0-49 pontos):
-• Situação crítica que demanda intervenção imediata
-• Alta concentração de riscos críticos (>40%)
+🟠 REGULAR (41-60 pontos):
+• Gestão funcional mas com melhorias estruturais necessárias
+• Presença significativa de riscos críticos (30-50%)
+• Ações básicas definidas, responsabilidades parciais
+• Eficiência de mitigação limitada (30-50%)
+• Processos em desenvolvimento, controles básicos
+
+🔴 RUIM (21-40 pontos):
+• Gestão deficiente, ação corretiva urgente necessária
+• Alta concentração de riscos críticos (>50%)
 • Deficiências significativas em responsabilidades e prazos
-• Baixa eficiência de mitigação (<40%)
-• Processos de gestão imaturos ou inexistentes
+• Baixa eficiência de mitigação (<30%)
+• Processos de gestão imaturos
+
+🚨 CRÍTICO (0-20 pontos):
+• Situação crítica que demanda intervenção executiva imediata
+• Concentração extrema de riscos críticos (>60%)
+• Gestão praticamente inexistente
+• Eficiência de mitigação muito baixa (<20%)
 • Exposição elevada a impactos organizacionais severos
 
-📋 INDICADORES ESPECÍFICOS POR FAIXA:
-• Score 80-85: Benchmarking de mercado, governança exemplar
-• Score 70-79: Gestão sólida, refinamentos pontuais
-• Score 60-69: Gestão funcional, melhorias estruturais necessárias
-• Score 50-59: Gestão básica, revisão de processos recomendada
-• Score 30-49: Gestão deficiente, ação corretiva urgente
-• Score 0-29: Gestão crítica, intervenção executiva imediata
+📋 INDICADORES ESPECÍFICOS POR FAIXA NORMALIZADA:
+• Score 90-100: Benchmarking de mercado, governança exemplar
+• Score 81-89: Gestão sólida, refinamentos pontuais
+• Score 71-80: Gestão funcional, melhorias estruturais necessárias
+• Score 61-70: Gestão básica, revisão de processos recomendada
+• Score 41-60: Gestão com gaps, ações corretivas necessárias
+• Score 21-40: Gestão deficiente, ação corretiva urgente
+• Score 0-20: Gestão crítica, intervenção executiva imediata
 
 🔍 MÉTRICAS COMPLEMENTARES EXPOSTAS:
 • Dashboard de progresso de mitigação (ações → execução → mitigação)
@@ -435,11 +450,11 @@ Este indicador reflete a maturidade real da gestão e urgência de ações corre
 • Qualidade média das ações de mitigação
 • Badges de conquistas por marcos atingidos`,
     examples: [
-      'Score 75: Portfolio balanceado, poucos críticos, todos com ações detalhadas e responsáveis',
-      'Score 50: Gestão adequada, mas muitos riscos sem prazo ou ações superficiais',
-      'Score 25: Portfolio com muitos críticos, gestão deficiente, ações insuficientes',
-      'Score 12: Situação crítica - 60% riscos críticos, 87% sem prazo definido',
-      'Score 60: Portfolio inicial limpo, baseline para novos projetos'
+      'Score 88: Portfolio balanceado, poucos críticos, todos com ações detalhadas e responsáveis',
+      'Score 65: Gestão adequada, mas muitos riscos sem prazo ou ações superficiais',
+      'Score 35: Portfolio com muitos críticos, gestão deficiente, ações insuficientes',
+      'Score 15: Situação crítica - 60% riscos críticos, 87% sem prazo definido',
+      'Score 71: Portfolio inicial limpo, baseline para novos projetos'
     ],
     criteria: [
       'Metodologia científica e calibrada com dados reais',

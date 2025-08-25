@@ -123,42 +123,45 @@ export const CategoryHealthCard = ({ categoryScore, onCategoryClick }: CategoryH
           <Progress value={normalizedScore} className={`transition-all duration-500 ${isMobile ? 'h-1.5' : 'h-2'}`} />
         </div>
 
-        {/* Métricas compactas */}
-        <div className={`grid grid-cols-3 gap-2 text-center text-xs ${isMobile ? 'gap-1' : ''}`}>
-          <div className={`rounded bg-category-compliance-bg/30 transition-all duration-200 ${isMobile ? 'p-2 active:scale-95' : 'p-1 hover:scale-105'}`}>
+        {/* Métricas simplificadas - foco no essencial */}
+        <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className="text-center">
             <div className="font-semibold text-category-compliance">{mitigationMetrics.risksWithActions}</div>
-            <div className="text-muted-foreground">Ações</div>
+            <div className="text-muted-foreground text-xs">Com Ações</div>
           </div>
-          <div className={`rounded bg-risk-warning-bg/30 transition-all duration-200 ${isMobile ? 'p-2 active:scale-95' : 'p-1 hover:scale-105'}`}>
-            <div className="font-semibold text-risk-warning">{mitigationMetrics.risksInProgress}</div>
-            <div className="text-muted-foreground">Progresso</div>
+          <div className="text-center">
+            <div className="font-semibold text-risk-warning">{mitigationMetrics.effectivelyMitigated}</div>
+            <div className="text-muted-foreground text-xs">Mitigados</div>
           </div>
-          <div className={`rounded bg-risk-excellent-bg/30 transition-all duration-200 ${isMobile ? 'p-2 active:scale-95' : 'p-1 hover:scale-105'}`}>
-            <div className="font-semibold text-risk-excellent">{mitigationMetrics.effectivelyMitigated}</div>
-            <div className="text-muted-foreground">Mitigados</div>
+          <div className="text-center">
+            <div className="font-semibold text-risk-critical">{categoryScore.risks.filter(r => r.nivel_risco === 'Crítico').length}</div>
+            <div className="text-muted-foreground text-xs">Críticos</div>
           </div>
         </div>
 
-        {/* Insights principais */}
+        {/* Insight principal - apenas o mais relevante */}
         {insights.length > 0 && (
-          <div className="space-y-1">
-            {insights.slice(0, isMobile ? 1 : 2).map((insight, index) => (
-              <div key={index} className={`text-muted-foreground bg-muted/30 rounded transition-all duration-200 ${isMobile ? 'text-xs p-2 text-center hover:bg-muted/50 break-words leading-tight' : 'text-xs p-2 hover:bg-muted/50 break-words'}`}>
-                💡 {insight}
-              </div>
-            ))}
+          <div className={`text-muted-foreground bg-muted/30 rounded transition-all duration-200 hover:bg-muted/50 ${isMobile ? 'text-xs p-2 text-center break-words leading-tight' : 'text-xs p-2 break-words'}`}>
+            💡 {insights[0]}
           </div>
         )}
 
-        {/* Distribuição de riscos críticos */}
-        {categoryScore.risks.filter(r => r.nivel_risco === 'Crítico').length > 0 && (
-          <div className={`flex items-center gap-2 text-xs ${isMobile ? 'justify-center' : ''}`}>
-            <AlertTriangle className="w-3 h-3 text-risk-critical animate-pulse" />
-            <span className="text-risk-critical font-medium">
-              {categoryScore.risks.filter(r => r.nivel_risco === 'Crítico').length} críticos
-            </span>
+        {/* Status visual resumido */}
+        <div className={`flex items-center justify-between text-xs ${isMobile ? 'mt-2' : ''}`}>
+          <div className="flex items-center gap-1">
+            {getTrendIcon()}
+            <span className="text-muted-foreground capitalize">{
+              trend === 'improving' ? 'Melhorando' : 
+              trend === 'declining' ? 'Deteriorando' : 'Estável'
+            }</span>
           </div>
-        )}
+          {categoryScore.risks.filter(r => r.nivel_risco === 'Crítico').length > 0 && (
+            <div className="flex items-center gap-1 text-risk-critical">
+              <AlertTriangle className="w-3 h-3 animate-pulse" />
+              <span className="font-medium">Atenção!</span>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
