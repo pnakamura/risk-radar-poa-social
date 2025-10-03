@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink, Filter, X } from 'lucide-react';
 import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
@@ -69,18 +70,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Filtrar riscos por projeto se selecionado
@@ -198,19 +188,24 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         <ActivityTimeline 
           risks={filteredRisks} 
           selectedProject={selectedProject}
+          loading={loading}
         />
       </div>
 
       {/* Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card 
-          className="interactive-card hover-lift animate-fade-in"
+          className="interactive-card hover-lift animate-fade-in cursor-pointer"
           onClick={() => handleCardClick('total')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('total')}
+          aria-label="Ver todos os riscos"
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-muted rounded-lg">
+                <div className="p-2 bg-muted rounded-lg" aria-hidden="true">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
                 <div className="ml-4">
@@ -219,19 +214,23 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   <p className="text-xs text-muted-foreground mt-1">Clique para ver todos</p>
                 </div>
               </div>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
         <Card 
-          className="interactive-card hover-lift animate-fade-in"
+          className="interactive-card hover-lift animate-fade-in cursor-pointer"
           onClick={() => handleCardClick('critical-high')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('critical-high')}
+          aria-label="Ver riscos críticos e altos"
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-risk-critical-bg rounded-lg">
+                <div className="p-2 bg-risk-critical-bg rounded-lg" aria-hidden="true">
                   <AlertTriangle className="w-6 h-6 text-risk-critical" />
                 </div>
                 <div className="ml-4">
@@ -240,19 +239,23 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
         <Card 
-          className="interactive-card hover-lift animate-fade-in"
+          className="interactive-card hover-lift animate-fade-in cursor-pointer"
           onClick={() => handleCardClick('mitigated')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('mitigated')}
+          aria-label="Ver riscos mitigados"
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-risk-excellent-bg rounded-lg">
+                <div className="p-2 bg-risk-excellent-bg rounded-lg" aria-hidden="true">
                   <CheckCircle className="w-6 h-6 text-risk-excellent" />
                 </div>
                 <div className="ml-4">
@@ -261,19 +264,23 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
 
         <Card 
-          className="interactive-card hover-lift animate-fade-in"
+          className="interactive-card hover-lift animate-fade-in cursor-pointer"
           onClick={() => handleCardClick('monitoring')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('monitoring')}
+          aria-label="Ver riscos em monitoramento"
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-risk-warning-bg rounded-lg">
+                <div className="p-2 bg-risk-warning-bg rounded-lg" aria-hidden="true">
                   <Clock className="w-6 h-6 text-risk-warning" />
                 </div>
                 <div className="ml-4">
@@ -282,7 +289,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   <p className="text-xs text-muted-foreground mt-1">Clique para filtrar</p>
                 </div>
               </div>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
@@ -295,15 +302,25 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
             <CardTitle>Riscos por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryData}>
+            <div className="overflow-x-auto">
+              <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                <BarChart data={categoryData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid stroke={getChartPalette().border} strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fill: getChartPalette().muted }} axisLine={{ stroke: getChartPalette().border }} tickLine={{ stroke: getChartPalette().border }} />
-                  <YAxis tick={{ fill: getChartPalette().muted }} axisLine={{ stroke: getChartPalette().border }} tickLine={{ stroke: getChartPalette().border }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fill: getChartPalette().muted, fontSize: 12 }} 
+                    axisLine={{ stroke: getChartPalette().border }} 
+                    tickLine={{ stroke: getChartPalette().border }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis tick={{ fill: getChartPalette().muted, fontSize: 12 }} axisLine={{ stroke: getChartPalette().border }} tickLine={{ stroke: getChartPalette().border }} />
+                  <Tooltip contentStyle={{ fontSize: '12px' }} />
+                  <Bar dataKey="value" fill={getChartPalette().primary} radius={[4, 4, 0, 0]} />
                 </BarChart>
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -312,22 +329,28 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
             <CardTitle>Distribuição por Nível de Risco</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={300} minWidth={250}>
               <PieChart>
                 <Pie
                   data={riskByLevel}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
+                  label={({ name, value }) => {
+                    // Simplificar label em telas pequenas
+                    if (window.innerWidth < 640) {
+                      return `${name.charAt(0)}: ${value}`;
+                    }
+                    return `${name}: ${value}`;
+                  }}
+                  outerRadius={window.innerWidth < 640 ? 60 : 80}
                   dataKey="value"
                 >
                   {riskByLevel.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

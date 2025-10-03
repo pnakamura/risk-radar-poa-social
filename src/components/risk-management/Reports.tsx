@@ -15,6 +15,7 @@ import { useGlobalFilters } from '@/context/GlobalFilterContext';
 import { getChartPalette } from '@/utils/theme';
 import { ReportsHelpModal } from './help/ReportsHelpModal';
 import { InteractiveCommonCausesAnalysis } from './analysis/InteractiveCommonCausesAnalysis';
+import { ReportsSkeleton } from '@/components/dashboard/ReportsSkeleton';
 // Tipo correto baseado no Supabase
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -37,19 +38,9 @@ const Reports = ({ risks, loading }: ReportsProps) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
   const palette = getChartPalette();
+  
   if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <ReportsSkeleton />;
   }
 
   const filteredRisks = risks
@@ -321,23 +312,27 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={300} minWidth={250}>
                   <PieChart>
                     <Pie
                       data={risksByLevel}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
+                      label={({ name, value }) => {
+                        if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                          return `${name.charAt(0)}: ${value}`;
+                        }
+                        return `${name}: ${value}`;
+                      }}
+                      outerRadius={typeof window !== 'undefined' && window.innerWidth < 640 ? 60 : 80}
                       dataKey="value"
                     >
                       {risksByLevel.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip contentStyle={{ fontSize: '12px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -351,15 +346,25 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={risksByCategory}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
-                    <XAxis dataKey="name" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <Tooltip wrapperClassName="recharts-tooltip-wrapper no-export" />
-                    <Bar dataKey="value" fill={palette.primary} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                    <BarChart data={risksByCategory} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: palette.muted, fontSize: 12 }} 
+                        axisLine={{ stroke: palette.border }} 
+                        tickLine={{ stroke: palette.border }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis tick={{ fill: palette.muted, fontSize: 12 }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                      <Tooltip wrapperClassName="recharts-tooltip-wrapper no-export" contentStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="value" fill={palette.primary} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
@@ -371,15 +376,25 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={risksByStatus}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
-                    <XAxis dataKey="name" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill={palette.excellent} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                    <BarChart data={risksByStatus} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: palette.muted, fontSize: 12 }} 
+                        axisLine={{ stroke: palette.border }} 
+                        tickLine={{ stroke: palette.border }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis tick={{ fill: palette.muted, fontSize: 12 }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                      <Tooltip contentStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="value" fill={palette.excellent} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
 
@@ -442,21 +457,31 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                     <div className="text-lg font-semibold text-foreground">{yoyChange}%</div>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
-                    <XAxis dataKey="month" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="total" stroke={palette.primary} name="Total" strokeWidth={2} />
-                    <Line type="monotone" dataKey="alto" stroke={palette.warning} name="Crítico + Alto" strokeWidth={2} />
-                    <Line type="monotone" dataKey="medio" stroke={palette.good} name="Médio" strokeWidth={2} />
-                    <Line type="monotone" dataKey="baixo" stroke={palette.excellent} name="Baixo" strokeWidth={2} />
-                    <Line type="monotone" dataKey="ma3" stroke={palette.foreground} name="Média móvel (3m)" strokeDasharray="4 4" strokeWidth={2} />
-                    <Line type="monotone" dataKey="cumulativo" stroke={palette.muted} name="Cumulativo" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <ResponsiveContainer width="100%" height={400} minWidth={300}>
+                    <LineChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                      <XAxis 
+                        dataKey="month" 
+                        tick={{ fill: palette.muted, fontSize: 11 }} 
+                        axisLine={{ stroke: palette.border }} 
+                        tickLine={{ stroke: palette.border }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis tick={{ fill: palette.muted, fontSize: 11 }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                      <Tooltip contentStyle={{ fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Line type="monotone" dataKey="total" stroke={palette.primary} name="Total" strokeWidth={2} />
+                      <Line type="monotone" dataKey="alto" stroke={palette.warning} name="Crítico + Alto" strokeWidth={2} />
+                      <Line type="monotone" dataKey="medio" stroke={palette.good} name="Médio" strokeWidth={2} />
+                      <Line type="monotone" dataKey="baixo" stroke={palette.excellent} name="Baixo" strokeWidth={2} />
+                      <Line type="monotone" dataKey="ma3" stroke={palette.foreground} name="Média móvel (3m)" strokeDasharray="4 4" strokeWidth={2} />
+                      <Line type="monotone" dataKey="cumulativo" stroke={palette.muted} name="Cumulativo" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
                 <p className="text-sm text-muted-foreground mt-3">A linha de média móvel (3 meses) suaviza variações e evidencia a tendência geral.</p>
               </CardContent>
             </Card>
@@ -469,18 +494,28 @@ const Reports = ({ risks, loading }: ReportsProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={360}>
-                  <BarChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
-                    <XAxis dataKey="month" tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <YAxis tick={{ fill: palette.muted }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="alto" stackId="a" name="Crítico + Alto" fill={palette.warning} />
-                    <Bar dataKey="medio" stackId="a" name="Médio" fill={palette.good} />
-                    <Bar dataKey="baixo" stackId="a" name="Baixo" fill={palette.excellent} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <ResponsiveContainer width="100%" height={360} minWidth={300}>
+                    <BarChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+                      <XAxis 
+                        dataKey="month" 
+                        tick={{ fill: palette.muted, fontSize: 11 }} 
+                        axisLine={{ stroke: palette.border }} 
+                        tickLine={{ stroke: palette.border }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis tick={{ fill: palette.muted, fontSize: 11 }} axisLine={{ stroke: palette.border }} tickLine={{ stroke: palette.border }} />
+                      <Tooltip contentStyle={{ fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="alto" stackId="a" name="Crítico + Alto" fill={palette.warning} radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="medio" stackId="a" name="Médio" fill={palette.good} />
+                      <Bar dataKey="baixo" stackId="a" name="Baixo" fill={palette.excellent} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
                 <p className="text-sm text-muted-foreground mt-3">Barras empilhadas mostram a composição por nível de severidade mês a mês.</p>
               </CardContent>
             </Card>

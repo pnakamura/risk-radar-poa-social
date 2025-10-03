@@ -14,6 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
@@ -24,9 +25,10 @@ type Risk = Database['public']['Tables']['riscos']['Row'] & {
 interface ActivityTimelineProps {
   risks: Risk[];
   selectedProject?: string;
+  loading?: boolean;
 }
 
-export const ActivityTimeline = ({ risks, selectedProject }: ActivityTimelineProps) => {
+export const ActivityTimeline = ({ risks, selectedProject, loading }: ActivityTimelineProps) => {
   const generateActivities = () => {
     const activities = [];
     const now = new Date();
@@ -152,35 +154,59 @@ export const ActivityTimeline = ({ risks, selectedProject }: ActivityTimelinePro
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {activities.length > 0 ? (
+        {loading ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3 p-3">
+                <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-7 w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : activities.length > 0 ? (
           <div className="space-y-4">
             {activities.map((activity) => {
               const Icon = activity.icon;
               return (
-                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                  <div className={`p-2 rounded-full ${activity.color}`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">{activity.title}</h4>
-                      <Badge variant="outline" className="text-xs">
-                        {activity.time}
-                      </Badge>
+                <Link 
+                  key={activity.id} 
+                  to={activity.link}
+                  className="block focus-ring rounded-lg"
+                  aria-label={`${activity.title}: ${activity.description}`}
+                >
+                  <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                    <div className={`p-2 rounded-full ${activity.color} flex-shrink-0`} aria-hidden="true">
+                      <Icon className="w-4 h-4" />
                     </div>
                     
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {activity.description}
-                    </p>
-                    
-                    <Link to={activity.link}>
-                      <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-medium text-sm truncate">{activity.title}</h4>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {activity.time}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {activity.description}
+                      </p>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="mt-2 h-7 text-xs"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      >
                         {activity.action}
                       </Button>
-                    </Link>
+                    </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
