@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      osrl_assessments: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          osrl_level: number
+          overall_score: number
+          personalized_analysis: Json
+          pillar_scores: Json
+          report_html: string
+          responses: Json
+          timestamp: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          osrl_level: number
+          overall_score: number
+          personalized_analysis: Json
+          pillar_scores: Json
+          report_html: string
+          responses: Json
+          timestamp?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          osrl_level?: number
+          overall_score?: number
+          personalized_analysis?: Json
+          pillar_scores?: Json
+          report_html?: string
+          responses?: Json
+          timestamp?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           cargo: string | null
@@ -46,6 +91,36 @@ export type Database = {
           nome?: string
           role?: Database["public"]["Enums"]["user_role"]
           telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      programas: {
+        Row: {
+          codigo: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -116,6 +191,7 @@ export type Database = {
           projeto_id: string | null
           responsavel_id: string | null
           status: Database["public"]["Enums"]["risk_status"]
+          termo_referencia_id: string | null
           updated_at: string
         }
         Insert: {
@@ -139,6 +215,7 @@ export type Database = {
           projeto_id?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["risk_status"]
+          termo_referencia_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -162,6 +239,7 @@ export type Database = {
           projeto_id?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["risk_status"]
+          termo_referencia_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -184,6 +262,13 @@ export type Database = {
             columns: ["responsavel_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "riscos_termo_referencia_id_fkey"
+            columns: ["termo_referencia_id"]
+            isOneToOne: false
+            referencedRelation: "termos_referencia"
             referencedColumns: ["id"]
           },
         ]
@@ -318,13 +403,192 @@ export type Database = {
           },
         ]
       }
+      templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          downloads: number | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_public: boolean | null
+          metadata: Json | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          downloads?: number | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          downloads?: number | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      termos_referencia: {
+        Row: {
+          budget: string
+          created_at: string
+          created_by: string
+          description: string
+          duration: string
+          error_message: string | null
+          experience_criteria: string
+          experience_weight: number
+          google_docs_url: string | null
+          id: string
+          n8n_processed_at: string | null
+          n8n_request_id: string
+          n8n_response: Json | null
+          objective: string
+          programa_id: string | null
+          requirements: string | null
+          scope: string
+          status: string
+          technical_criteria: string
+          technical_weight: number
+          template_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          budget: string
+          created_at?: string
+          created_by: string
+          description: string
+          duration: string
+          error_message?: string | null
+          experience_criteria: string
+          experience_weight?: number
+          google_docs_url?: string | null
+          id?: string
+          n8n_processed_at?: string | null
+          n8n_request_id: string
+          n8n_response?: Json | null
+          objective: string
+          programa_id?: string | null
+          requirements?: string | null
+          scope: string
+          status?: string
+          technical_criteria: string
+          technical_weight?: number
+          template_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          duration?: string
+          error_message?: string | null
+          experience_criteria?: string
+          experience_weight?: number
+          google_docs_url?: string | null
+          id?: string
+          n8n_processed_at?: string | null
+          n8n_request_id?: string
+          n8n_response?: Json | null
+          objective?: string
+          programa_id?: string | null
+          requirements?: string | null
+          scope?: string
+          status?: string
+          technical_criteria?: string
+          technical_weight?: number
+          template_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "termos_referencia_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "termos_referencia_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       analyze_common_causes: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           categorias: string[]
           causa_descricao: string
@@ -341,7 +605,7 @@ export type Database = {
         }[]
       }
       analyze_common_causes_enhanced: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           categorias: string[]
           causa_descricao: string
@@ -358,6 +622,10 @@ export type Database = {
           tendencia_score: number
         }[]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -365,12 +633,20 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin_or_gestor: {
-        Args: { _user_id: string }
-        Returns: boolean
+      increment_template_downloads: {
+        Args: { template_id: string }
+        Returns: undefined
       }
+      is_admin_or_gestor: { Args: { _user_id: string }; Returns: boolean }
       user_can_access_risk: {
         Args: { _risco_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
     }
