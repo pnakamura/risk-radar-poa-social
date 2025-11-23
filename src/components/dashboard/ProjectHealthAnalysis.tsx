@@ -35,7 +35,7 @@ interface ProjectHealthAnalysisProps {
 
 export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthAnalysisProps) => {
   const isMobile = useIsMobile();
-  const [isExpanded, setIsExpanded] = React.useState(true);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   
   const analysis: NarrativeAnalysis = React.useMemo(() => {
     return generateCompleteAnalysis(risks, selectedProject);
@@ -79,68 +79,52 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
   }
 
   return (
-    <Card className="border-2 border-primary/20 shadow-lg overflow-hidden animate-fade-in">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/30" />
-      
-      <CardHeader className="pb-4 space-y-1">
+    <Card className="border border-border/50 hover:border-primary/30 transition-all overflow-hidden">
+      <CardHeader className="pb-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-base">
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <TrendingUp className="w-4 h-4 text-primary" />
             </div>
             Análise da Saúde do Projeto
+            <Badge className={`${scoreColor.bg} ${scoreColor.text} border ${scoreColor.border} ml-2`}>
+              {scoreValue}/100
+            </Badge>
           </CardTitle>
           
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="shrink-0"
-            >
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 h-8 w-8 p-0"
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Resumo Executivo */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Shield className="w-4 h-4" />
-            Resumo Executivo
-          </div>
-          <p className="text-base leading-relaxed">{analysis.executiveSummary}</p>
+      <CardContent className="space-y-4 pt-0">
+        {/* Resumo Executivo - Sempre Visível */}
+        <div className="pb-2 border-b border-border/50">
+          <p className="text-sm leading-relaxed text-muted-foreground">{analysis.executiveSummary}</p>
         </div>
 
         <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-          <CollapsibleContent className="space-y-6">
+          <CollapsibleContent className="space-y-4 pt-2">
             {/* Significado do Score */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <TrendingUp className="w-4 h-4" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <TrendingUp className="w-3.5 h-3.5" />
                 Significado do Score
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge className={`${scoreColor.bg} ${scoreColor.text} border ${scoreColor.border} text-base px-3 py-1`}>
-                    {analysis.scoreExplanation.label}
-                  </Badge>
-                  <span className="text-2xl font-bold">{scoreValue}/100</span>
-                </div>
+              <div className="space-y-2">
+                <Progress value={scoreValue} className="h-1.5" />
                 
-                <Progress value={scoreValue} className="h-2" />
-                
-                <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-                  <p className="text-sm leading-relaxed">{analysis.scoreExplanation.description}</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    <span className="font-medium">Faixa:</span> {analysis.scoreExplanation.range} pontos
-                  </p>
-                  <div className="pt-2 border-t border-border/50">
-                    <p className="text-sm font-medium text-foreground mb-1">Próximos Passos:</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{analysis.scoreExplanation.implication}</p>
+                <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
+                  <p className="text-xs leading-relaxed">{analysis.scoreExplanation.description}</p>
+                  <div className="pt-1.5 border-t border-border/50">
+                    <p className="text-xs font-medium text-foreground">Próximos Passos:</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{analysis.scoreExplanation.implication}</p>
                   </div>
                 </div>
               </div>
@@ -148,17 +132,17 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
 
             {/* Pontos de Atenção */}
             {analysis.criticalIssues.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <AlertTriangle className="w-4 h-4" />
-                  Pontos de Atenção Prioritários ({analysis.criticalIssues.length})
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Pontos de Atenção ({analysis.criticalIssues.length})
                 </div>
                 
-                <div className="space-y-2">
-                  {analysis.criticalIssues.map((issue, index) => (
+                <div className="space-y-1.5">
+                  {analysis.criticalIssues.slice(0, 4).map((issue, index) => (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 p-3 rounded-lg border ${
+                      className={`flex items-start gap-2 p-2 rounded-md border text-xs ${
                         issue.severity === 'critical' 
                           ? 'bg-risk-critical-bg border-risk-critical/20' 
                           : issue.severity === 'high'
@@ -166,8 +150,8 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
                           : 'bg-muted/30 border-border/50'
                       }`}
                     >
-                      <span className="text-xl shrink-0">{issue.icon}</span>
-                      <p className="text-sm leading-relaxed">{issue.text}</p>
+                      <span className="text-base shrink-0">{issue.icon}</span>
+                      <p className="leading-relaxed">{issue.text}</p>
                     </div>
                   ))}
                 </div>
@@ -176,20 +160,20 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
 
             {/* Forças Identificadas */}
             {analysis.strengths.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Forças Identificadas ({analysis.strengths.length})
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Forças ({analysis.strengths.length})
                 </div>
                 
-                <div className="space-y-2">
-                  {analysis.strengths.map((strength, index) => (
+                <div className="space-y-1.5">
+                  {analysis.strengths.slice(0, 3).map((strength, index) => (
                     <div
                       key={index}
-                      className="flex items-start gap-3 p-3 rounded-lg bg-risk-excellent-bg border border-risk-excellent/20"
+                      className="flex items-start gap-2 p-2 rounded-md bg-risk-excellent-bg border border-risk-excellent/20 text-xs"
                     >
-                      <span className="text-xl shrink-0">{strength.icon}</span>
-                      <p className="text-sm leading-relaxed">{strength.text}</p>
+                      <span className="text-base shrink-0">{strength.icon}</span>
+                      <p className="leading-relaxed">{strength.text}</p>
                     </div>
                   ))}
                 </div>
@@ -197,24 +181,24 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
             )}
 
             {/* Recomendações Acionáveis */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Target className="w-4 h-4" />
-                Recomendações para Melhorar o Score
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <Target className="w-3.5 h-3.5" />
+                Recomendações
               </div>
 
               {/* Urgente */}
               {analysis.recommendations.urgent.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-risk-critical" />
-                    <h4 className="text-sm font-semibold">Urgente (24-48h)</h4>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-risk-critical" />
+                    <h4 className="text-xs font-semibold">Urgente (24-48h)</h4>
                   </div>
-                  <div className="space-y-1 pl-6">
-                    {analysis.recommendations.urgent.map((rec, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-risk-critical shrink-0">→</span>
-                        <p className="text-sm leading-relaxed">{rec}</p>
+                  <div className="space-y-1 pl-5">
+                    {analysis.recommendations.urgent.slice(0, 2).map((rec, index) => (
+                      <div key={index} className="flex items-start gap-1.5">
+                        <span className="text-risk-critical shrink-0 text-xs">→</span>
+                        <p className="text-xs leading-relaxed">{rec}</p>
                       </div>
                     ))}
                   </div>
@@ -223,16 +207,16 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
 
               {/* Curto Prazo */}
               {analysis.recommendations.shortTerm.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-risk-warning" />
-                    <h4 className="text-sm font-semibold">Curto Prazo (esta semana)</h4>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-risk-warning" />
+                    <h4 className="text-xs font-semibold">Curto Prazo</h4>
                   </div>
-                  <div className="space-y-1 pl-6">
-                    {analysis.recommendations.shortTerm.map((rec, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-risk-warning shrink-0">→</span>
-                        <p className="text-sm leading-relaxed">{rec}</p>
+                  <div className="space-y-1 pl-5">
+                    {analysis.recommendations.shortTerm.slice(0, 2).map((rec, index) => (
+                      <div key={index} className="flex items-start gap-1.5">
+                        <span className="text-risk-warning shrink-0 text-xs">→</span>
+                        <p className="text-xs leading-relaxed">{rec}</p>
                       </div>
                     ))}
                   </div>
@@ -241,34 +225,16 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
 
               {/* Médio Prazo */}
               {analysis.recommendations.mediumTerm.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="w-4 h-4 text-category-compliance" />
-                    <h4 className="text-sm font-semibold">Médio Prazo (este mês)</h4>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarClock className="w-3.5 h-3.5 text-category-compliance" />
+                    <h4 className="text-xs font-semibold">Médio Prazo</h4>
                   </div>
-                  <div className="space-y-1 pl-6">
-                    {analysis.recommendations.mediumTerm.map((rec, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-category-compliance shrink-0">→</span>
-                        <p className="text-sm leading-relaxed">{rec}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Melhoria Contínua */}
-              {analysis.recommendations.continuous.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="w-4 h-4 text-primary" />
-                    <h4 className="text-sm font-semibold">Melhoria Contínua</h4>
-                  </div>
-                  <div className="space-y-1 pl-6">
-                    {analysis.recommendations.continuous.map((rec, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-primary shrink-0">→</span>
-                        <p className="text-sm leading-relaxed">{rec}</p>
+                  <div className="space-y-1 pl-5">
+                    {analysis.recommendations.mediumTerm.slice(0, 2).map((rec, index) => (
+                      <div key={index} className="flex items-start gap-1.5">
+                        <span className="text-category-compliance shrink-0 text-xs">→</span>
+                        <p className="text-xs leading-relaxed">{rec}</p>
                       </div>
                     ))}
                   </div>

@@ -107,17 +107,17 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header Section with Gradient Background */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-8 border border-primary/10">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header Section - Compacto */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-6 border border-primary/10">
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-        <div className="relative flex items-center justify-between">
-          <div className="space-y-2">
-            <h3 className="text-3xl font-bold font-heading tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="relative flex items-center justify-between flex-wrap gap-4">
+          <div className="space-y-1">
+            <h3 className="text-2xl font-bold font-heading tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Dashboard de Riscos
             </h3>
-            <p className="text-base text-muted-foreground flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs">
                 {totalRisks}
               </span>
               {selectedProject 
@@ -127,14 +127,14 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
             </p>
           </div>
           
-          {/* Filtro de Projeto com design aprimorado */}
+          {/* Filtro de Projeto */}
           {availableProjects.length > 0 && (
-            <div className="relative flex items-center gap-3 bg-background/80 backdrop-blur-sm rounded-xl p-3 border border-border/50 shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Filter className="w-4 h-4 text-primary" />
+            <div className="relative flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg p-2 border border-border/50 shadow-sm">
+              <div className="p-1.5 bg-primary/10 rounded-md">
+                <Filter className="w-3.5 h-3.5 text-primary" />
               </div>
               <Select value={selectedProject || 'all'} onValueChange={(value) => value === 'all' ? clearFilters({ preserve: [] }) : setFilters({ project: value })}>
-                <SelectTrigger className="w-[240px] border-0 bg-transparent focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="w-[200px] border-0 bg-transparent focus:ring-2 focus:ring-primary/20 h-8 text-sm">
                   <SelectValue placeholder="Todos os projetos" />
                 </SelectTrigger>
                 <SelectContent className="z-[60]">
@@ -153,9 +153,9 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         </div>
       </div>
 
-      {/* Filtros ativos com design melhorado */}
+      {/* Filtros ativos - Compacto */}
       {(filters.project || filters.level || filters.status || filters.category) && (
-        <div className="flex flex-wrap items-center gap-2 p-4 bg-muted/30 rounded-xl border border-border/50 animate-slide-up">
+        <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
           <span className="text-sm font-medium text-muted-foreground">Filtros ativos:</span>
           {filters.project && (
             <Badge variant="secondary" className="flex items-center gap-2 hover-lift bg-category-strategic-bg text-category-strategic border-category-strategic/20">
@@ -214,174 +214,121 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
         />
       </div>
 
-      {/* Métricas Principais - Design Modernizado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Total de Riscos */}
+      {/* Métricas Principais - Compacto */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card 
-          className="group relative overflow-hidden border-2 border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer hover-lift bg-gradient-to-br from-background to-muted/20"
+          className="group relative overflow-hidden border border-border/50 hover:border-primary/30 transition-all cursor-pointer hover-lift"
           onClick={() => handleCardClick('total')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('total')}
-          aria-label="Ver todos os riscos"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-6 relative">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                  <TrendingUp className="w-6 h-6 text-primary" />
-                </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+          <CardContent className="p-4 relative">
+            <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Total de Riscos</p>
-                <p className="text-3xl font-bold text-foreground tracking-tight">{totalRisks}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-primary/60 animate-pulse" />
-                  Clique para explorar
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">Total de Riscos</p>
+                <p className="text-2xl font-bold text-foreground">{totalRisks}</p>
+              </div>
+              <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 2: Críticos/Altos */}
         <Card 
-          className="group relative overflow-hidden border-2 border-border/50 hover:border-risk-critical/30 transition-all duration-300 cursor-pointer hover-lift bg-gradient-to-br from-background to-risk-critical-bg/10"
+          className="group relative overflow-hidden border border-border/50 hover:border-risk-critical/30 transition-all cursor-pointer hover-lift"
           onClick={() => handleCardClick('critical-high')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('critical-high')}
-          aria-label="Ver riscos críticos e altos"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-risk-critical/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-6 relative">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="p-3 bg-gradient-to-br from-risk-critical-bg to-risk-critical-bg/50 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                  <AlertTriangle className="w-6 h-6 text-risk-critical group-hover:animate-pulse" />
-                </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+          <CardContent className="p-4 relative">
+            <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Críticos & Altos</p>
-                <p className="text-3xl font-bold text-risk-critical tracking-tight">{highRisks}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-risk-critical/60 animate-pulse" />
-                  Requer atenção imediata
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">Críticos & Altos</p>
+                <p className="text-2xl font-bold text-risk-critical">{highRisks}</p>
+              </div>
+              <div className="p-2 bg-gradient-to-br from-risk-critical-bg to-risk-critical-bg/50 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-risk-critical" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 3: Mitigados */}
         <Card 
-          className="group relative overflow-hidden border-2 border-border/50 hover:border-risk-excellent/30 transition-all duration-300 cursor-pointer hover-lift bg-gradient-to-br from-background to-risk-excellent-bg/10"
+          className="group relative overflow-hidden border border-border/50 hover:border-risk-excellent/30 transition-all cursor-pointer hover-lift"
           onClick={() => handleCardClick('mitigated')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('mitigated')}
-          aria-label="Ver riscos mitigados"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-risk-excellent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-6 relative">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="p-3 bg-gradient-to-br from-risk-excellent-bg to-risk-excellent-bg/50 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                  <CheckCircle className="w-6 h-6 text-risk-excellent" />
-                </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+          <CardContent className="p-4 relative">
+            <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Riscos Mitigados</p>
-                <p className="text-3xl font-bold text-risk-excellent tracking-tight">{mitigatedRisks}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-risk-excellent/60 animate-pulse" />
-                  Controle efetivo aplicado
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">Mitigados</p>
+                <p className="text-2xl font-bold text-risk-excellent">{mitigatedRisks}</p>
+              </div>
+              <div className="p-2 bg-gradient-to-br from-risk-excellent-bg to-risk-excellent-bg/50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-risk-excellent" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 4: Em Monitoramento */}
         <Card 
-          className="group relative overflow-hidden border-2 border-border/50 hover:border-risk-warning/30 transition-all duration-300 cursor-pointer hover-lift bg-gradient-to-br from-background to-risk-warning-bg/10"
+          className="group relative overflow-hidden border border-border/50 hover:border-risk-warning/30 transition-all cursor-pointer hover-lift"
           onClick={() => handleCardClick('monitoring')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && handleCardClick('monitoring')}
-          aria-label="Ver riscos em monitoramento"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-risk-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-6 relative">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="p-3 bg-gradient-to-br from-risk-warning-bg to-risk-warning-bg/50 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                  <Clock className="w-6 h-6 text-risk-warning" />
-                </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+          <CardContent className="p-4 relative">
+            <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Em Monitoramento</p>
-                <p className="text-3xl font-bold text-risk-warning tracking-tight">{mediumRisks}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-risk-warning/60 animate-pulse" />
-                  Acompanhamento ativo
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">Em Monitoramento</p>
+                <p className="text-2xl font-bold text-risk-warning">{mediumRisks}</p>
+              </div>
+              <div className="p-2 bg-gradient-to-br from-risk-warning-bg to-risk-warning-bg/50 rounded-lg">
+                <Clock className="w-5 h-5 text-risk-warning" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráficos com Design Aprimorado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="animate-fade-in border-2 border-border/50 hover:border-primary/20 transition-all duration-300 hover-lift overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/30" />
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-2 bg-primary/10 rounded-lg">
+      {/* Gráficos - Compacto */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="border border-border/50 hover:border-primary/20 transition-all overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <div className="p-1.5 bg-primary/10 rounded-lg">
                 <BarChart3 className="w-4 h-4 text-primary" />
               </div>
               Riscos por Categoria
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto bg-muted/20 rounded-lg p-4">
-              <ResponsiveContainer width="100%" height={300} minWidth={300}>
+          <CardContent className="pt-0">
+            <div className="overflow-x-auto bg-muted/20 rounded-lg p-3">
+              <ResponsiveContainer width="100%" height={250} minWidth={300}>
                 <BarChart data={categoryData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid stroke={getChartPalette().border} strokeDasharray="3 3" opacity={0.3} />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fill: getChartPalette().muted, fontSize: 12 }} 
+                    tick={{ fill: getChartPalette().muted, fontSize: 11 }} 
                     axisLine={{ stroke: getChartPalette().border }} 
                     tickLine={{ stroke: getChartPalette().border }}
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={70}
                   />
                   <YAxis 
-                    tick={{ fill: getChartPalette().muted, fontSize: 12 }} 
+                    tick={{ fill: getChartPalette().muted, fontSize: 11 }} 
                     axisLine={{ stroke: getChartPalette().border }} 
                     tickLine={{ stroke: getChartPalette().border }} 
                   />
                   <Tooltip 
                     contentStyle={{ 
-                      fontSize: '12px', 
+                      fontSize: '11px', 
                       backgroundColor: 'hsl(var(--background))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 4px -1px rgb(0 0 0 / 0.1)'
                     }} 
                   />
                   <Bar 
                     dataKey="value" 
                     fill={getChartPalette().primary} 
-                    radius={[8, 8, 0, 0]}
-                    animationDuration={800}
+                    radius={[6, 6, 0, 0]}
+                    animationDuration={600}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -389,19 +336,18 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           </CardContent>
         </Card>
 
-        <Card className="animate-fade-in border-2 border-border/50 hover:border-primary/20 transition-all duration-300 hover-lift overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-risk-critical via-risk-warning to-risk-excellent" />
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-2 bg-primary/10 rounded-lg">
+        <Card className="border border-border/50 hover:border-primary/20 transition-all overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <div className="p-1.5 bg-primary/10 rounded-lg">
                 <Layers className="w-4 h-4 text-primary" />
               </div>
-              Distribuição por Nível de Risco
+              Distribuição por Nível
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-muted/20 rounded-lg p-4">
-              <ResponsiveContainer width="100%" height={300} minWidth={250}>
+              <ResponsiveContainer width="100%" height={250} minWidth={250}>
                 <PieChart>
                   <Pie
                     data={riskByLevel}
@@ -409,15 +355,14 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                     cy="50%"
                     labelLine={false}
                     label={({ name, value }) => {
-                      // Simplificar label em telas pequenas
                       if (window.innerWidth < 640) {
                         return `${name.charAt(0)}: ${value}`;
                       }
                       return `${name}: ${value}`;
                     }}
-                    outerRadius={window.innerWidth < 640 ? 60 : 80}
+                    outerRadius={window.innerWidth < 640 ? 55 : 75}
                     dataKey="value"
-                    animationDuration={800}
+                    animationDuration={600}
                   >
                     {riskByLevel.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -425,11 +370,11 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      fontSize: '12px',
+                      fontSize: '11px',
                       backgroundColor: 'hsl(var(--background))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 4px -1px rgb(0 0 0 / 0.1)'
                     }} 
                   />
                 </PieChart>
