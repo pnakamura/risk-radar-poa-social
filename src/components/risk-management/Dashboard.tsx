@@ -13,6 +13,12 @@ import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
 import { getChartPalette } from '@/utils/theme';
+import { 
+  calculateAdvancedHealthScore, 
+  calculateCategoryHealthScores, 
+  calculateWeightedOverallScore 
+} from '@/utils/riskHealthCalculations';
+import { normalizeScore } from '@/utils/scoreNormalization';
 type Risk = Database['public']['Tables']['riscos']['Row'] & {
   responsavel?: { nome: string } | null;
   projeto?: { nome: string } | null;
@@ -78,6 +84,15 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   const filteredRisks = selectedProject 
     ? risks.filter(risk => risk.projeto?.nome === selectedProject)
     : risks;
+
+  // Calcular score normalizado uma única vez
+  const normalizedHealthScore = React.useMemo(() => {
+    const healthScore = calculateAdvancedHealthScore(filteredRisks);
+    const categoryScores = calculateCategoryHealthScores(filteredRisks);
+    const weightedScore = calculateWeightedOverallScore(categoryScores);
+    const rawScore = weightedScore || healthScore.finalScore;
+    return normalizeScore(rawScore);
+  }, [filteredRisks]);
 
   // Calcular métricas baseadas nos riscos filtrados
   const totalRisks = filteredRisks.length;
@@ -199,13 +214,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
       <ProjectHealthAnalysis 
         risks={filteredRisks}
         selectedProject={selectedProject || undefined}
-        normalizedScore={(() => {
-          const healthScore = require('@/utils/riskHealthCalculations').calculateAdvancedHealthScore(filteredRisks);
-          const categoryScores = require('@/utils/riskHealthCalculations').calculateCategoryHealthScores(filteredRisks);
-          const weightedScore = require('@/utils/riskHealthCalculations').calculateWeightedOverallScore(categoryScores);
-          const rawScore = weightedScore || healthScore.finalScore;
-          return require('@/utils/scoreNormalization').normalizeScore(rawScore);
-        })()}
+        normalizedScore={normalizedHealthScore}
       />
 
       {/* Risk Health Score e Activity Timeline */}
