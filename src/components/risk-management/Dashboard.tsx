@@ -12,7 +12,7 @@ import { ProjectHealthAnalysis } from '@/components/dashboard/ProjectHealthAnaly
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
-import { getChartPalette } from '@/utils/theme';
+import { getChartPalette, getCategoryColor } from '@/utils/theme';
 import { 
   calculateAdvancedHealthScore, 
   calculateCategoryHealthScores, 
@@ -111,17 +111,16 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
 
   const categoryData = Object.entries(riskByCategory).map(([name, value]) => ({
     name,
-    value
+    value,
+    fill: getCategoryColor(name)
   }));
 
   const riskByLevel = [
-    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, color: getChartPalette().critical },
-    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, color: getChartPalette().warning },
-    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, color: getChartPalette().good },
-    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, color: getChartPalette().excellent }
+    { name: 'Crítico', value: filteredRisks.filter(r => r.nivel_risco === 'Crítico').length, fill: getChartPalette().critical },
+    { name: 'Alto', value: filteredRisks.filter(r => r.nivel_risco === 'Alto').length, fill: getChartPalette().warning },
+    { name: 'Médio', value: filteredRisks.filter(r => r.nivel_risco === 'Médio').length, fill: getChartPalette().good },
+    { name: 'Baixo', value: filteredRisks.filter(r => r.nivel_risco === 'Baixo').length, fill: getChartPalette().excellent }
   ];
- 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -344,10 +343,13 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                   />
                   <Bar 
                     dataKey="value" 
-                    fill={getChartPalette().primary} 
                     radius={[6, 6, 0, 0]}
                     animationDuration={600}
-                  />
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -383,7 +385,7 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
                     animationDuration={600}
                   >
                     {riskByLevel.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip 
