@@ -38,7 +38,6 @@ const Index = () => {
       tab: value
     });
   };
-  
   const handleSearchResult = (risk: any) => {
     // Navegar para a página de detalhes do risco ou abrir modal
     navigate(`/risco/${risk.id}`);
@@ -84,12 +83,7 @@ const Index = () => {
                   <p className="text-sm text-gray-600">Bem-vindo,</p>
                   <p className="font-medium">{profile.nome}</p>
                 </div>}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate('/ajuda')}
-                aria-label="Central de Ajuda"
-              >
+              <Button variant="ghost" size="icon" onClick={() => navigate('/ajuda')} aria-label="Central de Ajuda">
                 <HelpCircle className="w-5 h-5" />
               </Button>
               <ThemeToggle />
@@ -105,63 +99,36 @@ const Index = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
             <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
               <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 overflow-hidden bg-white shadow-lg rounded-lg p-1 h-auto gap-1 min-w-[500px] sm:min-w-0">
-                <TabsTrigger 
-                  value="dashboard" 
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap"
-                  aria-label="Ir para Dashboard"
-                >
+                <TabsTrigger value="dashboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" aria-label="Ir para Dashboard">
                   <TrendingUp className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline">Dashboard</span>
                   <span className="sm:hidden text-[10px]">Dash</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="matrix" 
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap"
-                  aria-label="Ir para Matriz de Riscos"
-                >
+                <TabsTrigger value="matrix" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" aria-label="Ir para Matriz de Riscos">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline">Matriz de Riscos</span>
                   <span className="sm:hidden text-[10px]">Matriz</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="reports" 
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap"
-                  aria-label="Ir para Relatórios"
-                >
+                <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" aria-label="Ir para Relatórios">
                   <FileBarChart className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline">Relatórios</span>
                   <span className="sm:hidden text-[10px]">Relat.</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="form" 
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap"
-                  aria-label="Ir para Gerenciar Riscos"
-                >
+                <TabsTrigger value="form" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" aria-label="Ir para Gerenciar Riscos">
                   <Shield className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="hidden sm:inline">Gerenciar Riscos</span>
+                  <span className="hidden sm:inline">Cadastrar Riscos</span>
                   <span className="sm:hidden text-[10px]">Ger.</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="master-data" 
-                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap"
-                  aria-label="Ir para Dados Mestres"
-                >
+                <TabsTrigger value="master-data" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" aria-label="Ir para Dados Mestres">
                   <Database className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline">Dados Mestres</span>
                   <span className="sm:hidden text-[10px]">Dados</span>
                 </TabsTrigger>
-                {(profile?.role === 'admin' || profile?.role === 'gestor') && 
-                  <TabsTrigger 
-                    value="users" 
-                    className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" 
-                    onClick={() => navigate('/usuarios')}
-                    aria-label="Ir para Usuários"
-                  >
+                {(profile?.role === 'admin' || profile?.role === 'gestor') && <TabsTrigger value="users" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm min-h-[60px] sm:min-h-[auto] whitespace-nowrap" onClick={() => navigate('/usuarios')} aria-label="Ir para Usuários">
                     <Users className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                     <span className="hidden sm:inline">Usuários</span>
                     <span className="sm:hidden text-[10px]">Users</span>
-                  </TabsTrigger>
-                }
+                  </TabsTrigger>}
               </TabsList>
             </div>
 
