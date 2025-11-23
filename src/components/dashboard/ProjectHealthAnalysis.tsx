@@ -31,28 +31,24 @@ type Risk = Database['public']['Tables']['riscos']['Row'] & {
 interface ProjectHealthAnalysisProps {
   risks: Risk[];
   selectedProject?: string;
+  normalizedScore: number;
 }
 
-export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthAnalysisProps) => {
+export const ProjectHealthAnalysis = ({ risks, selectedProject, normalizedScore }: ProjectHealthAnalysisProps) => {
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = React.useState(false);
   
   const analysis: NarrativeAnalysis = React.useMemo(() => {
-    return generateCompleteAnalysis(risks, selectedProject);
-  }, [risks, selectedProject]);
+    return generateCompleteAnalysis(risks, normalizedScore, selectedProject);
+  }, [risks, normalizedScore, selectedProject]);
 
   const scoreColor = React.useMemo(() => {
-    const score = parseInt(analysis.scoreExplanation.range.split('-')[0]);
-    if (score >= 81) return { bg: 'bg-risk-excellent-bg', text: 'text-risk-excellent', border: 'border-risk-excellent/20' };
-    if (score >= 61) return { bg: 'bg-category-compliance-bg', text: 'text-category-compliance', border: 'border-category-compliance/20' };
-    if (score >= 41) return { bg: 'bg-risk-warning-bg', text: 'text-risk-warning', border: 'border-risk-warning/20' };
-    if (score >= 21) return { bg: 'bg-risk-critical-bg', text: 'text-risk-critical', border: 'border-risk-critical/20' };
+    if (normalizedScore >= 81) return { bg: 'bg-risk-excellent-bg', text: 'text-risk-excellent', border: 'border-risk-excellent/20' };
+    if (normalizedScore >= 61) return { bg: 'bg-category-compliance-bg', text: 'text-category-compliance', border: 'border-category-compliance/20' };
+    if (normalizedScore >= 41) return { bg: 'bg-risk-warning-bg', text: 'text-risk-warning', border: 'border-risk-warning/20' };
+    if (normalizedScore >= 21) return { bg: 'bg-risk-critical-bg', text: 'text-risk-critical', border: 'border-risk-critical/20' };
     return { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/20' };
-  }, [analysis.scoreExplanation.range]);
-
-  const scoreValue = React.useMemo(() => {
-    return parseInt(analysis.scoreExplanation.range.split('-')[0]);
-  }, [analysis.scoreExplanation.range]);
+  }, [normalizedScore]);
 
   if (risks.length === 0) {
     return (
@@ -88,7 +84,7 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
             </div>
             Análise da Saúde do Projeto
             <Badge className={`${scoreColor.bg} ${scoreColor.text} border ${scoreColor.border} ml-2`}>
-              {scoreValue}/100
+              {normalizedScore}/100
             </Badge>
           </CardTitle>
           
@@ -118,7 +114,7 @@ export const ProjectHealthAnalysis = ({ risks, selectedProject }: ProjectHealthA
               </div>
               
               <div className="space-y-2">
-                <Progress value={scoreValue} className="h-1.5" />
+                <Progress value={normalizedScore} className="h-1.5" />
                 
                 <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
                   <p className="text-xs leading-relaxed">{analysis.scoreExplanation.description}</p>
