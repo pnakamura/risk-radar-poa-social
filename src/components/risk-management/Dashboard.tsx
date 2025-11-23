@@ -8,6 +8,7 @@ import { TrendingUp, AlertTriangle, CheckCircle, Clock, ExternalLink, Filter, X,
 import { RiskHealthScore } from '@/components/dashboard/RiskHealthScore';
 import { ActivityTimeline } from '@/components/dashboard/ActivityTimeline';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { ProjectHealthAnalysis } from '@/components/dashboard/ProjectHealthAnalysis';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { useGlobalFilters } from '@/context/GlobalFilterContext';
@@ -193,6 +194,12 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
           </Button>
         </div>
       )}
+
+      {/* Análise Narrativa da Saúde do Projeto */}
+      <ProjectHealthAnalysis 
+        risks={filteredRisks}
+        selectedProject={selectedProject || undefined}
+      />
 
       {/* Risk Health Score e Activity Timeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
