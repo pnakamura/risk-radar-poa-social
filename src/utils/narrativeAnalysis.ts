@@ -425,11 +425,11 @@ export const generatePrioritizedRecommendations = (
 // Função principal que orquestra toda a análise narrativa
 export const generateCompleteAnalysis = (
   risks: Risk[],
+  normalizedScore: number,
   projectName?: string
 ): NarrativeAnalysis => {
   const healthScore = calculateAdvancedHealthScore(risks);
   const metrics = calculateMitigationMetrics(risks);
-  const normalizedScore = Math.round((healthScore.finalScore / 85) * 100);
 
   const executiveSummary = generateExecutiveSummary(normalizedScore, risks.length, projectName);
   const scoreExplanation = explainHealthScore(normalizedScore, healthScore);

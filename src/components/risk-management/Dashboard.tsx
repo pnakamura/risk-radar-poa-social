@@ -199,6 +199,13 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
       <ProjectHealthAnalysis 
         risks={filteredRisks}
         selectedProject={selectedProject || undefined}
+        normalizedScore={(() => {
+          const healthScore = require('@/utils/riskHealthCalculations').calculateAdvancedHealthScore(filteredRisks);
+          const categoryScores = require('@/utils/riskHealthCalculations').calculateCategoryHealthScores(filteredRisks);
+          const weightedScore = require('@/utils/riskHealthCalculations').calculateWeightedOverallScore(categoryScores);
+          const rawScore = weightedScore || healthScore.finalScore;
+          return require('@/utils/scoreNormalization').normalizeScore(rawScore);
+        })()}
       />
 
       {/* Risk Health Score e Activity Timeline */}
