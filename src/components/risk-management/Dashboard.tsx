@@ -45,6 +45,22 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
     return projects;
   }, [risks]);
 
+  // Filtrar riscos por projeto se selecionado
+  const filteredRisks = React.useMemo(() => {
+    return selectedProject 
+      ? risks.filter(risk => risk.projeto?.nome === selectedProject)
+      : risks;
+  }, [risks, selectedProject]);
+
+  // Calcular score normalizado uma única vez
+  const normalizedHealthScore = React.useMemo(() => {
+    const healthScore = calculateAdvancedHealthScore(filteredRisks);
+    const categoryScores = calculateCategoryHealthScores(filteredRisks);
+    const weightedScore = calculateWeightedOverallScore(categoryScores);
+    const rawScore = weightedScore || healthScore.finalScore;
+    return normalizeScore(rawScore);
+  }, [filteredRisks]);
+
   const handleCardClick = (filterType: string, filterValue?: string) => {
     type FilterOverrides = Partial<Record<'project' | 'category' | 'level' | 'status' | 'search', string>>;
     const base: FilterOverrides = { category: '', status: '', search: '', level: '' };
@@ -79,20 +95,6 @@ const Dashboard = ({ risks, loading }: DashboardProps) => {
   if (loading) {
     return <DashboardSkeleton />;
   }
-
-  // Filtrar riscos por projeto se selecionado
-  const filteredRisks = selectedProject 
-    ? risks.filter(risk => risk.projeto?.nome === selectedProject)
-    : risks;
-
-  // Calcular score normalizado uma única vez
-  const normalizedHealthScore = React.useMemo(() => {
-    const healthScore = calculateAdvancedHealthScore(filteredRisks);
-    const categoryScores = calculateCategoryHealthScores(filteredRisks);
-    const weightedScore = calculateWeightedOverallScore(categoryScores);
-    const rawScore = weightedScore || healthScore.finalScore;
-    return normalizeScore(rawScore);
-  }, [filteredRisks]);
 
   // Calcular métricas baseadas nos riscos filtrados
   const totalRisks = filteredRisks.length;
