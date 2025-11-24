@@ -82,23 +82,59 @@ export const useSupabaseRiskData = () => {
   const fetchRisks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar riscos primeiro
+      const { data: riscosData, error: riscosError } = await supabase
         .from('riscos')
-        .select(`
-          *,
-          responsavel:profiles!riscos_responsavel_id_fkey(id, nome, email, cargo, departamento, role, telefone, created_at, updated_at),
-          projeto:projetos(id, nome, descricao),
-          criador:profiles!riscos_criado_por_fkey(id, nome, email, cargo, departamento, role, telefone, created_at, updated_at)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Erro ao buscar riscos:', error);
-        toast.error('Erro ao carregar riscos: ' + error.message);
+      if (riscosError) {
+        console.error('Erro ao buscar riscos:', riscosError);
+        toast.error('Erro ao carregar riscos: ' + riscosError.message);
         setRisks([]);
-      } else {
-        setRisks(data || []);
+        setLoading(false);
+        return;
       }
+
+      if (!riscosData || riscosData.length === 0) {
+        setRisks([]);
+        setLoading(false);
+        return;
+      }
+
+      // Buscar perfis relacionados
+      const responsavelIds = riscosData.map(r => r.responsavel_id).filter(Boolean);
+      const criadorIds = riscosData.map(r => r.criado_por).filter(Boolean);
+      const allProfileIds = [...new Set([...responsavelIds, ...criadorIds])];
+
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, nome, email, cargo, departamento, role, telefone, created_at, updated_at')
+        .in('id', allProfileIds);
+
+      // Buscar projetos relacionados
+      const projetoIds = riscosData.map(r => r.projeto_id).filter(Boolean);
+      const { data: projetosData } = projetoIds.length > 0 ? await supabase
+        .from('projetos')
+        .select('id, nome, descricao')
+        .in('id', projetoIds) : { data: [] };
+
+      // Mapear dados relacionados
+      const profilesMap = new Map<string, ProfileBasic>(
+        (profilesData || []).map(p => [p.id, p])
+      );
+      const projetosMap = new Map<string, ProjetoBasic>(
+        (projetosData || []).map(p => [p.id, p])
+      );
+
+      const enrichedRisks: Risk[] = riscosData.map(risco => ({
+        ...risco,
+        responsavel: risco.responsavel_id ? (profilesMap.get(risco.responsavel_id) || null) : null,
+        criador: risco.criado_por ? (profilesMap.get(risco.criado_por) || null) : null,
+        projeto: risco.projeto_id ? (projetosMap.get(risco.projeto_id) || null) : null,
+      }));
+
+      setRisks(enrichedRisks);
     } catch (error) {
       console.error('Erro inesperado ao buscar riscos:', error);
       toast.error('Erro inesperado ao carregar riscos');
