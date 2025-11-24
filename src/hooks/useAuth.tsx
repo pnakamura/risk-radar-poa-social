@@ -63,14 +63,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      console.log('[Supabase][auth] Buscando perfil do usuário:', userId);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (data && !error) {
+      if (error) {
+        console.error('[Supabase][auth] Erro ao buscar perfil:', {
+          message: error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+        return;
+      }
+
+      if (!data) {
+        console.warn('[Supabase][auth] Nenhum perfil encontrado para usuário:', userId);
+        setProfile(null);
+        return;
+      }
+
       setProfile(data);
+    } catch (error) {
+      console.error('[Supabase][auth] Erro inesperado ao buscar perfil:', error);
     }
   };
 
