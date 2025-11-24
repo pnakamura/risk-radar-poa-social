@@ -39,20 +39,42 @@ export const useSupabaseRiskData = () => {
 
   const fetchProfiles = async () => {
     try {
+      console.log('[Supabase][profiles] Teste de query mínima...');
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+
+      if (testError) {
+        console.error('[Supabase][profiles] Erro na query mínima:', {
+          message: testError.message,
+          code: (testError as any).code,
+          details: (testError as any).details,
+          hint: (testError as any).hint,
+        });
+      } else {
+        console.log('[Supabase][profiles] Query mínima OK. Registros retornados:', testData?.length ?? 0);
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nome, email, cargo, departamento, role, telefone, created_at, updated_at')
         .order('nome');
 
       if (error) {
-        console.error('Erro ao buscar perfis:', error);
-        toast.error('Erro ao carregar perfis');
+        console.error('[Supabase][profiles] Erro ao buscar perfis completos:', {
+          message: error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+        toast.error('Erro ao carregar perfis: ' + error.message);
         setProfiles([]);
       } else {
         setProfiles(data || []);
       }
     } catch (error) {
-      console.error('Erro inesperado ao buscar perfis:', error);
+      console.error('[Supabase][profiles] Erro inesperado ao buscar perfis:', error);
       toast.error('Erro inesperado ao carregar perfis');
       setProfiles([]);
     }
@@ -66,14 +88,19 @@ export const useSupabaseRiskData = () => {
         .order('nome');
 
       if (error) {
-        console.error('Erro ao buscar projetos:', error);
-        toast.error('Erro ao carregar projetos');
+        console.error('[Supabase][projetos] Erro ao buscar projetos:', {
+          message: error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+        toast.error('Erro ao carregar projetos: ' + error.message);
         setProjects([]);
       } else {
         setProjects(data || []);
       }
     } catch (error) {
-      console.error('Erro inesperado ao buscar projetos:', error);
+      console.error('[Supabase][projetos] Erro inesperado ao buscar projetos:', error);
       toast.error('Erro inesperado ao carregar projetos');
       setProjects([]);
     }
@@ -107,17 +134,41 @@ export const useSupabaseRiskData = () => {
       const criadorIds = riscosData.map(r => r.criado_por).filter(Boolean);
       const allProfileIds = [...new Set([...responsavelIds, ...criadorIds])];
 
-      const { data: profilesData } = await supabase
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, nome, email, cargo, departamento, role, telefone, created_at, updated_at')
         .in('id', allProfileIds);
 
+      if (profilesError) {
+        console.error('[Supabase][riscos] Erro ao buscar perfis relacionados:', {
+          message: profilesError.message,
+          code: (profilesError as any).code,
+          details: (profilesError as any).details,
+          hint: (profilesError as any).hint,
+        });
+      }
+
       // Buscar projetos relacionados
       const projetoIds = riscosData.map(r => r.projeto_id).filter(Boolean);
-      const { data: projetosData } = projetoIds.length > 0 ? await supabase
-        .from('projetos')
-        .select('id, nome, descricao')
-        .in('id', projetoIds) : { data: [] };
+      let projetosData: ProjetoBasic[] | null = [];
+
+      if (projetoIds.length > 0) {
+        const { data, error: projetosError } = await supabase
+          .from('projetos')
+          .select('id, nome, descricao')
+          .in('id', projetoIds);
+
+        if (projetosError) {
+          console.error('[Supabase][riscos] Erro ao buscar projetos relacionados:', {
+            message: projetosError.message,
+            code: (projetosError as any).code,
+            details: (projetosError as any).details,
+            hint: (projetosError as any).hint,
+          });
+        }
+
+        projetosData = (data as any) || [];
+      }
 
       // Mapear dados relacionados
       const profilesMap = new Map<string, ProfileBasic>(
